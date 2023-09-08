@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'import_export',
+    'django_extensions',
+    'location_field.apps.DefaultConfig',
     'corsheaders',
     'user',
     'rest_framework',
@@ -95,13 +97,26 @@ WSGI_APPLICATION = "TogedaBackend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#         # Other database settings...
+#     }
+# }
+
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        # Other database settings...
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': '2gedadb',      # Name of your MySQL database
+        'USER': 'root',  # Your MySQL username
+        'PASSWORD': 'root',    # Your MySQL password
+        'HOST': 'localhost',       # Set the host to the MySQL server
+        'PORT': '3306',            # MySQL server port (default is 3306)
     }
 }
+
 
 
 # Password validation

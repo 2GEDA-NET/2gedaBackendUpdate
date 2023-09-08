@@ -38,3 +38,7 @@ class BusinessProfileAdmin(ImportExportModelAdmin):
 class ReportedUserAdmin(ImportExportModelAdmin):
     list_display = ('user', 'is_banned', 'is_disabled')
     list_editable = ['is_banned', 'is_disabled',]
+
+@admin.register(Address)
+class AddressAdmin(ImportExportModelAdmin):
+    list_display = ('country', 'city', 'location')

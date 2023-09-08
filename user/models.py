@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractUser, User
 from django.utils.translation import gettext as _
 from django.conf import settings
 from .managers import UserManager
+from location_field.models.plain import PlainLocationField
+# from django.contrib.gis.db import models as gis_models
 
 # Create your models here.
 
@@ -14,7 +16,8 @@ class User(AbstractUser):
         default=False, verbose_name='Personal Account')
     is_admin = models.BooleanField(default=False, verbose_name='Admin Account')
     phone_number = models.BigIntegerField(unique=True, null=True, blank=True)
-    is_verified = models.BooleanField(default = False, verbose_name = 'Verified')
+    is_verified = models.BooleanField(default=False, verbose_name='Verified')
+    # location = gis_models.PointField(null=True, blank=True)
 
     objects = UserManager()
 
@@ -67,43 +70,38 @@ class UserProfile(models.Model):
         return self.user.username
 
 
-# class BusinessAvailability(models.Model):
-#     business = models.ForeignKey('BusinessProfile', on_delete=models.CASCADE)
-#     start_day = models.CharField(
-#         max_length=15, choices=DAYS_OF_THE_WEEK_CHOICES, blank=True, null=True)
-#     end_day = models.CharField(
-#         max_length=15, choices=DAYS_OF_THE_WEEK_CHOICES, blank=True, null=True)
-#     opening_time = models.TimeField(auto_now=False)
-#     closing_time = models.TimeField(auto_now=False)
-
-
 class BusinessAvailability(models.Model):
     business = models.OneToOneField('BusinessProfile', on_delete=models.CASCADE)
     always_available = models.BooleanField(default=False)
     # Define availability for each day of the week
+    # sunday
     sunday = models.BooleanField(default=False)
-    monday = models.BooleanField(default=False)
-    tuesday = models.BooleanField(default=False)
-    wednesday = models.BooleanField(default=False)
-    thursday = models.BooleanField(default=False)
-    friday = models.BooleanField(default=False)
-    saturday = models.BooleanField(default=False)
-    # Define opening and closing times for each day
     sunday_open = models.TimeField(null=True, blank=True)
     sunday_close = models.TimeField(null=True, blank=True)
+    # monday
+    monday = models.BooleanField(default=False)
     monday_open = models.TimeField(null=True, blank=True)
     monday_close = models.TimeField(null=True, blank=True)
+    # tuesday
+    tuesday = models.BooleanField(default=False)
     tuesday_open = models.TimeField(null=True, blank=True)
     tuesday_close = models.TimeField(null=True, blank=True)
+    # wednesday
+    wednesday = models.BooleanField(default=False)
     wednesday_open = models.TimeField(null=True, blank=True)
     wednesday_close = models.TimeField(null=True, blank=True)
+    # thursday
+    thursday = models.BooleanField(default=False)
     thursday_open = models.TimeField(null=True, blank=True)
     thursday_close = models.TimeField(null=True, blank=True)
+    # friday
+    friday = models.BooleanField(default=False)
     friday_open = models.TimeField(null=True, blank=True)
     friday_close = models.TimeField(null=True, blank=True)
+    # saturday
+    saturday = models.BooleanField(default=False)
     saturday_open = models.TimeField(null=True, blank=True)
     saturday_close = models.TimeField(null=True, blank=True)
-    # Repeat the pattern for other days...
 
     def __str__(self):
         return f"Availability for {self.user.username}"
@@ -121,11 +119,6 @@ class BusinessProfile(models.Model):
     address = models.ForeignKey('Address', on_delete = models.CASCADE)
 
 
-class ReportedUser(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    description = models.TextField()
-    is_banned = models.BooleanField(default=False, verbose_name='Banned')
-    is_disabled = models.BooleanField(default=False, verbose_name='Disabled')
 
 
 class Address(models.Model):
@@ -133,13 +126,21 @@ class Address(models.Model):
     city = models.CharField(max_length=100)
     street_address = models.CharField(max_length=100)
     apartment_address = models.CharField(max_length=100)
+    location = PlainLocationField(based_fields=['city'], zoom=7)
     postal_code = models.CharField(max_length=20, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
 
     class Meta:
         ordering = ('-created_at', )
 
     def __str__(self):
-        return str(self.country + ',' + city)
+        return str(self.country + ',' + self.city)
 
+
+class ReportedUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    description = models.TextField()
+    is_banned = models.BooleanField(default=False, verbose_name='Banned')
+    is_disabled = models.BooleanField(default=False, verbose_name='Disabled')

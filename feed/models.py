@@ -8,29 +8,29 @@ class PostMedia(models.Model):
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE)
-    image = models.ForeignKey(PostMedia, on_delete = models.SET_NULL)
+    image = models.ForeignKey(PostMedia, on_delete = models.SET_NULL, null=True)
     content = models.TextField()
     timestamp = models.TimeField()
-    reaction = models.ForeignKey('Reaction', on_delete = models.SET_NULL)
-    comments = models.ForeignKey('Comment', on_delete = models.SET_NULL)
+    reaction = models.ForeignKey('Reaction', on_delete = models.SET_NULL, null=True)
+    comments = models.ForeignKey('Comment', on_delete = models.SET_NULL, null=True, related_name='post_comments')
     share = models.IntegerField()
     is_business_post = models.BooleanField(default = False, verbose_name = 'Business Post')
     is_personal_post = models.BooleanField(default = True, verbose_name = 'Personal Post')
 
 
 class Comment(models.Model):
-    user = models.ForeignKey(User, on_delete = models.CASCADE)
-    post = models.ForeignKey(Post, on_delete = models.CASCADE)
+    user = models.ForeignKey(User, on_delete = models.CASCADE, null=True)
+    post = models.ForeignKey(Post, on_delete = models.CASCADE, null=True)
     content = models.TextField()
-    reaction = models.ForeignKey('Reaction', on_delete = models.SET_NULL)
+    reaction = models.ForeignKey('Reaction', on_delete = models.SET_NULL, null=True)
     timestamp = models.TimeField()
 
 
 class Reply(models.Model):
-    user = models.ForeignKey(User, on_delete = models.CASCADE)
-    comment = models.ForeignKey(Comment, on_delete = models.CASCADE)
+    user = models.ForeignKey(User, on_delete = models.CASCADE, null=True)
+    comment = models.ForeignKey(Comment, on_delete = models.CASCADE, null=True)
     content = models.TextField()
-    reaction = models.ForeignKey('Reaction', on_delete = models.SET_NULL)
+    reaction = models.ForeignKey('Reaction', on_delete = models.SET_NULL, null=True)
     
 class Reaction(models.Model):
     is_like = models.BooleanField(default = False, verbose_name='Like', null= True, blank= True)
@@ -44,16 +44,16 @@ class Reaction(models.Model):
 
 
 class Repost(models.Model):
-    user = models.ForeignKey(User, on_delete = models.SET_NULL)
+    user = models.ForeignKey(User, on_delete = models.SET_NULL, null=True)
     content = models.TextField()
-    post = models.ForeignKey(Post, on_delete = models.SET_NULL)
+    post = models.ForeignKey(Post, on_delete = models.SET_NULL, null=True)
     timestamp = models.TimeField()
-    reaction = models.ForeignKey('Reaction', on_delete = models.SET_NULL)
-    comments = models.ForeignKey('Comment', on_delete = models.SET_NULL)
+    reaction = models.ForeignKey('Reaction', on_delete = models.SET_NULL, null=True)
+    comments = models.ForeignKey('Comment', on_delete = models.SET_NULL, null=True)
     
 class SavedPost(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE)
-    post = models.ForeignKey(Post, on_delete = models.SET_NULL)
+    post = models.ForeignKey(Post, on_delete = models.SET_NULL, null=True)
     timestamp = models.TimeField()
     
     

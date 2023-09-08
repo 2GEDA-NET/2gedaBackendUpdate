@@ -99,3 +99,87 @@ class ReportedUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReportedUser
         fields = '__all__'
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
+
+class BusinessCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessCategory
+        fields = '__all__'
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = '__all__'
+
+class BusinessAvailabilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessAvailability
+        fields = '__all__'
+
+
+class BusinessProfileSerializer(serializers.ModelSerializer):
+    business_availability = BusinessAvailabilitySerializer()
+    address = AddressSerializer()
+    business_category = BusinessCategorySerializer()  # Include the BusinessCategorySerializer
+
+    class Meta:
+        model = BusinessProfile
+        fields = '__all__'
+
+    def create(self, validated_data):
+        business_availability_data = validated_data.pop('business_availability')
+        address_data = validated_data.pop('address')
+        business_category_data = validated_data.pop('business_category')  # Extract business category data
+
+        business_availability = BusinessAvailability.objects.create(**business_availability_data)
+        address = Address.objects.create(**address_data)
+        business_category = BusinessCategory.objects.create(**business_category_data)  # Create business category
+
+        business_profile = BusinessProfile.objects.create(
+            business_availability=business_availability,
+            address=address,
+            business_category=business_category,  # Assign business category
+            **validated_data
+        )
+
+        return business_profile
+
+    def update(self, instance, validated_data):
+        business_availability_data = validated_data.get('business_availability', {})
+        address_data = validated_data.get('address', {})
+        business_category_data = validated_data.get('business_category', {})  # Extract business category data
+
+        instance.role = validated_data.get('role', instance.role)
+        instance.image = validated_data.get('image', instance.image)
+        instance.year_founded = validated_data.get('year_founded', instance.year_founded)
+
+        # Update the related BusinessAvailability instance
+        business_availability = instance.business_availability
+        business_availability.always_available = business_availability_data.get('always_available', business_availability.always_available)
+        business_availability.sunday = business_availability_data.get('sunday', business_availability.sunday)
+        business_availability.monday = business_availability_data.get('monday', business_availability.monday)
+        # Update other day fields in a similar manner
+
+        # Update the related Address instance
+        address = instance.address
+        address.country = address_data.get('country', address.country)
+        address.city = address_data.get('city', address.city)
+        address.street_address = address_data.get('street_address', address.street_address)
+        address.apartment_address = address_data.get('apartment_address', address.apartment_address)
+        # Update other address fields in a similar manner
+
+        # Update the related BusinessCategory instance
+        business_category = instance.business_category
+        business_category.name = business_category_data.get('name', business_category.name)
+        business_category.desc = business_category_data.get('desc', business_category.desc)
+
+        instance.save()
+        business_availability.save()
+        address.save()
+        business_category.save()
+
+        return instance

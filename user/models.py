@@ -4,12 +4,12 @@ from django.utils.translation import gettext as _
 from django.conf import settings
 from .managers import UserManager
 from location_field.models.plain import PlainLocationField
-# from django.contrib.gis.db import models as gis_models
 
 # Create your models here.
 
 
 class User(AbstractUser):
+    email = models.EmailField(unique=True, null=True, blank=True)
     is_business = models.BooleanField(
         default=False, verbose_name='Business Account')
     is_personal = models.BooleanField(
@@ -17,7 +17,7 @@ class User(AbstractUser):
     is_admin = models.BooleanField(default=False, verbose_name='Admin Account')
     phone_number = models.BigIntegerField(unique=True, null=True, blank=True)
     is_verified = models.BooleanField(default=False, verbose_name='Verified')
-    # location = gis_models.PointField(null=True, blank=True)
+    profile = models.OneToOneField('UserProfile', on_delete=models.CASCADE)
 
     objects = UserManager()
 
@@ -25,7 +25,7 @@ class User(AbstractUser):
         swappable = 'AUTH_USER_MODEL'
 
     def __str__(self):
-        return str(self.first_name) or ''
+        return str(self.username) or ''
 
 
 GENDER_CHOICES = (
@@ -56,14 +56,14 @@ class BusinessCategory(models.Model):
 
 class UserProfile(models.Model):
     # Create a one-to-one relationship with the User model
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # user = models.OneToOneField(User, on_delete=models.CASCADE)
     work = models.CharField(max_length=255, blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     gender = models.CharField(
         max_length=15, choices=GENDER_CHOICES, blank=True, null=True)
     profile_picture = models.ImageField(
         upload_to='profile_pics/', blank=True, null=True)
-    address = models.ForeignKey('Address', on_delete = models.CASCADE)
+    address = models.ForeignKey('Address', on_delete = models.CASCADE, null = True)
     
 
     def __str__(self):
@@ -71,7 +71,6 @@ class UserProfile(models.Model):
 
 
 class BusinessAvailability(models.Model):
-    business = models.OneToOneField('BusinessProfile', on_delete=models.CASCADE)
     always_available = models.BooleanField(default=False)
     # Define availability for each day of the week
     # sunday
@@ -115,10 +114,9 @@ class BusinessProfile(models.Model):
         upload_to='business_profile/', blank=True, null=True)
     business_category = models.ForeignKey(
         BusinessCategory, on_delete=models.CASCADE)
+    business_availability = models.OneToOneField('BusinessAvailability', on_delete=models.CASCADE)
     year_founded = models.DateField(blank=True, null=True)
-    address = models.ForeignKey('Address', on_delete = models.CASCADE)
-
-
+    # business_address = models.ForeignKey('Address', on_delete = models.CASCADE, related_name= 'Address', verbose_name='Business Address')
 
 
 class Address(models.Model):

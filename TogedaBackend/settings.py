@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'import_export',
     'django_extensions',
+    'rest_framework.authtoken',
     'location_field.apps.DefaultConfig',
     'corsheaders',
     'user',
@@ -53,7 +54,8 @@ INSTALLED_APPS = [
 # Add DRF authentication and permission classes
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [

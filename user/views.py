@@ -1,8 +1,10 @@
 from ctypes import pointer
+import json  # Add this import for JSON formatting
 from datetime import timezone
 from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.parsers import JSONParser
+from rest_framework.authentication import *
 from .serializers import *
 from django.middleware import csrf
 from django.db import IntegrityError
@@ -14,6 +16,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.response import Response
 from django.conf import settings
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.decorators import authentication_classes, permission_classes
 from django.contrib.auth import authenticate, login
 from rest_framework.views import *
 from rest_framework.decorators import api_view, permission_classes, action
@@ -41,13 +44,26 @@ def get_csrf_token(request):
     token = csrf.get_token(request)
     return JsonResponse({'csrfToken': token})
 
-
 @api_view(['POST'])
 @csrf_exempt
 @permission_classes([AllowAny])
 def create_user(request):
     if request.method == 'POST':
-        serializer = UserRegistrationSerializer(data=request.data, context={'request': request})
+        data = request.data
+        email = data.get('email')
+        phone_number = data.get('phone_number')
+
+        if email:
+            # User is registering with an email
+            serializer = UserRegistrationSerializer(data=data, context={'request': request})
+
+        elif phone_number:
+            # User is registering with a phone number
+            serializer = UserRegistrationSerializer(data=data, context={'request': request})
+
+        else:
+            # Neither email nor phone number provided
+            return Response({'error': 'Either email or phone number must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if serializer.is_valid():
             try:
@@ -62,24 +78,6 @@ def create_user(request):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-class Login(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request):
-        email_or_phone = request.data.get('email_or_phone')
-        password = request.data.get('password')
-
-        if email_or_phone is None:
-            return Response({'error': 'Email or phone number is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        authenticated_user = authenticate(request, email_or_phone=email_or_phone, password=password)
-
-        if authenticated_user is not None:
-            token, created = Token.objects.get_or_create(user=authenticated_user)
-            return Response({'success': 'Login successful', 'token': token.key}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Invalid email/phone number or password'}, status=status.HTTP_401_UNAUTHORIZED)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -190,15 +188,16 @@ def report_user(request):
         
 
 class ReportUserViewSet(RetrieveAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = ReportedUser.objects.all()
     serializer_class = ReportedUserSerializer
-    lookup_field = 'pk'
-        
-    def get_object(self):
-        return self.request.user
+    lookup_field = 'user_id'
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
 
@@ -208,8 +207,13 @@ class BusinessCategoryViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def create_business_profile(request):
     if request.method == 'POST':
+        # Automatically associate the user's profile with the request data
+        request.data['profile'] = request.user.profile.pk
+        
         serializer = BusinessProfileSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()

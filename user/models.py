@@ -17,7 +17,6 @@ class User(AbstractUser):
     is_admin = models.BooleanField(default=False, verbose_name='Admin Account')
     phone_number = models.BigIntegerField(unique=True, null=True, blank=True)
     is_verified = models.BooleanField(default=False, verbose_name='Verified')
-    profile = models.OneToOneField('UserProfile', on_delete=models.CASCADE)
 
     objects = UserManager()
 
@@ -56,16 +55,24 @@ class BusinessCategory(models.Model):
 
 class UserProfile(models.Model):
     # Create a one-to-one relationship with the User model
-    # user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     work = models.CharField(max_length=255, blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     gender = models.CharField(
         max_length=15, choices=GENDER_CHOICES, blank=True, null=True)
+    custom_gender = models.CharField(max_length=250, blank=True, null=True)
     profile_picture = models.ImageField(
         upload_to='profile_pics/', blank=True, null=True)
     address = models.ForeignKey('Address', on_delete = models.CASCADE, null = True)
+    stickers = models.ManyToManyField('self', related_name='sticking', symmetrical=False)
     
 
+    def sticker_count(self):
+        return self.stickers.count()
+
+    def sticking_count(self):
+        return UserProfile.objects.filter(stickers=self.user).count()
+    
     def __str__(self):
         return self.user.username
 
@@ -120,21 +127,34 @@ class BusinessProfile(models.Model):
 
 
 class Address(models.Model):
-    country = models.CharField(max_length=255)
-    city = models.CharField(max_length=100)
-    street_address = models.CharField(max_length=100)
-    apartment_address = models.CharField(max_length=100)
-    location = PlainLocationField(based_fields=['city'], zoom=7)
-    postal_code = models.CharField(max_length=20, blank=True)
+    country = models.CharField(max_length=255, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
+    current_city = models.CharField(max_length=100, null=True, blank=True)
+    street_address = models.CharField(max_length=100, null=True, blank=True)
+    apartment_address = models.CharField(max_length=100, null=True, blank=True)
+    location = PlainLocationField(based_fields=['current_city'], zoom=7, null=True, blank=True)
+    postal_code = models.CharField(max_length=20, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
     class Meta:
         ordering = ('-created_at', )
-
+    
     def __str__(self):
-        return str(self.country + ',' + self.city)
+        components = []
+        if self.country:
+            components.append(self.country)
+        if self.city:
+            components.append(self.city)
+        if self.street_address:
+            components.append(self.street_address)
+        if self.apartment_address:
+            components.append(self.apartment_address)
+        if self.postal_code:
+            components.append(self.postal_code)
+        return ', '.join(components)
+
 
 
 class ReportedUser(models.Model):

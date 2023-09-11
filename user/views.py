@@ -1,6 +1,7 @@
 from ctypes import pointer
 import json  # Add this import for JSON formatting
 from datetime import timezone
+from django.db.models import *
 from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.parsers import JSONParser
@@ -25,6 +26,8 @@ from rest_framework import generics, filters, viewsets
 from rest_framework.generics import *
 
 # Create your views here.
+
+# Authentication APIs
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def get_auth_token(request):
@@ -44,6 +47,7 @@ def get_csrf_token(request):
     token = csrf.get_token(request)
     return JsonResponse({'csrfToken': token})
 
+
 @api_view(['POST'])
 @csrf_exempt
 @permission_classes([AllowAny])
@@ -53,30 +57,84 @@ def create_user(request):
         email = data.get('email')
         phone_number = data.get('phone_number')
 
+
+        # Debugging statement: Print the email and phone number
+        print(f"Email: {email}, Phone Number: {phone_number}")
+
+        if not email and not phone_number:
+            return Response({'error': 'Either email or phone number must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = UserRegistrationSerializer(data=data, context={'request': request})
+
         if email:
-            # User is registering with an email
-            serializer = UserRegistrationSerializer(data=data, context={'request': request})
+            # Check if a user with the provided email already exists
+            if User.objects.filter(email=email).exists():
+                return Response({'error': 'User with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
         elif phone_number:
-            # User is registering with a phone number
-            serializer = UserRegistrationSerializer(data=data, context={'request': request})
-
-        else:
-            # Neither email nor phone number provided
-            return Response({'error': 'Either email or phone number must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
+            # Check if a user with the provided phone number already exists
+            if User.objects.filter(phone_number=phone_number).exists():
+                return Response({'error': 'User with this phone number already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if serializer.is_valid():
             try:
                 user = serializer.save()
-                token = Token.objects.create(user=user)
+                token, created = Token.objects.get_or_create(user=user)
                 token_key = token.key
                 response_data = serializer.data
                 response_data['token'] = token_key
                 return Response(response_data, status=status.HTTP_201_CREATED)
-            except IntegrityError:
+            except IntegrityError as e:
+                print(e)  # Add this line to print the IntegrityError message
                 return Response({'error': 'Account details already exist.'}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_user_profile(request):
+    user = request.user
+
+    if request.method == 'PUT':
+        serializer = UserProfileUpdateSerializer(instance=user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "User profile updated successfully"})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# End of Authentication APIs
+
+
+# User List APIs
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_users(request):
+    users = User.objects.all().order_by('date_joined')  # Retrieve users sorted by date of creation
+
+    user_data = []
+    for user in users:
+        user_profile = UserProfile.objects.filter(user=user).first()  # Get the user's profile
+
+        if user_profile:
+            sticker_count = user_profile.stickers.count()
+            sticking_count = UserProfile.objects.filter(stickers=user_profile).count()
+        else:
+            sticker_count = 0
+            sticking_count = 0
+
+        user_data.append({
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'username': user.username,
+            'sticking_count': sticking_count,
+            'sticker_count': sticker_count,
+        })
+
+    return Response(user_data, status=status.HTTP_200_OK)
+
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -101,64 +159,80 @@ class UserViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-# class UserViewSet(viewsets.ModelViewSet):
 
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
+# End of User details APIs
 
-#     @action(detail=True, methods=["PATCH"])
-#     def verify_otp(self, request, pk=None):
-#         instance = self.get_object()
 
-#         if (
-#             not instance.is_active
-#             and instance.otp == request.data.get("otp")
-#             and instance.otp_expiry
-#             and timezone.now() < instance.otp_expiry
-#         ):
-#             instance.is_active = True
-#             instance.otp_expiry = None
-#             instance.max_otp_try = settings.MAX_OTP_TRY
-#             instance.otp_max_out = None
-#             instance.save()
-#             # send_otp(instance.mobile, otp)
-#             return Response(
-#                 "Successfully verified the user.", status=status.HTTP_200_OK
-#             )
-#         return Response(
-#             "User active or Please enter the correct otp.", status=status.HTTP_200_OK
-#         )
+# Sticking APIs
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def stick_user(request, user_id):
+    user = request.user.userprofile
+    try:
+        target_user = UserProfile.objects.get(pk=user_id)
+    except UserProfile.DoesNotExist:
+        return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-#     @action(detail=True, methods=["PATCH"])
-#     def regenerate_otp(self, request, pk=None):
-#         instance = self.get_object()
+    if user != target_user:
+        if user.sticking.filter(pk=user_id).exists():
+            user.sticking.remove(target_user)
+            return Response({"message": f"You unsticked {target_user.user.username}"})
+        else:
+            user.sticking.add(target_user)
+            return Response({"message": f"You sticked {target_user.user.username}"})
+    return Response({"message": "You cannot follow/unfollow yourself"}, status=status.HTTP_400_BAD_REQUEST)
 
-#         if int(instance.max_otp_try) == 0 and timezone.now() < instance.otp_max_out:
-#             return Response(
-#                 "Max OTP try reached, try after an hour.",
-#                 status=status.HTTP_400_BAD_REQUEST
-#             )
-#             otp = random.randInt(1000, 9000)
-#             otp_expiry = timezone.now() + datetime.timedelta(minutes=10)
-#             max_otp_try = int(instance.max_otp_try) - 1
 
-#             instance.otp = otp
-#             instance.otp_expiry = otp_expiry
-#             instance.max_otp_try = max_otp_try
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_stickers(request, user_id):
+    try:
+        user_profile = UserProfile.objects.get(pk=user_id)
+    except UserProfile.DoesNotExist:
+        return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-#             if max_otp_try == 0:
-#                 instance.otp_max_out = timezone.now() + datetime.timedelta(hour=1)
-#             elif max_otp_try == 1:
-#                 instance.max_otp_try = settings.MAX_OTP_TRY
-#             else:
-#                 instance.otp_max_out = None
-#                 instance.max_otp_try = max_otp_try
-#             instance.save()
+    stickers = user_profile.stickers.all()
+    serializer = UserListSerializer(stickers, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
-#             send_otp(instance.mobile, otp)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_sticking(request, user_id):
+    try:
+        user_profile = UserProfile.objects.get(pk=user_id)
+    except UserProfile.DoesNotExist:
+        return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-#             return Response("Successfully re-generated the new OTP", status=status.HTTP_200_OK)
+    sticking = user_profile.sticking.all()
+    serializer = UserListSerializer(sticking, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def my_sticking(request):
+    user = request.user
+    try:
+        user_profile = UserProfile.objects.get(user=user)
+        sticking = user_profile.sticking.all()
+        serializer = UserListSerializer(sticking, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except UserProfile.DoesNotExist:
+        return Response({"message": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def my_stickers(request):
+    user = request.user
+    try:
+        user_profile = UserProfile.objects.get(user=user)
+        stickers = user_profile.stickers.all()
+        serializer = UserListSerializer(stickers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except UserProfile.DoesNotExist:
+        return Response({"message": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+# End of sticking APIs
 
 class UserAPIView(RetrieveAPIView):
     """

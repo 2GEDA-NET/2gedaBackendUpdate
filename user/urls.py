@@ -16,9 +16,24 @@ urlpatterns = [
     path('register/', create_user, name='user_register'),
     path('login/', obtain_auth_token, name='api_token'),
     path('', UserAPIView.as_view(), name='user_detail'),
+    path('update-profile/', update_user_profile, name='update_user_profile'),
+    path('users-list/', list_users, name='list_users_by_creation_date'),
+
+    #     Stick urls
+    path('stick/<int:user_id>/', stick_user, name='stick_user'),
+    path('list-stickers/<int:user_id>/',
+         list_stickers, name='list_stickers'),
+    path('list-sticking/<int:user_id>/',
+         list_sticking, name='list_sticking'),
+    path('my-sticking/', my_sticking, name='my_sticking'),
+    path('my-stickers/', my_stickers, name='my_stickers'),
+
+
+
     path('get-csrf-token/', get_csrf_token, name='get-csrf-token'),
     path('report_user/', report_user, name='report_user'),
-    path('reported_user_list/<int:user_id>/', ReportUserViewSet.as_view(), name='reported_user_list'),
+    path('reported_user_list/<int:user_id>/',
+         ReportUserViewSet.as_view(), name='reported_user_list'),
     path('create-business-profile/', create_business_profile,
          name='create-business-profile'),
     path('update-business-profile/<int:pk>/',

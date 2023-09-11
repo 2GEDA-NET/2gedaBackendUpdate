@@ -6,7 +6,7 @@ from .models import *
 
 @admin.register(User)
 class UsersAdmin(ImportExportModelAdmin):
-    list_display = ('first_name', 'last_name','email','phone_number', 'username',
+    list_display = ('username', 'first_name', 'last_name','email','phone_number',
                     'is_business', 'is_personal', 'is_admin')
     search_fields = ['username', 'first_name', 'last_name']
     list_editable = ['is_business', 'is_personal', 'is_admin',]

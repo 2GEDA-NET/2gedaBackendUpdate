@@ -22,22 +22,21 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ['email', 'phone_number', 'password']
 
     def validate(self, validated_data):
-        email = validated_data.get('email', None)
-        phone_number = validated_data.get('phone_number', None)
+        email = validated_data.get('email')
+        phone_number = validated_data.get('phone_number')
 
-        if not (email or phone_number):
-            raise serializers.ValidationError(
-                _("Enter an email or a phone number."))
+        if not email and not phone_number:
+            raise serializers.ValidationError("Enter an email or a phone number.")
 
         return validated_data
+
 
     def create(self, validated_data):
         email = validated_data.get('email')
         phone_number = validated_data.get('phone_number')
-
-        # Check if either the email or phone number already exists
-        if User.objects.filter(Q(email=email) | Q(username=phone_number)).exists():
-            raise serializers.ValidationError(_("Account with this email or phone number already exists."))
+        
+        # Debugging statement: Print the email and phone number
+        print(f"Creating user with Email: {email}, Phone Number: {phone_number}")
 
         # Create and save the User instance
         user = User.objects.create_user(
@@ -60,10 +59,10 @@ class ReportedUserSerializer(serializers.ModelSerializer):
         model = ReportedUser
         fields = '__all__'
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = '__all__'
+# class UserProfileSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = UserProfile
+#         fields = '__all__'
 
 class BusinessCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -75,10 +74,10 @@ class AddressSerializer(serializers.ModelSerializer):
         model = Address
         fields = '__all__'
 
-class BusinessProfileAddressSerializer(serializers.ModelSerializer):
+class CurrentCityAddressSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Address
-        fields = ['city']
+        model = Address  # Replace 'Address' with the actual name of your Address model
+        fields = ('current_city',)
 
 class BusinessAvailabilitySerializer(serializers.ModelSerializer):
     class Meta:
@@ -87,7 +86,7 @@ class BusinessAvailabilitySerializer(serializers.ModelSerializer):
 
 class BusinessProfileSerializer(serializers.ModelSerializer):
     business_availability = BusinessAvailabilitySerializer()
-    address = BusinessProfileAddressSerializer()
+    address = CurrentCityAddressSerializer()
     business_category = BusinessCategorySerializer()  # Include the BusinessCategorySerializer
 
     class Meta:
@@ -151,6 +150,92 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
         """
         ret = super().to_representation(instance)
         ret['business_availability'] = BusinessAvailabilitySerializer(instance.business_availability).data
-        ret['address'] = BusinessProfileAddressSerializer(instance.address).data
+        ret['address'] = CurrentCityAddressSerializer(instance.address).data
         ret['business_category'] = BusinessCategorySerializer(instance.business_category).data
         return ret
+
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    stickers = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    sticking = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    stickers_count = serializers.SerializerMethodField()
+    sticking_count = serializers.SerializerMethodField()
+    address = CurrentCityAddressSerializer()
+
+
+    class Meta:
+        model = UserProfile
+        fields = ('work', 'date_of_birth', 'gender', 'custom_gender', 'address', 'stickers', 'sticking', 'stickers_count', 'sticking_count')
+
+        
+    def get_stickers_count(self, obj):
+        return obj.sticker_count()
+
+    def get_sticking_count(self, obj):
+        return obj.sticking_count()
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    profile = UserProfileSerializer()
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'username', 'password', 'profile')
+
+    extra_kwargs = {
+        'password': {'write_only': True},  # Password field should be write-only
+    }
+
+    def update(self, instance, validated_data):
+        # Update User fields
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.username = validated_data.get('username', instance.username)
+        if 'password' in validated_data:
+            instance.set_password(validated_data['password'])
+        
+        # Update UserProfile fields
+        profile_data = validated_data.get('profile', {})
+        profile = instance.profile
+
+        profile.work = profile_data.get('work', profile.work)
+        profile.date_of_birth = profile_data.get('date_of_birth', profile.date_of_birth)
+        profile.gender = profile_data.get('gender', profile.gender)
+        profile.custom_gender = profile_data.get('custom_gender', profile.custom_gender)
+
+        # Update Address fields (including current city)
+        address_data = profile_data.get('address', {})
+        address = profile.address
+
+        address.current_city = address_data.get('current_city', address.current_city)
+
+        # Save both User, UserProfile, and Address instances
+        instance.save()
+        profile.save()
+        address.save()
+
+        return instance
+
+
+class UserListSerializer(serializers.ModelSerializer):
+    sticking_count = serializers.SerializerMethodField()
+    sticker_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'sticking_count', 'sticker_count')
+
+    def get_sticking_count(self, obj):
+        try:
+            user_profile = UserProfile.objects.get(user=obj)
+            return user_profile.sticking.count()
+        except UserProfile.DoesNotExist:
+            return 0
+
+    def get_sticker_count(self, obj):
+        try:
+            user_profile = UserProfile.objects.get(user=obj)
+            return user_profile.stickers.count()
+        except UserProfile.DoesNotExist:
+            return 0
+

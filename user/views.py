@@ -2,6 +2,7 @@ from ctypes import pointer
 import json  # Add this import for JSON formatting
 from datetime import timezone
 from django.db.models import *
+from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.parsers import JSONParser
@@ -16,7 +17,7 @@ from user.authentication_backends import EmailOrPhoneNumberBackend
 from django.contrib.auth.hashers import make_password
 from rest_framework.response import Response
 from django.conf import settings
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.decorators import authentication_classes, permission_classes
 from django.contrib.auth import authenticate, login
 from rest_framework.views import *
@@ -107,7 +108,7 @@ def update_user_profile(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def delete_user(request):
+def delete_account(request):
     # Validate the request data using the serializer
     serializer = UserDeletionSerializer(data=request.data)
     if serializer.is_valid():
@@ -125,6 +126,68 @@ def delete_user(request):
             return Response({"message": "Invalid password"}, status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def delete_user_by_username_or_id(request):
+    # Validate the request data using the serializer
+    serializer = UserDeletionSerializer(data=request.data)
+    if serializer.is_valid():
+        username = serializer.validated_data.get('username')
+        user_id = serializer.validated_data.get('user_id')
+
+        if username:
+            try:
+                user = User.objects.get(username=username)
+                user.delete()
+                return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+            except User.DoesNotExist:
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        elif user_id:
+            try:
+                user = User.objects.get(pk=user_id)
+                user.delete()
+                return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+            except User.DoesNotExist:
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"message": "Provide either 'username' or 'user_id' for deletion"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+def delete_account_by_username(request, username):
+    # Attempt to get the user by username
+    user = get_object_or_404(User, username=username)
+
+    if request.method == 'POST':
+        # Check if the request is a POST request to confirm the deletion
+        user.delete()
+        return JsonResponse({"message": "User deleted successfully."}, status=204)
+
+    # If it's not a POST request, return a message indicating how to delete the user
+    return JsonResponse(
+        {"message": "To delete this user, send a POST request to this endpoint."},
+        status=400
+    )
+
+
+def delete_account_by_id(request, user_id):
+    # Attempt to get the user by their ID
+    user = get_object_or_404(User, pk=user_id)
+
+    if request.method == 'POST':
+        # Check if the request is a POST request to confirm the deletion
+        user.delete()
+        return JsonResponse({"message": "User deleted successfully."}, status=204)
+
+    # If it's not a POST request, return a message indicating how to delete the user
+    return JsonResponse(
+        {"message": "To delete this user, send a POST request to this endpoint."},
+        status=400
+    )
 
 
 

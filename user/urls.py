@@ -20,7 +20,14 @@ urlpatterns = [
     path('', UserAPIView.as_view(), name='user_detail'),
     path('update-profile/', update_user_profile, name='update_user_profile'),
     path('users-list/', list_users, name='list_users_by_creation_date'),
-    path('delete-user/', delete_user, name='delete_user'),
+    path('delete-account/', delete_account, name='delete_account'),
+    path('delete-user/<str:username>/', delete_account_by_username,
+         name='delete_account_by_username'),
+    path('delete-user-by-id/<int:user_id>/',
+         delete_account_by_id, name='delete_account_by_id'),
+    path('delete-user-by-username-or-id/', delete_user_by_username_or_id,
+         name='delete_user_by_username_or_id'),
+
 
     #     Stick urls
     path('stick/<int:user_id>/', stick_user, name='stick_user'),
@@ -32,7 +39,7 @@ urlpatterns = [
     path('my-stickers/', my_stickers, name='my_stickers'),
 
 
-
+    # CRSF token
     path('get-csrf-token/', get_csrf_token, name='get-csrf-token'),
 
     #     Report Users urls

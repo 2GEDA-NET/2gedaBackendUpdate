@@ -13,11 +13,14 @@ router.register(r'business-categories', BusinessCategoryViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),
+
+    #     Authentication urls
     path('register/', create_user, name='user_register'),
     path('login/', obtain_auth_token, name='api_token'),
     path('', UserAPIView.as_view(), name='user_detail'),
     path('update-profile/', update_user_profile, name='update_user_profile'),
     path('users-list/', list_users, name='list_users_by_creation_date'),
+    path('delete-user/', delete_user, name='delete_user'),
 
     #     Stick urls
     path('stick/<int:user_id>/', stick_user, name='stick_user'),
@@ -31,9 +34,13 @@ urlpatterns = [
 
 
     path('get-csrf-token/', get_csrf_token, name='get-csrf-token'),
+
+    #     Report Users urls
     path('report_user/', report_user, name='report_user'),
     path('reported_user_list/<int:user_id>/',
          ReportUserViewSet.as_view(), name='reported_user_list'),
+
+    #     Business Profile urls
     path('create-business-profile/', create_business_profile,
          name='create-business-profile'),
     path('update-business-profile/<int:pk>/',
@@ -53,6 +60,8 @@ urlpatterns = [
     path('business-category/<int:pk>/',
          BusinessCategoryDetailView.as_view(), name='business-category-detail'),
 
+
+    # Address Urls
     path('address/', AddressListCreateView.as_view(), name='address-list'),
     path('address/<int:pk>/', AddressDetailView.as_view(), name='address-detail'),
 

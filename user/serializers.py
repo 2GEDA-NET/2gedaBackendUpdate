@@ -239,3 +239,6 @@ class UserListSerializer(serializers.ModelSerializer):
         except UserProfile.DoesNotExist:
             return 0
 
+
+class UserDeletionSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, required=True)

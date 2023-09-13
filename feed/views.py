@@ -1,3 +1,425 @@
 from django.shortcuts import render
+from rest_framework import viewsets
+from .models import *
+from .serializers import *
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from .models import Post, PostMedia
+from .serializers import PostSerializer, PostMediaSerializer
 
-# Create your views here.
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_post(request):
+    if request.method == 'POST':
+        post_data = request.data
+        post_media_data = post_data.pop('media', None)
+
+        # Create a new post
+        post_serializer = PostSerializer(
+            data=post_data, context={'request': request})
+        if post_serializer.is_valid():
+            post = post_serializer.save(user=request.user)
+
+            # Attach media if provided
+            if post_media_data:
+                media_serializer = PostMediaSerializer(data=post_media_data)
+                if media_serializer.is_valid():
+                    media_serializer.save(post=post)
+                    post.media = media_serializer.instance
+                    post.save()
+
+            return Response(post_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def post_feed(request):
+    # Retrieve the UserProfile associated with the current user
+    user_profile = request.user.userprofile
+
+    # Retrieve the stickers of the current user's profile
+    sticking_users = user_profile.stickers.all()
+
+    # Retrieve posts from users that the current user follows, ordered by timestamp
+    posts = Post.objects.filter(user__userprofile__in=sticking_users).order_by('-timestamp')
+
+    # Serialize the posts
+    post_serializer = PostSerializer(
+        posts, many=True, context={'request': request})
+
+    return Response(post_serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def retrieve_post(request, post_id):
+    try:
+        # Retrieve the post by its ID
+        post = Post.objects.get(pk=post_id)
+
+        # Serialize the post
+        post_serializer = PostSerializer(post, context={'request': request})
+
+        return Response(post_serializer.data, status=status.HTTP_200_OK)
+
+    except Post.DoesNotExist:
+        return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_post(request, post_id):
+    try:
+        # Retrieve the post by its ID
+        post = Post.objects.get(pk=post_id)
+
+        # Check if the current user is the author of the post
+        if post.user != request.user:
+            return Response({'detail': 'You do not have permission to update this post.'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Deserialize the request data and update the post
+        post_serializer = PostSerializer(post, data=request.data, partial=True)
+        if post_serializer.is_valid():
+            post_serializer.save()
+            return Response(post_serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Post.DoesNotExist:
+        return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_post(request, post_id):
+    try:
+        # Retrieve the post by its ID
+        post = Post.objects.get(pk=post_id)
+
+        # Check if the current user is the author of the post
+        if post.user != request.user:
+            return Response({'detail': 'You do not have permission to delete this post.'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Delete the post
+        post.delete()
+
+        return Response({'detail': 'Post deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+
+    except Post.DoesNotExist:
+        return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def edit_post(request, post_id):
+    try:
+        # Retrieve the post by its ID
+        post = Post.objects.get(pk=post_id)
+
+        # Check if the request user is the author of the post
+        if post.user != request.user:
+            return Response({'detail': 'You do not have permission to edit this post.'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Update the post data with the request data
+        post_serializer = PostSerializer(post, data=request.data)
+        if post_serializer.is_valid():
+            post_serializer.save()
+            return Response(post_serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Post.DoesNotExist:
+        return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+# Admin posts
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])  # Only admin can create posts
+def admin_create_post(request):
+    serializer = PostSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# View to view all posts
+@api_view(['GET'])
+def admin_view_posts(request):
+    posts = Post.objects.all()
+    serializer = PostSerializer(posts, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+# View to edit a post
+@api_view(['PUT'])
+@permission_classes([IsAdminUser])  # Only admin can edit posts
+def admin_edit_post(request, post_id):
+    try:
+        post = Post.objects.get(pk=post_id)
+        serializer = PostSerializer(post, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Post.DoesNotExist:
+        return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+# View to delete a post
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])  # Only admin can delete posts
+def admin_delete_post(request, post_id):
+    try:
+        post = Post.objects.get(pk=post_id)
+        post.delete()
+        return Response({'detail': 'Post deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+    except Post.DoesNotExist:
+        return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+# End of Admin posts
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_comment(request, post_id):
+    try:
+        # Retrieve the post by its ID
+        post = Post.objects.get(pk=post_id)
+
+        # Create a new comment associated with the post and the current user
+        comment_data = {
+            'text': request.data.get('text'),  # Replace 'text' with the field name for your comment content
+            'post': post,
+            'user': request.user,
+        }
+
+        comment_serializer = CommentSerializer(data=comment_data)
+        if comment_serializer.is_valid():
+            comment_serializer.save()
+            return Response(comment_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Post.DoesNotExist:
+        return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def view_comments(request, post_id):
+    try:
+        # Retrieve the post by its ID
+        post = Post.objects.get(pk=post_id)
+
+        # Retrieve comments associated with the post
+        comments = Comment.objects.filter(post=post)
+
+        # Serialize the comments
+        comment_serializer = CommentSerializer(comments, many=True)
+
+        return Response(comment_serializer.data, status=status.HTTP_200_OK)
+
+    except Post.DoesNotExist:
+        return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class PostMediaViewSet(viewsets.ModelViewSet):
+    queryset = PostMedia.objects.all()
+    serializer_class = PostMediaSerializer
+
+
+class ReactionViewSet(viewsets.ModelViewSet):
+    queryset = Reaction.objects.all()
+    serializer_class = ReactionSerializer
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def view_replies(request, post_id, comment_id):
+    try:
+        # Retrieve the comment by its ID within the specified post
+        comment = Comment.objects.get(pk=comment_id, post__pk=post_id)
+
+        # Retrieve replies associated with the comment
+        replies = Reply.objects.filter(comment=comment)
+
+        # Serialize the replies
+        reply_serializer = ReplySerializer(replies, many=True)
+
+        return Response(reply_serializer.data, status=status.HTTP_200_OK)
+
+    except Comment.DoesNotExist:
+        return Response({'detail': 'Comment not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_reply(request, post_id, comment_id):
+    try:
+        # Retrieve the comment by its ID within the specified post
+        comment = Comment.objects.get(pk=comment_id, post__pk=post_id)
+
+        # Create a new reply associated with the comment and the current user
+        reply_data = {
+            'text': request.data.get('text'),  # Replace 'text' with the field name for your reply content
+            'comment': comment,
+            'user': request.user,
+        }
+
+        reply_serializer = ReplySerializer(data=reply_data)
+        if reply_serializer.is_valid():
+            reply_serializer.save()
+            return Response(reply_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(reply_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Comment.DoesNotExist:
+        return Response({'detail': 'Comment not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class ReplyViewSet(viewsets.ModelViewSet):
+    queryset = Reply.objects.all()
+    serializer_class = ReplySerializer
+
+
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+
+
+class RepostViewSet(viewsets.ModelViewSet):
+    queryset = Repost.objects.all()
+    serializer_class = RepostSerializer
+
+
+class SavedPostViewSet(viewsets.ModelViewSet):
+    queryset = SavedPost.objects.all()
+    serializer_class = SavedPostSerializer
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_reaction(request, content_type, object_id, reaction_type):
+    try:
+        # Determine the content type (Comment, Reply, or Post)
+        if content_type == 'comment':
+            content_object = Comment.objects.get(pk=object_id)
+        elif content_type == 'reply':
+            content_object = Reply.objects.get(pk=object_id)
+        elif content_type == 'post':
+            content_object = Post.objects.get(pk=object_id)
+        else:
+            return Response({'detail': 'Invalid content type.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if a reaction of the same type already exists for the user and content object
+        existing_reaction = Reaction.objects.filter(
+            user=request.user, content_type=content_type, object_id=object_id, reaction_type=reaction_type
+        ).first()
+
+        if existing_reaction:
+            # If a reaction of the same type exists, remove it (toggle)
+            existing_reaction.delete()
+            return Response({'detail': 'Reaction removed successfully.'}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            # Create a new reaction
+            reaction_data = {
+                'user': request.user,
+                'content_type': content_type,
+                'object_id': object_id,
+                'reaction_type': reaction_type,
+            }
+
+            reaction_serializer = ReactionSerializer(data=reaction_data)
+            if reaction_serializer.is_valid():
+                reaction_serializer.save()
+                return Response(reaction_serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(reaction_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Comment.DoesNotExist:
+        return Response({'detail': 'Comment not found.'}, status=status.HTTP_404_NOT_FOUND)
+    except Reply.DoesNotExist:
+        return Response({'detail': 'Reply not found.'}, status=status.HTTP_404_NOT_FOUND)
+    except Post.DoesNotExist:
+        return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_reactions(request, content_type, object_id):
+    try:
+        # Determine the content type (Comment, Reply, or Post)
+        content_type = content_type.lower()
+        if content_type not in ['comment', 'reply', 'post']:
+            return Response({'detail': 'Invalid content type.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Retrieve reactions for the specified content object
+        if content_type == 'post':
+            content_object = Post.objects.get(pk=object_id)
+        elif content_type == 'comment':
+            content_object = Comment.objects.get(pk=object_id)
+        elif content_type == 'reply':
+            content_object = Reply.objects.get(pk=object_id)
+
+        # Retrieve reactions associated with the content object
+        reactions = Reaction.objects.filter(content_object=content_object)
+
+        # Count the number of users who reacted
+        reacting_users_count = reactions.values('user').distinct().count()
+
+        # Serialize the reactions
+        reaction_serializer = ReactionSerializer(reactions, many=True)
+
+        return Response({
+            'reacting_users_count': reacting_users_count,
+            'reactions': reaction_serializer.data
+        }, status=status.HTTP_200_OK)
+
+    except (Post.DoesNotExist, Comment.DoesNotExist, Reply.DoesNotExist):
+        return Response({'detail': 'Content object not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_or_update_reaction(request, object_type, object_id):
+    try:
+        user = request.user
+        reaction_data = request.data
+        reaction_data['user'] = user.id  # Add user ID to the reaction data
+
+        # Determine the object type (post, comment, or reply) and object instance
+        if object_type == 'post':
+            obj = Post.objects.get(pk=object_id)
+        elif object_type == 'comment':
+            obj = Comment.objects.get(pk=object_id)
+        elif object_type == 'reply':
+            obj = Reply.objects.get(pk=object_id)
+        else:
+            return Response({'detail': 'Invalid object type.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if a reaction already exists for this user and object
+        existing_reaction = Reaction.objects.filter(user=user, object_id=object_id).first()
+
+        if existing_reaction:
+            # If a reaction exists, update it with the new reaction type
+            serializer = ReactionSerializer(existing_reaction, data=reaction_data)
+        else:
+            # If no reaction exists, create a new one
+            serializer = ReactionSerializer(data=reaction_data)
+
+        if serializer.is_valid():
+            serializer.save(object=obj)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Post.DoesNotExist:
+        return Response({'detail': 'Object not found.'}, status=status.HTTP_404_NOT_FOUND)

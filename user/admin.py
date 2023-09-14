@@ -42,3 +42,8 @@ class ReportedUserAdmin(ImportExportModelAdmin):
 @admin.register(Address)
 class AddressAdmin(ImportExportModelAdmin):
     list_display = ('country', 'city', 'location')
+
+
+@admin.register(Verification)
+class VerificationSerializer(ImportExportModelAdmin):
+    list_display = ('profile', 'legal_name', 'work')

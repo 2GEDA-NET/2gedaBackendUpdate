@@ -242,3 +242,12 @@ class UserListSerializer(serializers.ModelSerializer):
 
 class UserDeletionSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, required=True)
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()

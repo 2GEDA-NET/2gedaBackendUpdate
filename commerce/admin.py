@@ -16,8 +16,7 @@ class CategoryAdmin(ImportExportModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(ImportExportModelAdmin):
-    list_display = ('name', 'business', 'category', 'price', 'kilogram', 'stock',
-                    'condition', 'is_trending',)
+    list_display = ('title', 'business', 'category', 'price', 'is_trending', 'is_promoted','promotion_plan',)
     list_filter = ('is_trending', 'create_at', 'business', 'category',)  # Add filters for the desired fields
     # Enable in-place editing for the fields
     list_editable = ('is_trending',)
@@ -27,6 +26,9 @@ class ProductAdmin(ImportExportModelAdmin):
 class ProductImgAdmin(ImportExportModelAdmin):
     list_display = ('productId', 'image',)
 
+@admin.register(PromotionPlan)
+class PromotionPlanAdmin(ImportExportModelAdmin):
+    list_display = ('name', 'amount',)
 
 # @admin.register(ProductDetail)
 # class ProductDetailAdmin(ImportExportModelAdmin):

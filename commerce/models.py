@@ -30,21 +30,22 @@ class Store(models.Model):
     
 
 class Product(models.Model):
-    name = models.CharField(max_length=500)
+    title = models.CharField(max_length=500)
     description = models.TextField()
     business = models.ForeignKey(BusinessProfile, on_delete=models.CASCADE)
-    # storeId = models.ForeignKey(Store, on_delete=models.CASCADE)
     category = models.ForeignKey(ProductCategory, on_delete = models.CASCADE)
     price = models.CharField( max_length=100)
-    kilogram = models.CharField( max_length=100)
-    stock = models.IntegerField()
-    ratings = models.IntegerField()
-    condition = models.CharField( max_length=100)
+    sale_location = models.CharField(max_length = 200)
     create_at = models.DateTimeField(auto_now_add=True)
     is_trending = models.BooleanField(default=False, verbose_name='Trending')
+    is_sold = models.BooleanField(default=False, verbose_name='Sold')
+    # New fields for promotions
+    is_promoted = models.BooleanField(default=False, verbose_name='Promoted')
+    promotion_plan = models.ForeignKey('PromotionPlan', on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
         return self.name
+
 
 
 class ProductReview(models.Model):
@@ -63,6 +64,15 @@ class ProductReview(models.Model):
 #     expiration = models.IntegerField()
 #     review = models.CharField(max_length = 200)
 #     gram = models.IntegerField()
+
+
+class PromotionPlan(models.Model):
+    name = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return self.name
+
 
 class ProductImg(models.Model):
     productId = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_imgs')

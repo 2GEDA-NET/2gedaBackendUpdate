@@ -163,3 +163,12 @@ class ReportedUser(models.Model):
     description = models.TextField()
     is_banned = models.BooleanField(default=False, verbose_name='Banned')
     is_disabled = models.BooleanField(default=False, verbose_name='Disabled')
+
+class Verification(models.Model):
+    profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+    legal_name = models.CharField(max_length=250)
+    work = models.CharField(max_length=250)
+    link1 = models.URLField(max_length=250)
+    link2 = models.URLField(max_length=250)
+    link3 = models.URLField(max_length=250)
+    media = models.ImageField(upload_to='verificationImage/', blank=True, null=True)

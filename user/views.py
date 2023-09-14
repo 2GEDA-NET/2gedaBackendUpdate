@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.parsers import JSONParser
 from rest_framework.authentication import *
+from rest_framework.viewsets import GenericViewSet
 from .serializers import *
 from django.middleware import csrf
 from django.db import IntegrityError
@@ -25,6 +26,7 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework import status, permissions
 from rest_framework import generics, filters, viewsets
 from rest_framework.generics import *
+
 
 # Create your views here.
 
@@ -466,3 +468,24 @@ class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Address.objects.all()
     serializer_class = AddressSerializer
+
+
+class PasswordChangeViewSet(GenericViewSet):
+    @action(detail=False, methods=['POST'])
+    def change_password(self, request):
+        serializer = PasswordChangeSerializer(data=request.data)
+        if serializer.is_valid():
+            user = self.request.user
+            old_password = serializer.validated_data['old_password']
+            new_password = serializer.validated_data['new_password']
+
+            # Check if the old password matches the user's current password
+            if user.check_password(old_password):
+                user.set_password(new_password)
+                user.save()
+                return Response({'message': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Invalid old password.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+

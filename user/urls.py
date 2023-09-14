@@ -10,6 +10,7 @@ router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'user-profiles', UserProfileViewSet)
 router.register(r'business-categories', BusinessCategoryViewSet)
+router.register(r'password-change', PasswordChangeViewSet, basename='password-change')
 
 urlpatterns = [
     path('api/', include(router.urls)),
@@ -17,6 +18,7 @@ urlpatterns = [
     #     Authentication urls
     path('register/', create_user, name='user_register'),
     path('login/', obtain_auth_token, name='api_token'),
+#     path('password-change/', PasswordChangeViewSet.as_view, name='change_password'),
     path('', UserAPIView.as_view(), name='user_detail'),
     path('update-profile/', update_user_profile, name='update_user_profile'),
     path('users-list/', list_users, name='list_users_by_creation_date'),

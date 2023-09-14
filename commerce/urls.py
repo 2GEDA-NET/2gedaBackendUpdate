@@ -12,7 +12,11 @@ urlpatterns = [
 
     # Product URLs
     path('products/', views.ProductList.as_view(), name='product-list'),
-    # path('products/<int:pk>/', views.ProductDetail.as_view(), name='product-detail'),
+    path('products/<int:pk>/', views.ProductDetail.as_view(), name='product-detail'),
+
+    # Product Review
+    path('reviews/', views.ProductReviewListCreateView.as_view(), name='product-review-list'),
+    path('reviews/<int:pk>/', views.ProductReviewDetailView.as_view(), name='product-review-detail'),
 
     # CartItem URLs
     path('cart-items/', views.CartItemList.as_view(), name='cart-item-list'),

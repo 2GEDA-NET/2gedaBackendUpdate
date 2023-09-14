@@ -16,12 +16,11 @@ class CategoryAdmin(ImportExportModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(ImportExportModelAdmin):
-    list_display = ('title', 'storeId', 'category', 'price', 'kilogram', 'stock',
-                    'condition', 'is_exclusive', 'is_best_selling', 'is_promo', 'is_meat',)
-    list_filter = ('is_exclusive', 'is_best_selling', 'is_promo', 'is_meat',
-                   'create_at', 'storeId', 'category',)  # Add filters for the desired fields
+    list_display = ('name', 'business', 'category', 'price', 'kilogram', 'stock',
+                    'condition', 'is_trending',)
+    list_filter = ('is_trending', 'create_at', 'business', 'category',)  # Add filters for the desired fields
     # Enable in-place editing for the fields
-    list_editable = ('is_exclusive', 'is_best_selling', 'is_promo', 'is_meat')
+    list_editable = ('is_trending',)
 
 
 @admin.register(ProductImg)
@@ -29,9 +28,9 @@ class ProductImgAdmin(ImportExportModelAdmin):
     list_display = ('productId', 'image',)
 
 
-@admin.register(ProductDetail)
-class ProductDetailAdmin(ImportExportModelAdmin):
-    list_display = ('productId', 'organic', 'expiration', 'review', 'gram')
+# @admin.register(ProductDetail)
+# class ProductDetailAdmin(ImportExportModelAdmin):
+#     list_display = ('productId', 'organic', 'expiration', 'review', 'gram')
 
 
 @admin.register(Cart)

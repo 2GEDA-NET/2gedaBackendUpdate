@@ -2,6 +2,7 @@ from django.db import models
 from datetime import datetime
 from user.models import *
 from django.db import models
+from user.models import *
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.utils.functional import cached_property
@@ -26,34 +27,42 @@ class Store(models.Model):
     
     def __str__(self):
         return self.name
+    
 
 class Product(models.Model):
-    title = models.CharField(max_length=500)
+    name = models.CharField(max_length=500)
     description = models.TextField()
-    storeId = models.ForeignKey(Store, on_delete=models.CASCADE)
+    business = models.ForeignKey(BusinessProfile, on_delete=models.CASCADE)
+    # storeId = models.ForeignKey(Store, on_delete=models.CASCADE)
     category = models.ForeignKey(ProductCategory, on_delete = models.CASCADE)
     price = models.CharField( max_length=100)
     kilogram = models.CharField( max_length=100)
     stock = models.IntegerField()
+    ratings = models.IntegerField()
     condition = models.CharField( max_length=100)
     create_at = models.DateTimeField(auto_now_add=True)
-    is_exclusive = models.BooleanField(default=False, verbose_name='Exclusive')
-    is_best_selling = models.BooleanField(default=False, verbose_name='Best Selling')
-    is_promo = models.BooleanField(default=False, verbose_name='Promo')
-    is_meat = models.BooleanField(default=False, verbose_name='Meat')
+    is_trending = models.BooleanField(default=False, verbose_name='Trending')
 
-    
-    
     def __str__(self):
-        return self.title
-    
+        return self.name
 
-class ProductDetail(models.Model):
-    productId = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_details')
-    organic = models.IntegerField()
-    expiration = models.IntegerField()
-    review = models.CharField(max_length = 200)
-    gram = models.IntegerField()
+
+class ProductReview(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    rating = models.PositiveIntegerField(default=5)  # Rating from 1 to 5, you can customize this
+    review_text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.user.username} - {self.product.name} Review'
+
+# class ProductDetail(models.Model):
+#     productId = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_details')
+#     organic = models.IntegerField()
+#     expiration = models.IntegerField()
+#     review = models.CharField(max_length = 200)
+#     gram = models.IntegerField()
 
 class ProductImg(models.Model):
     productId = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_imgs')

@@ -123,6 +123,7 @@ class BusinessProfile(models.Model):
         BusinessCategory, on_delete=models.CASCADE)
     business_availability = models.OneToOneField('BusinessAvailability', on_delete=models.CASCADE)
     year_founded = models.DateField(blank=True, null=True)
+    business_password = models.CharField(max_length=200)
     # business_address = models.ForeignKey('Address', on_delete = models.CASCADE, related_name= 'Address', verbose_name='Business Address')
 
 

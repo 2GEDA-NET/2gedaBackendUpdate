@@ -27,6 +27,7 @@ urlpatterns = [
     path('get-reactions/<str:content_type>/<int:object_id>/', get_reactions, name='get-reactions'),
     path('edit-post/<int:post_id>/', edit_post, name='edit-post'),
     path('create-or-update-reaction/<str:object_type>/<int:object_id>/', create_or_update_reaction, name='create-or-update-reaction'),
+    path('toggle-reaction/<str:object_type>/<int:object_id>/', toggle_reaction, name='toggle-reaction'),
 
 
 

@@ -423,3 +423,42 @@ def create_or_update_reaction(request, object_type, object_id):
 
     except Post.DoesNotExist:
         return Response({'detail': 'Object not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_reaction(request, object_type, object_id):
+    try:
+        user = request.user
+        reaction_data = request.data
+        reaction_data['user'] = user.id
+
+        # Determine the object type (post, comment, or reply) and object instance
+        if object_type == 'post':
+            obj = Post.objects.get(pk=object_id)
+        elif object_type == 'comment':
+            obj = Comment.objects.get(pk=object_id)
+        elif object_type == 'reply':
+            obj = Reply.objects.get(pk=object_id)
+        else:
+            return Response({'detail': 'Invalid object type.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if a reaction already exists for this user and object
+        existing_reaction = Reaction.objects.filter(user=user, object_id=object_id).first()
+
+        if existing_reaction:
+            # If a reaction exists, delete it
+            existing_reaction.delete()
+            return Response({'detail': 'Reaction removed.'}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            # If no reaction exists, create a new one
+            serializer = ReactionSerializer(data=reaction_data)
+
+            if serializer.is_valid():
+                serializer.save(object=obj)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Post.DoesNotExist:
+        return Response({'detail': 'Object not found.'}, status=status.HTTP_404_NOT_FOUND)

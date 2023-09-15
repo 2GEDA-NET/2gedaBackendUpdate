@@ -241,6 +241,8 @@ class UserListSerializer(serializers.ModelSerializer):
 
 
 class UserDeletionSerializer(serializers.Serializer):
+    reason_choice = serializers.CharField(write_only = True, required = False)
+    reason = serializers.CharField(write_only = True, required = False)
     password = serializers.CharField(write_only=True, required=True)
 
 
@@ -251,3 +253,9 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+class VerificationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        models = Verification
+        fields = '__all__'

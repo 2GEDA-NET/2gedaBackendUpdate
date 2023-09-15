@@ -45,5 +45,9 @@ class AddressAdmin(ImportExportModelAdmin):
 
 
 @admin.register(Verification)
-class VerificationSerializer(ImportExportModelAdmin):
+class VerificationAdmin(ImportExportModelAdmin):
     list_display = ('profile', 'legal_name', 'work')
+
+@admin.register(Device)
+class DeviceAdmin(ImportExportModelAdmin):
+    list_display = ('name', 'category', 'input')

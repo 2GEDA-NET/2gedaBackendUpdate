@@ -176,3 +176,25 @@ class DeliveryAddress(models.Model):
     def __str__(self):
         return str(self.user.get_full_name())
 
+DURATION_CHOICES = (
+    ('24 hours', '24 hours'),
+    ('48 hours', '48 hours'),
+    ('72 hours', '72 hours'),
+    ('1 week', '1 week'),
+    ('2 week', '2 week'),
+    ('1 month', '1 month'),
+    ('3 months', '3 months'),
+    ('1 year', '1 year'),
+)
+
+class Advert(models.Model):
+    title = models.CharField(max_length = 250)
+    category = models.CharField(max_length = 250, choices = DURATION_CHOICES)
+    duration = models.IntegerField()
+    custom_duration_start = models.DateTimeField()
+    custom_duration_end = models.DateTimeField()
+    image = models.ImageField(upload_to = 'advert-image/')
+    note = models.TextField()
+
+    def __str__(self):
+        return self.title

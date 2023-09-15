@@ -172,3 +172,14 @@ class Verification(models.Model):
     link2 = models.URLField(max_length=250)
     link3 = models.URLField(max_length=250)
     media = models.ImageField(upload_to='verificationImage/', blank=True, null=True)
+
+DEVICE_CATEGORY = (
+    ('IMEI', 'IMEI'),
+    ('SERIAL NUMBER', 'SERIAL NUMBER')
+)
+
+class Device(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=250)
+    category = models.CharField(max_length=250, choices=DEVICE_CATEGORY)
+    input = models.CharField(max_length=250)

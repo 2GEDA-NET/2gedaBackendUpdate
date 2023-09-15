@@ -1,7 +1,8 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
-
+from django.conf import settings
+from django.conf.urls.static import static
 from .views import *
 
 app_name = 'users'
@@ -10,7 +11,8 @@ router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'user-profiles', UserProfileViewSet)
 router.register(r'business-categories', BusinessCategoryViewSet)
-router.register(r'password-change', PasswordChangeViewSet, basename='password-change')
+router.register(r'password-change', PasswordChangeViewSet,
+                basename='password-change')
 
 urlpatterns = [
     path('api/', include(router.urls)),
@@ -18,7 +20,7 @@ urlpatterns = [
     #     Authentication urls
     path('register/', create_user, name='user_register'),
     path('login/', obtain_auth_token, name='api_token'),
-#     path('password-change/', PasswordChangeViewSet.as_view, name='change_password'),
+    #     path('password-change/', PasswordChangeViewSet.as_view, name='change_password'),
     path('', UserAPIView.as_view(), name='user_detail'),
     path('update-profile/', update_user_profile, name='update_user_profile'),
     path('users-list/', list_users, name='list_users_by_creation_date'),
@@ -74,7 +76,14 @@ urlpatterns = [
     path('address/', AddressListCreateView.as_view(), name='address-list'),
     path('address/<int:pk>/', AddressDetailView.as_view(), name='address-detail'),
 
+    #Verification Urls
+    path('create-verification/', VerificationCreateView.as_view(), name='verification-create'),
+    path('verification/<int:pk>/', VerificationRetrieveView.as_view(), name='verification-detail'),
+
 
 ]
 
 urlpatterns += router.urls
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

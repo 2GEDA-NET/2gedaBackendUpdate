@@ -21,4 +21,7 @@ urlpatterns = [
     path("", include('user.urls')),
     path("feed/", include('feed.urls')),
     path("commerce/", include('commerce.urls')),
+    path("ticket/", include('ticket.urls')),
+    path("chat/", include('chat.urls')),
+    path("business/", include('business.urls')),
 ]

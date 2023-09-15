@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'chat',
     'commerce',
     'feed',
-    # 'rest_auth',
+    'ticket',
+    'business',
 ]
 
 

@@ -2,7 +2,6 @@ from django.shortcuts import render
 from rest_framework import generics
 from .models import VideoSession
 from .serializers import VideoSessionSerializer
-# videolive/views.py
 from rest_framework import generics
 from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response

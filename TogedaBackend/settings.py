@@ -69,7 +69,7 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    'channels.middleware.WebSocketMiddleware',
+    # 'channels.middleware.WebSocketMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -80,8 +80,18 @@ MIDDLEWARE = [
 ]
 
 
-# WebSocket configuration
-ASGI_APPLICATION = 'video_live_session.routing.application'
+
+# settings.py
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
+
+
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -108,6 +118,9 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "TogedaBackend.wsgi.application"
+
+# WebSocket configuration
+ASGI_APPLICATION = 'TogedaBackend.live.routing.application'
 
 
 # Database

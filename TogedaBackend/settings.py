@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'feed',
     'ticket',
     'business',
+    'poll',
+    'channels',
 ]
 
 
@@ -67,6 +69,7 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'channels.middleware.WebSocketMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -76,6 +79,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
+# WebSocket configuration
+ASGI_APPLICATION = 'video_live_session.routing.application'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',

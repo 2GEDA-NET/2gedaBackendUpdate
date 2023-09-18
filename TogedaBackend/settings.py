@@ -38,20 +38,25 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    # installed packages
     'import_export',
     'django_extensions',
     'rest_framework.authtoken',
     'location_field.apps.DefaultConfig',
     'corsheaders',
-    'user',
+    'channels',
     'rest_framework',
+
+    # apps
+    'user',
     'chat',
     'commerce',
     'feed',
     'ticket',
     'business',
     'poll',
-    'channels',
+    'stereo',
 ]
 
 

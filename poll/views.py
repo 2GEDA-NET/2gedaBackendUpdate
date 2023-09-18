@@ -1,6 +1,9 @@
 from rest_framework import generics
 from .models import Option, Vote, Poll
 from .serializers import *
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.authentication import *
+
 
 class OptionListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)

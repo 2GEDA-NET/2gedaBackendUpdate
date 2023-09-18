@@ -51,3 +51,5 @@ class VerificationAdmin(ImportExportModelAdmin):
 @admin.register(Device)
 class DeviceAdmin(ImportExportModelAdmin):
     list_display = ('name', 'category', 'input')
+
+admin.site.site_header = '2geda Administration Dashboard'

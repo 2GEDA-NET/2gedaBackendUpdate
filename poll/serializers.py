@@ -1,12 +1,17 @@
 from rest_framework import serializers
-from .models import Item, Vote
+from .models import *
 
-class ItemSerializer(serializers.ModelSerializer):
+class OptionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Item
+        model = Option
         fields = '__all__'
 
 class VoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vote
+        fields = '__all__'
+
+class PollSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Poll
         fields = '__all__'

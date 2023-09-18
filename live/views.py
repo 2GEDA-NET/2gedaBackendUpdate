@@ -9,6 +9,8 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .models import Video
 from .serializers import VideoSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.authentication import *
 
 class VideoUploadView(APIView):
     parser_classes = (FileUploadParser,)
@@ -23,17 +25,25 @@ class VideoUploadView(APIView):
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class VideoListView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
 
 class VideoSessionListCreateView(generics.ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = VideoSession.objects.all()
     serializer_class = VideoSessionSerializer
 
 class VideoSessionUpdateView(generics.UpdateAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = VideoSession.objects.all()
     serializer_class = VideoSessionSerializer
 
 class VideoSessionDetailView(generics.RetrieveAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = VideoSession.objects.all()
     serializer_class = VideoSessionSerializer

@@ -1,12 +1,13 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from . import views
-
-router = DefaultRouter()
-router.register(r'items', views.ItemViewSet)
-router.register(r'votes', views.VoteViewSet)
+from django.urls import path
+from .views import *
 
 urlpatterns = [
-    path('', include(router.urls)),
-    
+    path('options/', OptionListCreateView.as_view(), name='option-list-create'),
+    path('options/<int:pk>/', OptionDetailView.as_view(), name='option-detail'),
+
+    path('votes/', VoteListCreateView.as_view(), name='vote-list-create'),
+    path('votes/<int:pk>/', VoteDetailView.as_view(), name='vote-detail'),
+
+    path('polls/', PollListCreateView.as_view(), name='poll-list-create'),
+    path('polls/<int:pk>/', PollDetailView.as_view(), name='poll-detail'),
 ]

@@ -226,6 +226,8 @@ def list_users(request):
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -388,6 +390,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 # Business APIs
 class BusinessCategoryViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = BusinessCategory.objects.all()
     serializer_class = BusinessCategorySerializer
 
@@ -460,12 +464,14 @@ class BusinessCategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
 # End of Business APIs
 
 class AddressListCreateView(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = Address.objects.all()
     serializer_class = AddressSerializer
 
 class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = Address.objects.all()
     serializer_class = AddressSerializer
 
@@ -505,6 +511,8 @@ class VerificationCreateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class VerificationRetrieveView(RetrieveAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = Verification.objects.all()
     serializer_class = VerificationSerializer
 

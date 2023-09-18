@@ -8,6 +8,8 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from .models import Post, PostMedia
 from .serializers import PostSerializer, PostMediaSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.authentication import *
 
 
 @api_view(['POST'])
@@ -227,16 +229,22 @@ def view_comments(request, post_id):
 
 
 class PostMediaViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = PostMedia.objects.all()
     serializer_class = PostMediaSerializer
 
 
 class ReactionViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = Reaction.objects.all()
     serializer_class = ReactionSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
@@ -285,21 +293,29 @@ def create_reply(request, post_id, comment_id):
         return Response({'detail': 'Comment not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 class ReplyViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = Reply.objects.all()
     serializer_class = ReplySerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
 
 class RepostViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = Repost.objects.all()
     serializer_class = RepostSerializer
 
 
 class SavedPostViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     queryset = SavedPost.objects.all()
     serializer_class = SavedPostSerializer
 

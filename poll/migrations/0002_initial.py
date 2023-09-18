@@ -11,23 +11,23 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('chat', '0001_initial'),
+        ('poll', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='message',
-            name='sender',
+            model_name='vote',
+            name='user',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
-            model_name='conversation',
-            name='group_members',
-            field=models.ManyToManyField(blank=True, related_name='group_conversations', to=settings.AUTH_USER_MODEL),
+            model_name='poll',
+            name='options',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='poll.option'),
         ),
         migrations.AddField(
-            model_name='conversation',
-            name='participants',
-            field=models.ManyToManyField(related_name='conversations', to=settings.AUTH_USER_MODEL),
+            model_name='poll',
+            name='user',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
     ]

@@ -24,7 +24,7 @@ class Poll(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     question = models.CharField(max_length=250)
     options = models.ForeignKey(Option, on_delete=models.CASCADE)
-    duration = models.TimeField()
+    # duration = models.TimeField()
     duration = models.CharField(max_length=250, choices = POLL_DURATION)
     type = models.CharField(max_length=250, choices=POLL_TYPE)
     image = models.ImageField(upload_to='poll-media/', blank=True, null=True)

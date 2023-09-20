@@ -3,6 +3,7 @@ from user.utils import send_notification
 from .models import Notification  # Import the Notification model if not already imported
 from django.core.mail import send_mail
 import paystackapi
+from .models import *
 
 
 def is_ticket_available(event, ticket_type):
@@ -119,3 +120,10 @@ def refund_ticket_purchase(purchase):
     else:
         # The payment_status is not 'Successful', so no refund is possible
         pass
+
+
+
+def generate_withdrawal_history(request, amount):
+    # Create a new WithdrawalHistory record
+    withdrawal_history = WithdrawalHistory(user=request.user, amount=amount)
+    withdrawal_history.save()

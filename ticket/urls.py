@@ -19,6 +19,11 @@ urlpatterns = [
     path('edit-event/<int:pk>/', views.EditEventAPIView.as_view(), name='edit_event'),
     path('event/<int:event_id>/ticket-report/', views.TicketReportAPIView.as_view(), name='event_ticket_report'),
     path('event/<int:event_id>/download-ticket-report/', views.download_ticket_report, name='download_ticket_report'),
+    path('past-events/', views.PastEventsAPIView.as_view(), name='past_events'),
+    path('active-events/', views.ActiveEventsAPIView.as_view(), name='active_events'),
+    path('upcoming-events/', views.UpcomingEventsAPIView.as_view(), name='upcoming_events'),
+
+
 ]
 
 # Add the router URLs to the main URL patterns

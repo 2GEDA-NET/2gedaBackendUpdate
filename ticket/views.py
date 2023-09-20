@@ -11,6 +11,7 @@ from rest_framework import status, permissions
 from rest_framework.generics import *
 from .serializers import *
 import csv
+from django.utils import timezone
 from django.http import HttpResponse
 from rest_framework.views import APIView
 
@@ -246,9 +247,91 @@ def download_ticket_report(request, event_id):
 
 class EditEventAPIView(UpdateAPIView):
     queryset = Event.objects.all()
-    serializer_class = EventSerializer
+    serializer_class = UserEventSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         # Only allow event owners to edit their own events
         return Event.objects.filter(user=self.request.user)
+
+
+class PastEventsAPIView(ListAPIView):
+    serializer_class = EventListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Filter events that have already ended
+        now = timezone.now()
+        return Event.objects.filter(user=self.request.user, date__lt=now)
+
+class ActiveEventsAPIView(ListAPIView):
+    serializer_class = EventListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Filter events that are currently active
+        now = timezone.now()
+        return Event.objects.filter(user=self.request.user, date__gte=now)
+
+class UpcomingEventsAPIView(ListAPIView):
+    serializer_class = EventListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Filter events that are scheduled for the future
+        now = timezone.now()
+        return Event.objects.filter(user=self.request.user, date__gt=now)
+
+
+class CreateWithdrawalRequestView(CreateAPIView):
+    serializer_class = WithdrawalRequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Retrieve the associated ticket purchase
+        ticket_purchase_id = self.request.data.get('ticket_purchase_id')
+        try:
+            ticket_purchase = TicketPurchase.objects.get(pk=ticket_purchase_id)
+        except TicketPurchase.DoesNotExist:
+            raise serializers.ValidationError('Invalid ticket purchase.')
+
+        # Check if the user is the event owner and the ticket purchase is successful
+        if ticket_purchase.event.user == self.request.user and ticket_purchase.payment_status == 'Successful':
+            # Set the user making the request as the request user
+            serializer.save(user=self.request.user, ticket_purchase=ticket_purchase)
+        else:
+            raise serializers.ValidationError('You do not have permission to create this withdrawal request.')
+
+
+class ApproveWithdrawalRequestAPIView(UpdateAPIView):
+    serializer_class = WithdrawalRequestSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]  # Adjust permissions as needed
+
+    def put(self, request, *args, **kwargs):
+        withdrawal_request_id = kwargs.get('pk')
+        try:
+            withdrawal_request = WithdrawalRequest.objects.get(pk=withdrawal_request_id)
+        except WithdrawalRequest.DoesNotExist:
+            return Response({'detail': 'Withdrawal request not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if the request is already approved or rejected
+        if withdrawal_request.status != 'Pending':
+            return Response({'detail': 'Withdrawal request has already been processed'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Process the request (approve or reject)
+        is_approved = request.data.get('is_approved')
+        if is_approved:
+            # Perform the withdrawal and update the request status
+            # Here, you would perform the withdrawal action based on your payment gateway or logic
+            # You can add the logic here to handle the withdrawal and update the request status
+            withdrawal_request.status = 'Successful'
+            withdrawal_request.save()
+            
+            # Call the function to generate and store withdrawal history
+            generate_withdrawal_history(withdrawal_request.user, withdrawal_request.amount)
+
+            return Response({'detail': 'Withdrawal request approved'}, status=status.HTTP_200_OK)
+        else:
+            withdrawal_request.status = 'Failed'
+            withdrawal_request.save()
+            return Response({'detail': 'Withdrawal request rejected'}, status=status.HTTP_200_OK)

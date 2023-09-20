@@ -63,6 +63,31 @@ class Withdraw(models.Model):
     is_failed = models.BooleanField(default=False, verbose_name='FAILED')
 
 
+class WithdrawalHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    withdrawal_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Withdrawal by {self.user.username} at {self.withdrawal_time}"
+
+
+class WithdrawalRequest(models.Model):
+    details = models.ForeignKey(PayOutInfo, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, default='Pending', choices=[
+        ('Pending', 'Pending'),
+        ('Successful', 'Successful'),
+        ('Failed', 'Failed'),
+    ])
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Withdrawal Request by {self.user.username}"
+
+
+
 class TicketPurchase(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)  # Assuming you have an Event model

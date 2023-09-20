@@ -123,7 +123,60 @@ def refund_ticket_purchase(purchase):
 
 
 
-def generate_withdrawal_history(request, amount):
-    # Create a new WithdrawalHistory record
-    withdrawal_history = WithdrawalHistory(user=request.user, amount=amount)
+def generate_withdrawal_history(user, amount, status='Successful'):
+    # Create a WithdrawalHistory record
+    withdrawal_history = WithdrawalHistory(user=user, amount=amount, status=status)
     withdrawal_history.save()
+    
+    # Send a notification to the user about the withdrawal request status
+    if status == 'Successful':
+        message = f"Your withdrawal request for NGN {amount} was successful."
+    else:
+        message = f"Your withdrawal request for NGN {amount} failed."
+
+    send_notification(user, message)
+
+
+import requests
+from django.conf import settings
+
+def perform_withdrawal(withdrawal_request):
+    # Check if the user has a valid payout method (e.g., bank account info)
+    if not has_valid_payout_method(withdrawal_request.user):
+        withdrawal_request.status = 'Failed'
+        withdrawal_request.save()
+        return False  # Withdrawal failed due to invalid payout method
+
+    # Calculate the withdrawal amount and perform the withdrawal
+    withdrawal_amount = withdrawal_request.amount
+
+    # Make an API request to Paystack to initiate the withdrawal
+    paystack_api_url = 'https://api.paystack.co/transfer/create'
+    headers = {
+        'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
+        'Content-Type': 'application/json',
+    }
+    payload = {
+        'source': 'balance',  # Withdraw from Paystack balance
+        'amount': withdrawal_amount * 100,  # Amount in kobo (multiply by 100)
+        'recipient': withdrawal_request.user.paystack_recipient_code,  # User's Paystack recipient code
+        'reason': 'Withdrawal request',
+    }
+
+    response = requests.post(paystack_api_url, json=payload, headers=headers)
+
+    if response.status_code == 200:
+        # Withdrawal initiated successfully, update the request status
+        withdrawal_request.status = 'Successful'
+        withdrawal_request.save()
+        return True
+    else:
+        # Withdrawal request failed
+        withdrawal_request.status = 'Failed'
+        withdrawal_request.save()
+        return False  # Withdrawal failed
+
+def has_valid_payout_method(user):
+    # Implement logic to check if the user has a valid payout method
+    # This could involve checking if the user has a Paystack recipient code or bank account info
+    return hasattr(user, 'paystack_recipient_code')  # Check if user has a Paystack recipient code

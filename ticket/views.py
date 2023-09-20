@@ -303,6 +303,41 @@ class CreateWithdrawalRequestView(CreateAPIView):
             raise serializers.ValidationError('You do not have permission to create this withdrawal request.')
 
 
+# class ApproveWithdrawalRequestAPIView(UpdateAPIView):
+#     serializer_class = WithdrawalRequestSerializer
+#     permission_classes = [permissions.IsAuthenticated, IsAdminUser]  # Adjust permissions as needed
+
+#     def put(self, request, *args, **kwargs):
+#         withdrawal_request_id = kwargs.get('pk')
+#         try:
+#             withdrawal_request = WithdrawalRequest.objects.get(pk=withdrawal_request_id)
+#         except WithdrawalRequest.DoesNotExist:
+#             return Response({'detail': 'Withdrawal request not found'}, status=status.HTTP_404_NOT_FOUND)
+
+#         # Check if the request is already approved or rejected
+#         if withdrawal_request.status != 'Pending':
+#             return Response({'detail': 'Withdrawal request has already been processed'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # Process the request (approve or reject)
+#         is_approved = request.data.get('is_approved')
+#         if is_approved:
+#             # Perform the withdrawal and update the request status
+#             # Here, you would perform the withdrawal action based on your payment gateway or logic
+#             # You can add the logic here to handle the withdrawal and update the request status
+#             withdrawal_request.status = 'Successful'
+#             withdrawal_request.save()
+            
+#             # Call the function to generate and store withdrawal history
+#             generate_withdrawal_history(withdrawal_request.user, withdrawal_request.amount)
+
+#             return Response({'detail': 'Withdrawal request approved'}, status=status.HTTP_200_OK)
+#         else:
+#             withdrawal_request.status = 'Failed'
+#             withdrawal_request.save()
+#             return Response({'detail': 'Withdrawal request rejected'}, status=status.HTTP_200_OK)
+
+
+
 class ApproveWithdrawalRequestAPIView(UpdateAPIView):
     serializer_class = WithdrawalRequestSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]  # Adjust permissions as needed
@@ -322,15 +357,15 @@ class ApproveWithdrawalRequestAPIView(UpdateAPIView):
         is_approved = request.data.get('is_approved')
         if is_approved:
             # Perform the withdrawal and update the request status
-            # Here, you would perform the withdrawal action based on your payment gateway or logic
-            # You can add the logic here to handle the withdrawal and update the request status
-            withdrawal_request.status = 'Successful'
-            withdrawal_request.save()
+            withdrawal_success = perform_withdrawal(withdrawal_request)
             
             # Call the function to generate and store withdrawal history
             generate_withdrawal_history(withdrawal_request.user, withdrawal_request.amount)
 
-            return Response({'detail': 'Withdrawal request approved'}, status=status.HTTP_200_OK)
+            if withdrawal_success:
+                return Response({'detail': 'Withdrawal request approved'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'detail': 'Withdrawal request failed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             withdrawal_request.status = 'Failed'
             withdrawal_request.save()

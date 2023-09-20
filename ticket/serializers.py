@@ -47,7 +47,7 @@ class WithdrawSerializer(serializers.ModelSerializer):
 class WithdrawalHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = WithdrawalHistory
-        fields = ('id', 'user', 'amount', 'withdrawal_time')
+        fields = ('id', 'user', 'amount', 'status', 'withdrawal_time')
 
 
 class WithdrawalRequestSerializer(serializers.ModelSerializer):

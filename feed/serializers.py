@@ -60,3 +60,60 @@ class SavedPostSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = PostMedia
 #         fields = ('image', )
+
+
+video_extensions = ['.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv', '.webm', '.ogg', '.3gp', '.mpeg', '.vob', '.divx', '.rm', '.m4v', '.ts', '.m2ts', '.ogv', '.asf', '.mpg', '.mp2', '.m2v', '.mxf', '.mts', '.m2t', '.m1v', '.mpv']
+
+
+class VideoPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        # Serialize only if the associated file has a video extension
+        if instance.file and any(instance.file.media.name.endswith(ext) for ext in video_extensions):
+            return super().to_representation(instance)
+        return None
+
+
+# Define document file extensions
+document_extensions = ['.pdf', '.doc', '.docx', '.txt', '.rtf']
+
+class DocumentPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        # Serialize only if the associated file has a document extension
+        if instance.file and any(instance.file.media.name.endswith(ext) for ext in document_extensions):
+            return super().to_representation(instance)
+        return None
+
+# Define audio file extensions
+audio_extensions = ['.mp3', '.wav', '.ogg', '.aac', '.flac', '.wma', '.m4a', '.opus', '.amr', '.mid', '.midi', '.ac3']
+
+class AudioPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        # Serialize only if the associated file has an audio extension
+        if instance.file and any(instance.file.media.name.endswith(ext) for ext in audio_extensions):
+            return super().to_representation(instance)
+        return None
+
+image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp']
+
+class ImagePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        # Serialize only if the associated file has an image extension
+        if instance.file and any(instance.file.media.name.endswith(ext) for ext in image_extensions):
+            return super().to_representation(instance)
+        return None

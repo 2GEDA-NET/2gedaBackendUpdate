@@ -11,6 +11,11 @@ router.register(r'reply', ReplyViewSet)
 router.register(r'post', PostViewSet)
 router.register(r'repost', RepostViewSet)
 router.register(r'savedpost', SavedPostViewSet)
+router.register(r'video-posts', VideoPostViewSet)
+router.register(r'document-posts', DocumentPostViewSet)
+router.register(r'audio-posts', AudioPostViewSet)
+router.register(r'image-posts', ImagePostViewSet)
+
 
 urlpatterns = [
     path('', include(router.urls)),

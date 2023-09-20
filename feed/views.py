@@ -12,6 +12,7 @@ from .models import Post, PostMedia
 from .serializers import PostSerializer, PostMediaSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.authentication import *
+from rest_framework.decorators import *
 
 
 @api_view(['POST'])
@@ -307,6 +308,15 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
+    @action(detail=True, methods=['POST'])
+    def share_post(self, request, pk=None):
+        post = self.get_object()
+        
+        # Create a new Share instance to record the sharing
+        SharePost.objects.create(user=request.user, shared_post=post)
+        
+        return Response({"detail": "Post shared successfully."}, status=status.HTTP_201_CREATED)
+
 
 class RepostViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
@@ -499,3 +509,40 @@ class PostSearchAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response([], status=status.HTTP_200_OK)
+
+
+class VideoPostViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = VideoPostSerializer
+    queryset = Post.objects.all()
+
+    def get_queryset(self):
+        # Filter posts to include only those with video file extensions
+        return Post.objects.filter(file__media__name__endswith=tuple(video_extensions))
+
+
+class DocumentPostViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = DocumentPostSerializer
+    queryset = Post.objects.all()
+
+    def get_queryset(self):
+        # Filter posts to include only those with document file extensions
+        return Post.objects.filter(file__media__name__endswith=tuple(document_extensions))
+
+
+class AudioPostViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AudioPostSerializer
+    queryset = Post.objects.all()
+
+    def get_queryset(self):
+        # Filter posts to include only those with audio file extensions
+        return Post.objects.filter(file__media__name__endswith=tuple(audio_extensions))
+
+
+
+class ImagePostViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ImagePostSerializer
+    queryset = Post.objects.all()
+
+    def get_queryset(self):
+        # Filter posts to include only those with image file extensions
+        return Post.objects.filter(file__media__name__endswith=tuple(image_extensions))

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Conversation, Message
+from .models import *
 
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,5 +8,17 @@ class ConversationSerializer(serializers.ModelSerializer):
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Message
+        model = ChatMessage
+        fields = '__all__'
+
+
+class LifeStyleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LifeStyle
+        fields = '__all__'
+
+
+class ThreadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Thread
         fields = '__all__'

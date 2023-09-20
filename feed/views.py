@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from rest_framework import viewsets
+from rest_framework.views import APIView
 from .models import *
 from .serializers import *
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -478,3 +480,22 @@ def toggle_reaction(request, object_type, object_id):
 
     except Post.DoesNotExist:
         return Response({'detail': 'Object not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+# Search Post
+class PostSearchAPIView(APIView):
+    def get(self, request):
+        query = request.query_params.get('query', '')
+
+        if query:
+            # Perform a case-insensitive search across relevant fields in the database
+            results = Post.objects.filter(
+                Q(user__icontains=query) |
+                Q(content__icontains=query) |
+                Q(hashtag__icontains=query)
+            )
+            serializer = PostSerializer(results, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response([], status=status.HTTP_200_OK)

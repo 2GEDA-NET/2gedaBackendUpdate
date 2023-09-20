@@ -15,6 +15,30 @@ class ConversationAdmin(ImportExportModelAdmin):
         return ", ".join([str(member) for member in obj.group_members.all()])
     get_group_member_names.short_description = 'Group Members'
 
-@admin.register(Message)
-class MessageAdmin(ImportExportModelAdmin):
-    list_display = ('conversation', 'sender', 'content', 'timestamp', 'is_read', 'is_delivered', 'is_private', 'is_public')
+# @admin.register(Message)
+# class MessageAdmin(ImportExportModelAdmin):
+#     list_display = ('conversation', 'sender', 'content', 'timestamp', 'is_read', 'is_delivered', 'is_private', 'is_public')
+
+@admin.register(ChatGroup)
+class ChatGroupAdmin(ImportExportModelAdmin):
+    """ enable Chart Group admin """
+    list_display = ('id', 'name', 'description', 'icon', 'mute_notifications', 'date_created', 'date_modified')
+    list_filter = ('id', 'name', 'description', 'icon', 'mute_notifications', 'date_created', 'date_modified')
+    list_display_links = ('name',)
+
+
+admin.site.register(ChatMessage)
+
+
+class ChatMessage(admin.TabularInline):
+    model = ChatMessage
+
+
+
+class ThreadAdmin(admin.ModelAdmin):
+    inlines = [ChatMessage]
+    class Meta:
+        model = Thread
+
+
+admin.site.register(Thread, ThreadAdmin)

@@ -8,6 +8,8 @@ from django.shortcuts import render
 from rest_framework.parsers import JSONParser
 from rest_framework.authentication import *
 from rest_framework.viewsets import GenericViewSet
+from django.db.models import Q
+from chat.models import Participant
 from .serializers import *
 from django.middleware import csrf
 from django.db import IntegrityError
@@ -266,11 +268,20 @@ def stick_user(request, user_id):
     if user != target_user:
         if user.sticking.filter(pk=user_id).exists():
             user.sticking.remove(target_user)
+            # If unsticking, remove the corresponding Participant record
+            Participant.objects.filter(user=user.user, sticking_to=target_user).delete()
+            # Send an unstick notification
+            send_notification(target_user.user, f"You were unsticked by {user.user.username}")
             return Response({"message": f"You unsticked {target_user.user.username}"})
         else:
             user.sticking.add(target_user)
+            # If sticking, create a Participant record
+            Participant.objects.create(user=user.user, sticking_to=target_user)
+            # Send a stick notification
+            send_notification(target_user.user, f"You were sticked by {user.user.username}")
             return Response({"message": f"You sticked {target_user.user.username}"})
-    return Response({"message": "You cannot follow/unfollow yourself"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response({"message": "You cannot stick/unstick yourself"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -395,7 +406,6 @@ class BusinessCategoryViewSet(viewsets.ModelViewSet):
     queryset = BusinessCategory.objects.all()
     serializer_class = BusinessCategorySerializer
 
-
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -403,10 +413,14 @@ def create_business_profile(request):
     if request.method == 'POST':
         # Automatically associate the user's profile with the request data
         request.data['profile'] = request.user.userprofile.pk
-        
+
         serializer = BusinessProfileSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+
+            # Send a notification for profile creation
+            send_notification(request.user, "Your business profile has been created.")
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -421,6 +435,10 @@ def update_business_profile(request, pk):
         serializer = BusinessProfileSerializer(business_profile, data=request.data)
         if serializer.is_valid():
             serializer.save()
+
+            # Send a notification for profile update
+            send_notification(request.user, "Your business profile has been updated.")
+
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -459,7 +477,6 @@ class BusinessCategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes = (TokenAuthentication,)
     queryset = BusinessCategory.objects.all()
     serializer_class = BusinessCategorySerializer
-
 
 # End of Business APIs
 
@@ -516,3 +533,34 @@ class VerificationRetrieveView(RetrieveAPIView):
     queryset = Verification.objects.all()
     serializer_class = VerificationSerializer
 
+# Search User
+class UserSearchAPIView(APIView):
+    def get(self, request):
+        query = request.query_params.get('query', '')
+
+        if query:
+            # Perform a case-insensitive search across relevant fields in the database
+            results = User.objects.filter(
+                Q(first_name__icontains=query) |
+                Q(last_name__icontains=query) |
+                Q(username__icontains=query)
+            )
+            serializer = UserSerializer(results, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response([], status=status.HTTP_200_OK)
+
+
+def send_notification(user, message):
+    # Create a new notification
+    notification = Notification(user=user, message=message)
+    notification.save()
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_notifications(request):
+    user = request.user
+    notifications = Notification.objects.filter(user=user, is_read=False).order_by('-created_at')
+    serializer = NotificationSerializer(notifications, many=True)
+    return Response(serializer.data)

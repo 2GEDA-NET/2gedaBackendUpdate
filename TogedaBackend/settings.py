@@ -86,7 +86,8 @@ MIDDLEWARE = [
 
 
 
-# settings.py
+ASGI_APPLICATION = 'TogedaBackend.routing.application'
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
@@ -122,10 +123,9 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "TogedaBackend.wsgi.application"
+# WSGI_APPLICATION = "TogedaBackend.wsgi.application"
+ASGI_APPLICATION = "TogedaBackend.asgi.application"
 
-# WebSocket configuration
-ASGI_APPLICATION = 'TogedaBackend.live.routing.application'
 
 
 # Database
@@ -180,6 +180,7 @@ USE_TZ = True
 AUTH_USER_MODEL = 'user.User'
 
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
@@ -201,3 +202,14 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'your_email@gmail.com'
 EMAIL_HOST_PASSWORD = 'your_email_password'
+
+
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        # 'CONFIG': {
+        #     'hosts': [('127.0.0.1', 6379)],
+        # }
+    }
+}

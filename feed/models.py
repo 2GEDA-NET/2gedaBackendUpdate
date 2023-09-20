@@ -14,6 +14,7 @@ class Post(models.Model):
     reaction = models.ForeignKey('Reaction', on_delete = models.SET_NULL, null=True)
     comments = models.ForeignKey('Comment', on_delete = models.SET_NULL, null=True, related_name='post_comments')
     share = models.IntegerField()
+    hashtag = models.CharField(max_length=250, blank=True)
     is_business_post = models.BooleanField(default = False, verbose_name = 'Business Post')
     is_personal_post = models.BooleanField(default = True, verbose_name = 'Personal Post')
 

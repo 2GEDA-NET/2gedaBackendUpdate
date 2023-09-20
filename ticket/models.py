@@ -9,6 +9,7 @@ class EventCategory(models.Model):
 
 class Event(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    attendees = models.ManyToManyField(User, related_name='attended_events', blank=True)
     image = models.ImageField(upload_to='event-images/', blank=True, null=True)
     title = models.CharField(max_length=250)
     desc = models.TextField()
@@ -60,3 +61,27 @@ class Withdraw(models.Model):
     is_successful = models.BooleanField(default=False, verbose_name='SUCCESSFUL')
     is_pending = models.BooleanField(default=False, verbose_name='PENDING')
     is_failed = models.BooleanField(default=False, verbose_name='FAILED')
+
+
+class TicketPurchase(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)  # Assuming you have an Event model
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE) 
+    payment_status = models.CharField(max_length=250, default='Pending', choices=[('Pending', 'Pending'), ('Successful', 'Successful'), ('Failed', 'Failed')])
+    payment_details = models.TextField(blank=True, null=True)
+    purchase_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Ticket Purchase by {self.user.username} for {self.ticket.title} on {self.purchase_date}"
+
+    class Meta:
+        verbose_name_plural = "Ticket Purchases"
+
+class EventPromotionRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    request_date = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Promotion Request for '{self.event.title}' by {self.user.username}"

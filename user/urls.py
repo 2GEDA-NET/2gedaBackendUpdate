@@ -77,9 +77,14 @@ urlpatterns = [
     path('address/', AddressListCreateView.as_view(), name='address-list'),
     path('address/<int:pk>/', AddressDetailView.as_view(), name='address-detail'),
 
-    #Verification Urls
-    path('create-verification/', VerificationCreateView.as_view(), name='verification-create'),
-    path('verification/<int:pk>/', VerificationRetrieveView.as_view(), name='verification-detail'),
+    # Verification Urls
+    path('create-verification/', VerificationCreateView.as_view(),
+         name='verification-create'),
+    path('verification/<int:pk>/', VerificationRetrieveView.as_view(),
+         name='verification-detail'),
+
+    # Notification url
+    path('get-notifications/', get_notifications, name='get-notification'),
 
 
 ]
@@ -87,4 +92,5 @@ urlpatterns = [
 urlpatterns += router.urls
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)

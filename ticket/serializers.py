@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import EventCategory, Event, Ticket, Bank, PayOutInfo, Withdraw
+from .models import *
 
 class EventCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,3 +30,18 @@ class WithdrawSerializer(serializers.ModelSerializer):
     class Meta:
         model = Withdraw
         fields = '__all__'
+
+class EventPromotionRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventPromotionRequest
+        fields = '__all__' 
+
+class TicketPurchaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TicketPurchase
+        fields = ['user', 'ticket']
+
+    def create(self, validated_data):
+        # Override the create method to handle the creation of the TicketPurchase instance
+        ticket_purchase = TicketPurchase.objects.create(**validated_data)
+        return ticket_purchase

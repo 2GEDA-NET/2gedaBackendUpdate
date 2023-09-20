@@ -185,12 +185,11 @@ class Device(models.Model):
     input = models.CharField(max_length=250)
 
 
-
 class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications_received')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications_sent')
     message = models.TextField()
-    is_read = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.message
+        return f"Notification to {self.recipient.username} from {self.sender.username}: {self.message}"

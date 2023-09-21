@@ -1,6 +1,6 @@
 from django.db import models
 from user.models import *
-
+from commerce.models import *
 # Create your models here.
 
 
@@ -27,6 +27,8 @@ class Post(models.Model):
         'Reaction', on_delete=models.SET_NULL, null=True)
     comments = models.ForeignKey(
         'Comment', on_delete=models.SET_NULL, null=True, related_name='post_comments')
+    product = models.ForeignKey(
+        Product, on_delete=models.SET_NULL, null=True, blank=True)
     hashtag = models.CharField(max_length=250, blank=True)
     is_business_post = models.BooleanField(
         default=False, verbose_name='Business Post')

@@ -5,8 +5,25 @@ from rest_framework.authentication import *
 from .serializers import *
 from rest_framework.permissions import *
 from .permissions import *
+from django.http import HttpResponse, JsonResponse
+from rest_framework.parsers import JSONParser
 
 # Create your views here.
+def product_list(request):
+    if request.method == 'GET':
+        # products = Product.objects.all().order_by('create_at').reverse()
+        products = Product.objects.prefetch_related('product_imgs').order_by('create_at').reverse()
+        serializer = ProductSerializer(products, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    
+    elif request.method == 'POST':
+        data = JSONParser().parse(request)
+        serializer = ProductSerializer(data=data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status = 201)
+        return JsonResponse(serializer.errors, status = 400)
 # Product Category Views
 class ProductCategoryList(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)

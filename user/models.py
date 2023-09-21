@@ -52,6 +52,12 @@ class BusinessCategory(models.Model):
     def __str__(self):
         return self.name
 
+RELIGION_CHOICES = [
+    ('Christianity', 'Christianity'),
+    ('Muslim', 'Muslim'),
+    ('Indigenous', 'Indigenous'),
+    ('Others', 'Others'),
+]
 
 class UserProfile(models.Model):
     # Create a one-to-one relationship with the User model
@@ -61,6 +67,9 @@ class UserProfile(models.Model):
     gender = models.CharField(
         max_length=15, choices=GENDER_CHOICES, blank=True, null=True)
     custom_gender = models.CharField(max_length=250, blank=True, null=True)
+    religion = models.CharField(
+        max_length=20, choices=RELIGION_CHOICES, verbose_name='Religion')
+
     profile_picture = models.ImageField(
         upload_to='profile_pics/', blank=True, null=True)
     address = models.ForeignKey('Address', on_delete = models.CASCADE, null = True)

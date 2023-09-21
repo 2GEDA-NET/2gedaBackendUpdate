@@ -552,36 +552,37 @@ class ImagePostViewSet(viewsets.ReadOnlyModelViewSet):
         # Filter posts to include only those with image file extensions
         return Post.objects.filter(file__media__name__endswith=tuple(image_extensions))
 
-
 class PromotePostViewSet(viewsets.ModelViewSet):
     serializer_class = PromotedPostSerializer
     queryset = PromotedPost.objects.all()
 
     def create(self, request, *args, **kwargs):
-        # Get the post ID from the request or adjust your serializer to include it
-        post_id = request.data.get('post_id')
+        # Get the selected promotion plan ID and post ID from the request
+        plan_id = request.data.get('plan_id')
+        post_id = request.data.get('post_id')  # Assuming you expect 'post_id' in the request
 
         try:
-            # Retrieve the post by ID (you'll need to adjust this to your model)
-            post = Post.objects.get(pk=post_id)
+            # Retrieve the selected promotion plan
+            promotion_plan = PromotionPlan.objects.get(pk=plan_id)
 
-            # Calculate the payment amount based on your logic (e.g., fixed amount or dynamic)
-            payment_amount = 1000  # Example: NGN 1,000 (in kobo)
+            # Calculate the payment amount based on the selected plan
+            payment_amount = promotion_plan.price
 
-            # Initialize a Paystack transaction
+            # Initialize a Paystack transaction with the calculated amount
             transaction_params = {
                 "reference": f"post_promotion_{post_id}",
                 "amount": payment_amount * 100,  # Amount in kobo
                 "email": request.user.email,  # User's email
-                "metadata": {"post_id": post_id},
+                "metadata": {"post_id": post_id, "promotion_plan_id": plan_id},
             }
             transaction_response = InitializeTransaction.transaction(**transaction_params)
 
             # Return the Paystack authorization URL to the frontend
             return Response({'authorization_url': transaction_response['data']['authorization_url']})
 
-        except Post.DoesNotExist:
-            return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except PromotionPlan.DoesNotExist:
+            return Response({'detail': 'Promotion plan not found.'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class PaystackCallbackView(APIView):
     def get(self, request):

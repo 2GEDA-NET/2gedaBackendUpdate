@@ -15,7 +15,7 @@ from .serializers import PostSerializer, PostMediaSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.authentication import *
 from rest_framework.decorators import *
-from paystackapi.transaction import InitializeTransaction, VerifyTransaction
+from paystackapi.transaction import Transaction
 from django.conf import settings
 
 
@@ -575,7 +575,7 @@ class PromotePostViewSet(viewsets.ModelViewSet):
                 "email": request.user.email,  # User's email
                 "metadata": {"post_id": post_id, "promotion_plan_id": plan_id},
             }
-            transaction_response = InitializeTransaction.transaction(**transaction_params)
+            transaction_response = Transaction.initialize(**transaction_params)
 
             # Return the Paystack authorization URL to the frontend
             return Response({'authorization_url': transaction_response['data']['authorization_url']})
@@ -589,7 +589,7 @@ class PaystackCallbackView(APIView):
         reference = request.GET.get('reference')
 
         # Verify the payment status with Paystack
-        verify_response = VerifyTransaction.verify(reference)
+        verify_response = Transaction.verify(reference)
 
         if verify_response['data']['status'] == 'success':
             # Payment was successful, create the promoted post record

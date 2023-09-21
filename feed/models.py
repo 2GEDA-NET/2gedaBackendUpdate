@@ -39,6 +39,7 @@ class Post(models.Model):
 
 class SharePost(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    caption = models.TextField(blank=True, null=True)
     shared_post = models.ForeignKey('Post', on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
 

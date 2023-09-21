@@ -13,6 +13,9 @@ from .serializers import PostSerializer, PostMediaSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.authentication import *
 from rest_framework.decorators import *
+from paystackapi.transaction import InitializeTransaction, VerifyTransaction
+from django.conf import settings
+
 
 
 @api_view(['POST'])
@@ -546,3 +549,34 @@ class ImagePostViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         # Filter posts to include only those with image file extensions
         return Post.objects.filter(file__media__name__endswith=tuple(image_extensions))
+
+
+class PromotePostViewSet(viewsets.ModelViewSet):
+    serializer_class = PromotedPostSerializer
+    queryset = PromotedPost.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        # Get the post ID from the request or adjust your serializer to include it
+        post_id = request.data.get('post_id')
+
+        try:
+            # Retrieve the post by ID (you'll need to adjust this to your model)
+            post = Post.objects.get(pk=post_id)
+
+            # Calculate the payment amount based on your logic (e.g., fixed amount or dynamic)
+            payment_amount = 1000  # Example: NGN 1,000 (in kobo)
+
+            # Initialize a Paystack transaction
+            transaction_params = {
+                "reference": f"post_promotion_{post_id}",
+                "amount": payment_amount * 100,  # Amount in kobo
+                "email": request.user.email,  # User's email
+                "metadata": {"post_id": post_id},
+            }
+            transaction_response = InitializeTransaction.transaction(**transaction_params)
+
+            # Return the Paystack authorization URL to the frontend
+            return Response({'authorization_url': transaction_response['data']['authorization_url']})
+
+        except Post.DoesNotExist:
+            return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)

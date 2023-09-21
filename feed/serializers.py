@@ -56,11 +56,19 @@ class SavedPostSerializer(serializers.ModelSerializer):
         model = SavedPost
         fields = '__all__'
 
+class PromotedPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PromotedPost
+        fields = '__all__'
+
+
 # class PostMediaSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = PostMedia
 #         fields = ('image', )
 
+
+# Define document file extensions
 
 video_extensions = ['.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv', '.webm', '.ogg', '.3gp', '.mpeg', '.vob', '.divx', '.rm', '.m4v', '.ts', '.m2ts', '.ogv', '.asf', '.mpg', '.mp2', '.m2v', '.mxf', '.mts', '.m2t', '.m1v', '.mpv']
 

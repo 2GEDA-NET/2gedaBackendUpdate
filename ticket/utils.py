@@ -57,6 +57,7 @@ def payment_successful(payment_info):
 
 
 
+
 def send_event_owner_notification(event_owner, purchaser, event_title, ticket_type):
     # Create a notification message to send to the event owner
     message = f"{purchaser.username} has purchased a {ticket_type} ticket for your event: {event_title}"

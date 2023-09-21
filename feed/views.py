@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.views import APIView
+
+from feed.utils import send_post_promotion_notification
 from .models import *
 from .serializers import *
 from django.db.models import Q
@@ -580,3 +582,27 @@ class PromotePostViewSet(viewsets.ModelViewSet):
 
         except Post.DoesNotExist:
             return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class PaystackCallbackView(APIView):
+    def get(self, request):
+        reference = request.GET.get('reference')
+
+        # Verify the payment status with Paystack
+        verify_response = VerifyTransaction.verify(reference)
+
+        if verify_response['data']['status'] == 'success':
+            # Payment was successful, create the promoted post record
+
+            # Extract the post_id from the metadata
+            post_id = verify_response['data']['metadata']['post_id']
+
+            # Create the promoted post record here and update promotion_status
+
+            # Send a notification to the user
+            user = request.user  # Assuming you have the user available in the request
+            message = 'Your post has been successfully promoted!'
+            send_post_promotion_notification(user, message)
+
+            return Response({'detail': 'Payment successful.'})
+        else:
+            return Response({'detail': 'Payment failed.'})

@@ -27,7 +27,19 @@ class Store(models.Model):
     
     def __str__(self):
         return self.name
-    
+
+
+class SaleLocation(models.Model):
+    name = models.CharField(max_length = 250, blank = True, null = True)
+
+
+class SaleHistory(models.Model):
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    selling_price = models.CharField(max_length=100)
+    sale_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Sale of {self.product.title} on {self.sale_date}"
 
 class Product(models.Model):
     title = models.CharField(max_length=500)
@@ -35,7 +47,7 @@ class Product(models.Model):
     business = models.ForeignKey(BusinessProfile, on_delete=models.CASCADE)
     category = models.ForeignKey(ProductCategory, on_delete = models.CASCADE)
     price = models.CharField( max_length=100)
-    sale_location = models.CharField(max_length = 200)
+    sale_location = models.ForeignKey(SaleLocation, on_delete = models.CASCADE)
     create_at = models.DateTimeField(auto_now_add=True)
     is_trending = models.BooleanField(default=False, verbose_name='Trending')
     is_sold = models.BooleanField(default=False, verbose_name='Sold')
@@ -43,6 +55,11 @@ class Product(models.Model):
     is_promoted = models.BooleanField(default=False, verbose_name='Promoted')
     promotion_plan = models.ForeignKey('PromotionPlan', on_delete=models.SET_NULL, blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+        if self.is_sold and not self.salehistory_set.exists():
+            SaleHistory.objects.create(product=self, selling_price=self.price)
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return self.name
 

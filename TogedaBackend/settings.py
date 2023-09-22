@@ -213,3 +213,9 @@ CHANNEL_LAYERS = {
         # }
     }
 }
+
+
+# settings.py
+PAYSTACK_PUBLIC_KEY = 'your_public_key'
+PAYSTACK_SECRET_KEY = 'your_secret_key'
+PAYSTACK_PAYMENT_CALLBACK_URL = 'your_callback_url'  # This is the URL where Paystack will redirect after payment

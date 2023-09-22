@@ -7,6 +7,9 @@ from location_field.models.plain import PlainLocationField
 
 # Create your models here.
 
+class ProfileMedia(models.Model):
+    media = models.FileField(upload_to='profile_files/', blank=True, null=True)
+
 
 class User(AbstractUser):
     email = models.EmailField(unique=True, null=True, blank=True)
@@ -69,9 +72,7 @@ class UserProfile(models.Model):
     custom_gender = models.CharField(max_length=250, blank=True, null=True)
     religion = models.CharField(
         max_length=20, choices=RELIGION_CHOICES, verbose_name='Religion')
-
-    profile_picture = models.ImageField(
-        upload_to='profile_pics/', blank=True, null=True)
+    media = models.ForeignKey(ProfileMedia, on_delete= models.CASCADE,blank=True, null=True)
     address = models.ForeignKey('Address', on_delete = models.CASCADE, null = True)
     stickers = models.ManyToManyField('self', related_name='sticking', symmetrical=False)
     

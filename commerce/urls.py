@@ -25,4 +25,12 @@ urlpatterns = [
     # Order URLs
     path('orders/', views.OrderList.as_view(), name='order-list'),
     path('orders/<int:pk>/', views.OrderDetail.as_view(), name='order-detail'),
+
+
+    path('sale-history/', views.SaleHistoryView.as_view(), name='sale_history_api'),
+    path('mark-product-sold/', views.MarkProductSoldView.as_view(), name='mark-product-sold'),
+    
+    path('api/promote-product/', views.PromoteProductView.as_view(), name='promote-product'),
+    path('paystack-callback/', views.PaystackCallbackView.as_view(), name='paystack-callback'),
+
 ]

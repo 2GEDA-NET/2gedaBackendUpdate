@@ -43,7 +43,10 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = '__all__'
 
-
+class SaleHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SaleHistory
+        fields = '__all__'
 
 class ProductImgSerializer(serializers.ModelSerializer):
     class Meta:
@@ -203,3 +206,12 @@ class OrderWriteSerializer(serializers.ModelSerializer):
                 order.save()
 
         return instance
+
+
+class MarkProductSoldSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+
+
+class PromotionSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+    promotion_plan_id = serializers.IntegerField()

@@ -102,7 +102,7 @@ class LifeStyleDelete(APIView):
         for post in data:
 
             post_time_str = post['date']
-            post_time_obj = t.datetime.strptime(
+            post_time_obj = datetime.strptime(
                 post_time_str, '%Y-%m-%dT%H:%M:%S.%fZ')
 
             time_diff = datetime.now() - post_time_obj

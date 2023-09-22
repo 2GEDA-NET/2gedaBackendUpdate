@@ -23,6 +23,10 @@ urlpatterns = [
     path('get_encryption_key/<int:conversation_id>/',
          views.EncryptionKeyAPIView.as_view(), name='get_encryption_key'),
 
+    path('archived-conversations/', views.ConversationViewSet.as_view({'get': 'archived'}), name='archived_conversations'),
+    path('conversations/<int:pk>/archive/', views.ConversationViewSet.as_view({'post': 'archive'}), name='archive_conversation'),
+    path('conversations/<int:pk>/remove-from-archive/', views.ConversationViewSet.as_view({'post': 'remove_from_archive'}), name='remove_from_archive_conversation'),
+    path('conversations/<int:pk>/delete-chat/', views.ConversationViewSet.as_view({'post': 'delete_chat'}), name='delete_chat_conversation'),
 
     # BroadCast Plan
 

@@ -46,7 +46,7 @@ class Conversation(models.Model):
     updated_at = models.DateTimeField(auto_now=True)  # Timestamp when the conversation was last updated
     is_archived = models.BooleanField(default=False)  # Indicates if the conversation is archived
     unread_count = models.PositiveIntegerField(default=0)  # Count of unread messages in the conversation
-
+    is_deleted = models.BooleanField(default=False)
     # Add a field to store the conversation's encryption key
     encryption_key = models.BinaryField()
 

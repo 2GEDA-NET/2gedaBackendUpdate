@@ -414,6 +414,56 @@ class ConversationViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(conversation)
         return Response(serializer.data)
+    
+    
+    @action(detail=False, methods=['GET'])
+    def archived(self, request):
+        # Filter and retrieve archived conversations for the logged-in user
+        archived_conversations = Conversation.objects.filter(participants=request.user, is_archived=True)
+        serializer = self.get_serializer(archived_conversations, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['POST'])
+    def archive(self, request, pk=None):
+        conversation = self.get_object()
+        
+        # Check if the user is a participant in the conversation
+        if request.user not in conversation.participants.all():
+            return Response({'error': 'You are not a participant in this conversation.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        # Archive the conversation
+        conversation.is_archived = True
+        conversation.save()
+        
+        return Response({'message': 'Conversation archived successfully.'}, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['POST'])
+    def remove_from_archive(self, request, pk=None):
+        conversation = self.get_object()
+        
+        # Check if the user is a participant in the conversation
+        if request.user not in conversation.participants.all():
+            return Response({'error': 'You are not a participant in this conversation.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        # Remove the conversation from the archive
+        conversation.is_archived = False
+        conversation.save()
+        
+        return Response({'message': 'Conversation removed from archive successfully.'}, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['POST'])
+    def delete_chat(self, request, pk=None):
+        conversation = self.get_object()
+        
+        # Check if the user is a participant in the conversation
+        if request.user not in conversation.participants.all():
+            return Response({'error': 'You are not a participant in this conversation.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        # Mark the conversation as deleted
+        conversation.is_deleted = True
+        conversation.save()
+        
+        return Response({'message': 'Conversation deleted successfully.'}, status=status.HTTP_200_OK)
 
 # Broadcast plan to be done later
 

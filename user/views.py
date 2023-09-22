@@ -9,7 +9,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.authentication import *
 from rest_framework.viewsets import GenericViewSet
 from django.db.models import Q
-from chat.models import Participant
+from chat.models import Conversation, Participant
 from .serializers import *
 from django.middleware import csrf
 from django.db import IntegrityError
@@ -602,3 +602,23 @@ def list_blocked_users(request):
     serializer = BlockedUserSerializer(blocked_users, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class EncryptionKeyAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = self.request.user
+        user_profile = UserProfile.objects.get(user=user)  # Adjust this as per your user model
+        conversations = Conversation.objects.filter(participants=user_profile)
+
+        # Create a dictionary to store encryption keys for each conversation
+        encryption_keys = {}
+
+        for conversation in conversations:
+            encryption_key = conversation.get_encryption_key()
+            if encryption_key:
+                encryption_keys[conversation.id] = encryption_key.decode()
+
+        return Response(encryption_keys, status=status.HTTP_200_OK)

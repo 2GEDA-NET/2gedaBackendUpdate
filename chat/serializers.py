@@ -22,3 +22,9 @@ class ThreadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Thread
         fields = '__all__'
+
+
+class BroadcastPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BroadcastPlan
+        fields = '__all__'

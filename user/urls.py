@@ -87,6 +87,9 @@ urlpatterns = [
     # Notification url
     path('get-notifications/', get_notifications, name='get-notification'),
 
+# Get conversations encryption keys
+     path('get_encryption_keys/', EncryptionKeyAPIView.as_view(), name='get_encryption_keys'),
+
 
 ]
 

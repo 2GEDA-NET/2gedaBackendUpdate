@@ -23,7 +23,6 @@ urlpatterns = [
     #     path('password-change/', PasswordChangeViewSet.as_view, name='change_password'),
     path('', UserAPIView.as_view(), name='user_detail'),
     path('update-profile/', update_user_profile, name='update_user_profile'),
-    path('update-profile/', update_user_profile, name='update_user_profile'),
     path('search-user/', UserSearchAPIView.as_view(), name='search_user'),
     path('delete-account/', delete_account, name='delete_account'),
     path('delete-user/<str:username>/', delete_account_by_username,
@@ -32,6 +31,8 @@ urlpatterns = [
          delete_account_by_id, name='delete_account_by_id'),
     path('delete-user-by-username-or-id/', delete_user_by_username_or_id,
          name='delete_user_by_username_or_id'),
+    path('block/', block_user, name='block-user'),
+    path('blocked-users/', list_blocked_users, name='list-blocked-users'),
 
 
     #     Stick urls

@@ -203,3 +203,16 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification to {self.recipient.username} from {self.sender.username}: {self.message}"
+
+
+class BlockedUser(models.Model):
+    blocker = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blocked_users')
+    blocked_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blockers')
+    reason = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.blocker} blocked {self.blocked_user}"
+
+    class Meta:
+        unique_together = ('blocker', 'blocked_user')

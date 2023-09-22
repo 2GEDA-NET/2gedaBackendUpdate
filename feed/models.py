@@ -103,3 +103,16 @@ class PromotedPost(models.Model):
     promotion_status = models.CharField(max_length=20, choices=[(
         'pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')], default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+
+class AdvertCategory(models.Model):
+    name = models.CharField(max_length=250, blank=True, null= True)
+
+class Adevert(models.Model):
+    title = models.CharField(max_length=250, blank=True, null=True)
+    category = models.ForeignKey(AdvertCategory, on_delete=models.CASCADE)
+    duration = models.CharField(max_length=250, choices=DURATION_CHOICES)
+    custom_duration_start = models.DateTimeField()
+    custom_duration_end = models.DateTimeField()
+    

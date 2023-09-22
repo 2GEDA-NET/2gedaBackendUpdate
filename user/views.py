@@ -564,3 +564,41 @@ def get_notifications(request):
     notifications = Notification.objects.filter(user=user, is_read=False).order_by('-created_at')
     serializer = NotificationSerializer(notifications, many=True)
     return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def block_user(request):
+    # Get the user who is doing the blocking
+    blocker = request.user
+
+    # Get the user who is being blocked (you can pass this user's ID or username in the request data)
+    blocked_user_id = request.data.get('blocked_user_id')
+
+    # Check if the block already exists
+    existing_block = BlockedUser.objects.filter(blocker=blocker, blocked_user__id=blocked_user_id).first()
+
+    if existing_block:
+        return Response({'detail': 'User is already blocked.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Create a new block
+    serializer = BlockedUserSerializer(data={'blocker': blocker.id, 'blocked_user': blocked_user_id})
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'detail': 'User blocked successfully.'}, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_blocked_users(request):
+    # Get the authenticated user
+    user = request.user
+
+    # Retrieve the list of users they have blocked
+    blocked_users = BlockedUser.objects.filter(blocker=user)
+
+    # Serialize the blocked users data
+    serializer = BlockedUserSerializer(blocked_users, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)

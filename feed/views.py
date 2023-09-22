@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.views import APIView
+from rest_framework.generics import *
 
 from feed.utils import send_post_promotion_notification
 from .models import *
@@ -165,6 +166,7 @@ def admin_view_posts(request):
 
 # View to edit a post
 @api_view(['PUT'])
+
 @permission_classes([IsAdminUser])  # Only admin can edit posts
 def admin_edit_post(request, post_id):
     try:
@@ -607,3 +609,14 @@ class PaystackCallbackView(APIView):
             return Response({'detail': 'Payment successful.'})
         else:
             return Response({'detail': 'Payment failed.'})
+
+
+class UserPostsView(ListAPIView):
+    serializer_class = PostSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Filter posts by the authenticated user
+        user = self.request.user
+        return Post.objects.filter(user=user)

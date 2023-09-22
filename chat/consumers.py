@@ -18,6 +18,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.user = self.scope['user']
             await self.accept()
 
+            # Get and send the counts
+            group_count = await self.count_group_conversations()
+            private_count = await self.count_private_conversations()
+            
+            response = {
+                'group_conversation_count': group_count,
+                'private_conversation_count': private_count
+            }
+            
+            await self.send(text_data=json.dumps(response))
+
     async def disconnect(self, close_code):
         pass
 
@@ -76,6 +87,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'error': message
         }
         await self.send(text_data=json.dumps(response))
+
+    @database_sync_to_async
+    def count_group_conversations(self):
+        # Get the user's ID
+        user_id = self.user.id
+        
+        # Count the group conversations the user is participating in
+        group_conversation_count = Conversation.objects.filter(
+            participants=user_id, is_group=True).count()
+        
+        return group_conversation_count
 
     @database_sync_to_async
     def get_conversation(self, conversation_id):
@@ -656,3 +678,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     #     # Update remaining recipients count
     #     broadcast_permission.remaining_recipients -= num_recipients
     #     broadcast_permission.save()
+
+
+

@@ -20,7 +20,7 @@ class User(AbstractUser):
     is_admin = models.BooleanField(default=False, verbose_name='Admin Account')
     phone_number = models.BigIntegerField(unique=True, null=True, blank=True)
     is_verified = models.BooleanField(default=False, verbose_name='Verified')
-
+    last_seen = models.DateTimeField(null=True, blank=True)
     objects = UserManager()
 
     class Meta:

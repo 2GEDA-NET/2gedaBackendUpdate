@@ -30,10 +30,10 @@ urlpatterns = [
 
     # BroadCast Plan
 
-    path('broadcast-plans/', views.BroadcastPlanView.as_view(),
-         name='broadcast-plans'),
-    path('initiate-payment/', views.initiate_payment, name='initiate-payment'),
-    path('payment-callback/', views.payment_callback, name='payment-callback'),
+    # path('broadcast-plans/', views.BroadcastPlanView.as_view(),
+    #      name='broadcast-plans'),
+    # path('initiate-payment/', views.initiate_payment, name='initiate-payment'),
+    # path('payment-callback/', views.payment_callback, name='payment-callback'),
 
 
 ]

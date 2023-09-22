@@ -1,5 +1,6 @@
 # consumers.py
 
+from datetime import timezone
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -11,20 +12,44 @@ from chat.models import BroadcastPermission, BroadcastPlan, Conversation, ChatMe
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
+    # Add a method to retrieve the last seen status of a user in private conversations
+    @database_sync_to_async
+    def get_last_seen_status(self, conversation_id):
+        try:
+            conversation = Conversation.objects.get(id=conversation_id)
+        except Conversation.DoesNotExist:
+            return None
+
+        # Ensure that the user is a participant in the conversation
+        if self.user not in conversation.participants.all():
+            return None
+
+        # Retrieve the last_seen status for the user in the conversation
+        return self.user.last_seen  # Assuming last_seen field is in User model
+
+
+    # Modify the connect method to include last seen status in the initial response
     async def connect(self):
         if self.scope['user'].is_anonymous:
             await self.close()
         else:
             self.user = self.scope['user']
+            self.user.last_seen = timezone.now()
+            self.user.save()
             await self.accept()
 
             # Get and send the counts
             group_count = await self.count_group_conversations()
             private_count = await self.count_private_conversations()
             
+            # Get and send the last seen status for private conversations
+            private_conversations = await self.get_private_conversations()
+            last_seen_statuses = await self.get_last_seen_statuses(private_conversations)
+            
             response = {
                 'group_conversation_count': group_count,
-                'private_conversation_count': private_count
+                'private_conversation_count': private_count,
+                'last_seen_statuses': last_seen_statuses  # Include last seen status
             }
             
             await self.send(text_data=json.dumps(response))
@@ -154,12 +179,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             conversation.is_archived = False
             conversation.save()
 
+    
     async def send_message(self, conversation_id, message):
         conversation = await self.get_conversation(conversation_id)
         if conversation:
             if self.user not in conversation.participants.all():
                 await self.send_error_message('You are not a participant in this conversation')
                 return
+
+            # Update the user's last_seen field to the current timestamp
+            self.user.last_seen = timezone.now()
+            self.user.save()
 
             await self.create_chat_message(conversation, self.user, message)
 
@@ -177,6 +207,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'text': json.dumps(response)
                 }
             )
+
 
     @database_sync_to_async
     def create_chat_message(self, conversation, user, msg):
@@ -678,6 +709,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
     #     # Update remaining recipients count
     #     broadcast_permission.remaining_recipients -= num_recipients
     #     broadcast_permission.save()
+
+
+    # Add methods to retrieve private conversations and their last seen statuses
+
+    @database_sync_to_async
+    def get_private_conversations(self):
+        return Conversation.objects.filter(participants=self.user, is_group=False)
+
+
+
 
 
 

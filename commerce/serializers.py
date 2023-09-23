@@ -215,3 +215,9 @@ class MarkProductSoldSerializer(serializers.Serializer):
 class PromotionSerializer(serializers.Serializer):
     product_id = serializers.IntegerField()
     promotion_plan_id = serializers.IntegerField()
+
+
+class AdvertSerializer(serializers.Serializer):
+    class Meta:
+        model = Advert
+        fields = '__all__'

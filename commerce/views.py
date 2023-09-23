@@ -31,6 +31,19 @@ def product_list(request):
         return JsonResponse(serializer.errors, status = 400)
 
 
+# Advert
+class AdvertList(generics.ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+    queryset = Advert.objects.all()
+    serializer_class = AdvertSerializer
+
+class AdvertDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+    queryset = Advert.objects.all()
+    serializer_class = AdvertSerializer
+
 # Product Category Views
 class ProductCategoryList(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)

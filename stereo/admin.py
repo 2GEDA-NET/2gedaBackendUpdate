@@ -14,7 +14,7 @@ class SongAdmin(ImportExportModelAdmin):
 
 @admin.register(MusicProfile)
 class MusicProfileAdmin(ImportExportModelAdmin):
-    ist_display = ('user', 'favorite_genre', 'listening_history_summary')
+    list_display = ('user', 'favorite_genre', 'listening_history_summary')
     
     def listening_history_summary(self, obj):
         return obj.listening_history.count()  # Assuming you want to display the count of listened songs

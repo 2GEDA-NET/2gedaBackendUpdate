@@ -3,6 +3,10 @@ from import_export.admin import ImportExportModelAdmin
 from .models import *
 # Register your models here.
 
+@admin.register(ProfileMedia)
+class ProfileMediaAdmin(ImportExportModelAdmin):
+    list_display = ('media',)
+
 
 @admin.register(User)
 class UsersAdmin(ImportExportModelAdmin):
@@ -47,6 +51,11 @@ class AddressAdmin(ImportExportModelAdmin):
 @admin.register(Verification)
 class VerificationAdmin(ImportExportModelAdmin):
     list_display = ('profile', 'legal_name', 'work')
+
+@admin.register(Notification)
+class NotificationAdmin(ImportExportModelAdmin):
+    list_display = ('recipient', 'sender', 'message', 'timestamp')
+
 
 @admin.register(Device)
 class DeviceAdmin(ImportExportModelAdmin):

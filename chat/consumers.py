@@ -9,8 +9,6 @@ from user.models import User
 from chat.models import BroadcastPermission, BroadcastPlan, Conversation, ChatMessage
 
 
-
-
 class ChatConsumer(AsyncWebsocketConsumer):
     # Add a method to retrieve the last seen status of a user in private conversations
     @database_sync_to_async
@@ -27,8 +25,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Retrieve the last_seen status for the user in the conversation
         return self.user.last_seen  # Assuming last_seen field is in User model
 
-
     # Modify the connect method to include last seen status in the initial response
+
     async def connect(self):
         if self.scope['user'].is_anonymous:
             await self.close()
@@ -41,17 +39,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Get and send the counts
             group_count = await self.count_group_conversations()
             private_count = await self.count_private_conversations()
-            
+
             # Get and send the last seen status for private conversations
             private_conversations = await self.get_private_conversations()
             last_seen_statuses = await self.get_last_seen_statuses(private_conversations)
-            
+
             response = {
                 'group_conversation_count': group_count,
                 'private_conversation_count': private_count,
                 'last_seen_statuses': last_seen_statuses  # Include last seen status
             }
-            
+
             await self.send(text_data=json.dumps(response))
 
     async def disconnect(self, close_code):
@@ -102,7 +100,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         elif action == 'unblock_user':
             await self.unblock_user(received_data)  # Handle user unblocking
         elif action == 'broadcast_message':
-            await self.send_broadcast_message(message)  # Handle broadcast message
+            # Handle broadcast message
+            await self.send_broadcast_message(message)
 
     async def chat_message(self, event):
         await self.send(text_data=event['text'])
@@ -117,11 +116,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def count_group_conversations(self):
         # Get the user's ID
         user_id = self.user.id
-        
+
         # Count the group conversations the user is participating in
         group_conversation_count = Conversation.objects.filter(
             participants=user_id, is_group=True).count()
-        
+
         return group_conversation_count
 
     @database_sync_to_async
@@ -179,7 +178,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             conversation.is_archived = False
             conversation.save()
 
-    
     async def send_message(self, conversation_id, message):
         conversation = await self.get_conversation(conversation_id)
         if conversation:
@@ -207,7 +205,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'text': json.dumps(response)
                 }
             )
-
 
     @database_sync_to_async
     def create_chat_message(self, conversation, user, msg):
@@ -655,7 +652,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def send_broadcast_message(self, message_text, recipients):
         try:
             # Retrieve the broadcast conversation
-            broadcast_conversation = Conversation.objects.get(group_name='broadcast')
+            broadcast_conversation = Conversation.objects.get(
+                group_name='broadcast')
         except Conversation.DoesNotExist:
             # Create the broadcast conversation if it doesn't exist
             broadcast_conversation = Conversation.objects.create(
@@ -672,7 +670,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def delete_message(self, conversation_id, message_id):
         try:
             # Retrieve the message based on message_id
-            message = ChatMessage.objects.get(id=message_id, thread__id=conversation_id)
+            message = ChatMessage.objects.get(
+                id=message_id, thread__id=conversation_id)
         except ChatMessage.DoesNotExist:
             return
 
@@ -681,7 +680,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message.save()
 
         # Broadcast message plan
-        
+
     # async def handle_broadcast_request(self, data):
     #     # Check if the user has purchased broadcast permissions
     #     try:
@@ -710,15 +709,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     #     broadcast_permission.remaining_recipients -= num_recipients
     #     broadcast_permission.save()
 
-
     # Add methods to retrieve private conversations and their last seen statuses
 
     @database_sync_to_async
     def get_private_conversations(self):
         return Conversation.objects.filter(participants=self.user, is_group=False)
-
-
-
-
-
-

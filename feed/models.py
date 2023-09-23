@@ -7,6 +7,10 @@ from commerce.models import *
 class PostMedia(models.Model):
     media = models.FileField(upload_to='post_files/', blank=True, null=True)
 
+class CommentMedia(models.Model):
+    media = models.FileField(upload_to='comment_files/', blank=True, null=True)
+
+
 
 class PromotionPlan(models.Model):
     name = models.CharField(max_length=255)
@@ -50,6 +54,7 @@ class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
     content = models.TextField()
+    media = models.ForeignKey(CommentMedia, on_delete=models.CASCADE, blank= True, null= True)
     reaction = models.ForeignKey(
         'Reaction', on_delete=models.SET_NULL, null=True)
     timestamp = models.TimeField()

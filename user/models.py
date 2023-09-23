@@ -75,7 +75,7 @@ class UserProfile(models.Model):
     media = models.ForeignKey(ProfileMedia, on_delete= models.CASCADE,blank=True, null=True)
     address = models.ForeignKey('Address', on_delete = models.CASCADE, null = True)
     stickers = models.ManyToManyField('self', related_name='sticking', symmetrical=False)
-    
+    is_flagged = models.BooleanField(default=False, verbose_name='Flagged')
 
     def sticker_count(self):
         return self.stickers.count()

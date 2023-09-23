@@ -281,3 +281,11 @@ class BusinessAccountRegistrationSerializer(serializers.ModelSerializer):
 class BusinessAccountLoginSerializer(serializers.Serializer):
     business_name = serializers.CharField()
     business_password = serializers.CharField()
+
+
+
+class GeneralSearchSerializer(serializers.Serializer):
+    query = serializers.CharField()
+
+class FlagUserProfileSerializer(serializers.Serializer):
+    username = serializers.CharField()

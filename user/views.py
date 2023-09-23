@@ -9,8 +9,11 @@ from rest_framework.parsers import JSONParser
 from rest_framework.authentication import *
 from rest_framework.viewsets import GenericViewSet
 from django.db.models import Q
-from chat.models import Conversation, Participant
+from business.models import BusinessDirectory
+from chat.models import *
 from django.contrib.auth import authenticate, login, logout
+
+from feed.models import *
 from .serializers import *
 from django.middleware import csrf
 from django.db import IntegrityError
@@ -62,14 +65,14 @@ def create_user(request):
         email = data.get('email')
         phone_number = data.get('phone_number')
 
-
         # Debugging statement: Print the email and phone number
         print(f"Email: {email}, Phone Number: {phone_number}")
 
         if not email and not phone_number:
             return Response({'error': 'Either email or phone number must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = UserRegistrationSerializer(data=data, context={'request': request})
+        serializer = UserRegistrationSerializer(
+            data=data, context={'request': request})
 
         if email:
             # Check if a user with the provided email already exists
@@ -96,14 +99,14 @@ def create_user(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_user_profile(request):
     user = request.user
 
     if request.method == 'PUT':
-        serializer = UserProfileUpdateSerializer(instance=user, data=request.data)
+        serializer = UserProfileUpdateSerializer(
+            instance=user, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "User profile updated successfully"})
@@ -117,14 +120,15 @@ def delete_account(request):
     serializer = UserDeletionSerializer(data=request.data)
     if serializer.is_valid():
         # Authenticate the user based on the provided password
-        user = authenticate(username=request.user.username, password=serializer.validated_data['password'])
+        user = authenticate(username=request.user.username,
+                            password=serializer.validated_data['password'])
         if user is not None:
             # Logout the user to invalidate the current session
             request.auth.logout(request)
-            
+
             # Delete the user
             user.delete()
-            
+
             return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({"message": "Invalid password"}, status=status.HTTP_400_BAD_REQUEST)
@@ -161,7 +165,6 @@ def delete_user_by_username_or_id(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 def delete_account_by_username(request, username):
     # Attempt to get the user by username
     user = get_object_or_404(User, username=username)
@@ -194,7 +197,6 @@ def delete_account_by_id(request, user_id):
     )
 
 
-
 # End of Authentication APIs
 
 
@@ -202,15 +204,18 @@ def delete_account_by_id(request, user_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_users(request):
-    users = User.objects.all().order_by('date_joined')  # Retrieve users sorted by date of creation
+    # Retrieve users sorted by date of creation
+    users = User.objects.all().order_by('date_joined')
 
     user_data = []
     for user in users:
-        user_profile = UserProfile.objects.filter(user=user).first()  # Get the user's profile
+        user_profile = UserProfile.objects.filter(
+            user=user).first()  # Get the user's profile
 
         if user_profile:
             sticker_count = user_profile.stickers.count()
-            sticking_count = UserProfile.objects.filter(stickers=user_profile).count()
+            sticking_count = UserProfile.objects.filter(
+                stickers=user_profile).count()
         else:
             sticker_count = 0
             sticking_count = 0
@@ -225,6 +230,7 @@ def list_users(request):
 
     return Response(user_data, status=status.HTTP_200_OK)
 
+
 class BusinessAccountRegistrationView(APIView):
     def post(self, request):
         serializer = BusinessAccountRegistrationSerializer(data=request.data)
@@ -238,7 +244,8 @@ class BusinessAccountRegistrationView(APIView):
 
             business_account = serializer.save()
             # Create a token for the user
-            token, created = Token.objects.get_or_create(user=business_account.profile.user)
+            token, created = Token.objects.get_or_create(
+                user=business_account.profile.user)
             return Response({'token': token.key}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -257,6 +264,15 @@ class BusinessAccountLoginView(APIView):
         return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
+class ManagedBusinessAccountsView(generics.ListAPIView):
+    serializer_class = BusinessAccountSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return BusinessAccount.objects.filter(profile__user=user)
+
+
 class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (TokenAuthentication,)
@@ -272,7 +288,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
             # Create or update user location
             user = self.perform_create(serializer)
-            user.location = pointer(longitude, latitude)  # Create a Point object from coordinates
+            # Create a Point object from coordinates
+            user.location = pointer(longitude, latitude)
             user.save()
 
         serializer = self.get_serializer(data=request.data)
@@ -299,18 +316,21 @@ def stick_user(request, user_id):
         if user.sticking.filter(pk=user_id).exists():
             user.sticking.remove(target_user)
             # If unsticking, remove the corresponding Participant record
-            Participant.objects.filter(user=user.user, sticking_to=target_user).delete()
+            Participant.objects.filter(
+                user=user.user, sticking_to=target_user).delete()
             # Send an unstick notification
-            send_notification(target_user.user, f"You were unsticked by {user.user.username}")
+            send_notification(target_user.user,
+                              f"You were unsticked by {user.user.username}")
             return Response({"message": f"You unsticked {target_user.user.username}"})
         else:
             user.sticking.add(target_user)
             # If sticking, create a Participant record
             Participant.objects.create(user=user.user, sticking_to=target_user)
             # Send a stick notification
-            send_notification(target_user.user, f"You were sticked by {user.user.username}")
+            send_notification(target_user.user,
+                              f"You were sticked by {user.user.username}")
             return Response({"message": f"You sticked {target_user.user.username}"})
-    
+
     return Response({"message": "You cannot stick/unstick yourself"}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -326,6 +346,7 @@ def list_stickers(request, user_id):
     serializer = UserListSerializer(stickers, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_sticking(request, user_id):
@@ -337,6 +358,7 @@ def list_sticking(request, user_id):
     sticking = user_profile.sticking.all()
     serializer = UserListSerializer(sticking, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -403,15 +425,16 @@ class UserAPIView(RetrieveAPIView):
 @permission_classes([AllowAny])
 def report_user(request):
     if request.method == 'POST':
-        serializer = ReportUserSerializer(data = request.data, context={'request': request})
-        
+        serializer = ReportUserSerializer(
+            data=request.data, context={'request': request})
+
         if serializer.is_valid():
             report = serializer.save()
             response_data = serializer.data
-            return Response(response_data, status= status.HTTP_201_CREATED)
+            return Response(response_data, status=status.HTTP_201_CREATED)
         else:
-            return Response({'error': 'Report not successful'}, status= status.HTTP_400_BAD_REQUEST)
-        
+            return Response({'error': 'Report not successful'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ReportUserViewSet(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
@@ -421,6 +444,7 @@ class ReportUserViewSet(RetrieveAPIView):
     lookup_field = 'user_id'
 
 # End of report users
+
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
@@ -436,6 +460,7 @@ class BusinessCategoryViewSet(viewsets.ModelViewSet):
     queryset = BusinessCategory.objects.all()
     serializer_class = BusinessCategorySerializer
 
+
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -449,10 +474,12 @@ def create_business_profile(request):
             serializer.save()
 
             # Send a notification for profile creation
-            send_notification(request.user, "Your business profile has been created.")
+            send_notification(
+                request.user, "Your business profile has been created.")
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['PUT'])
 def update_business_profile(request, pk):
@@ -462,15 +489,18 @@ def update_business_profile(request, pk):
         return Response({'detail': 'BusinessProfile not found'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'PUT':
-        serializer = BusinessAccountSerializer(business_profile, data=request.data)
+        serializer = BusinessAccountSerializer(
+            business_profile, data=request.data)
         if serializer.is_valid():
             serializer.save()
 
             # Send a notification for profile update
-            send_notification(request.user, "Your business profile has been updated.")
+            send_notification(
+                request.user, "Your business profile has been updated.")
 
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class BusinessAvailabilityListCreateView(generics.ListCreateAPIView):
     authentication_classes = (TokenAuthentication,)
@@ -478,11 +508,13 @@ class BusinessAvailabilityListCreateView(generics.ListCreateAPIView):
     queryset = BusinessAvailability.objects.all()
     serializer_class = BusinessAvailabilitySerializer
 
+
 class BusinessAvailabilityDetailView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated]
     queryset = BusinessAvailability.objects.all()
     serializer_class = BusinessAvailabilitySerializer
+
 
 class BusinessAccountListCreateView(generics.ListCreateAPIView):
     authentication_classes = (TokenAuthentication,)
@@ -490,17 +522,20 @@ class BusinessAccountListCreateView(generics.ListCreateAPIView):
     queryset = BusinessAccount.objects.all()
     serializer_class = BusinessAccountSerializer
 
+
 class BusinessAccountDetailView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated]
     queryset = BusinessAccount.objects.all()
     serializer_class = BusinessAccountSerializer
 
+
 class BusinessCategoryListCreateView(generics.ListCreateAPIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = [AllowAny]
     queryset = BusinessCategory.objects.all()
     serializer_class = BusinessCategorySerializer
+
 
 class BusinessCategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
@@ -510,11 +545,13 @@ class BusinessCategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # End of Business APIs
 
+
 class AddressListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (TokenAuthentication,)
     queryset = Address.objects.all()
     serializer_class = AddressSerializer
+
 
 class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
@@ -557,6 +594,7 @@ class VerificationCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class VerificationRetrieveView(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (TokenAuthentication,)
@@ -564,6 +602,8 @@ class VerificationRetrieveView(RetrieveAPIView):
     serializer_class = VerificationSerializer
 
 # Search User
+
+
 class UserSearchAPIView(APIView):
     def get(self, request):
         query = request.query_params.get('query', '')
@@ -591,7 +631,8 @@ def send_notification(user, message):
 @permission_classes([IsAuthenticated])
 def get_notifications(request):
     user = request.user
-    notifications = Notification.objects.filter(user=user, is_read=False).order_by('-created_at')
+    notifications = Notification.objects.filter(
+        user=user, is_read=False).order_by('-created_at')
     serializer = NotificationSerializer(notifications, many=True)
     return Response(serializer.data)
 
@@ -606,13 +647,15 @@ def block_user(request):
     blocked_user_id = request.data.get('blocked_user_id')
 
     # Check if the block already exists
-    existing_block = BlockedUser.objects.filter(blocker=blocker, blocked_user__id=blocked_user_id).first()
+    existing_block = BlockedUser.objects.filter(
+        blocker=blocker, blocked_user__id=blocked_user_id).first()
 
     if existing_block:
         return Response({'detail': 'User is already blocked.'}, status=status.HTTP_400_BAD_REQUEST)
 
     # Create a new block
-    serializer = BlockedUserSerializer(data={'blocker': blocker.id, 'blocked_user': blocked_user_id})
+    serializer = BlockedUserSerializer(
+        data={'blocker': blocker.id, 'blocked_user': blocked_user_id})
     if serializer.is_valid():
         serializer.save()
         return Response({'detail': 'User blocked successfully.'}, status=status.HTTP_201_CREATED)
@@ -640,7 +683,8 @@ class EncryptionKeyAPIView(APIView):
 
     def get(self, request):
         user = self.request.user
-        user_profile = UserProfile.objects.get(user=user)  # Adjust this as per your user model
+        # Adjust this as per your user model
+        user_profile = UserProfile.objects.get(user=user)
         conversations = Conversation.objects.filter(participants=user_profile)
 
         # Create a dictionary to store encryption keys for each conversation
@@ -652,3 +696,48 @@ class EncryptionKeyAPIView(APIView):
                 encryption_keys[conversation.id] = encryption_key.decode()
 
         return Response(encryption_keys, status=status.HTTP_200_OK)
+
+
+class SearchAPIView(generics.ListAPIView):
+    serializer_class = GeneralSearchSerializer
+
+    def get_queryset(self):
+        query = self.request.query_params.get('query', '')
+        # You can add more models to the search here using Q objects
+        queryset1 = User.objects.filter(
+            Q(field1__icontains=query) | Q(field2__icontains=query))
+        queryset2 = PostMedia.objects.filter(
+            Q(field3__icontains=query) | Q(field4__icontains=query))
+        queryset3 = CommentMedia.objects.filter(
+            Q(field5__icontains=query) | Q(field6__icontains=query))
+        queryset4 = BusinessAccount.objects.filter(
+            Q(field7__icontains=query) | Q(field8__icontains=query))
+        queryset5 = BusinessDirectory.objects.filter(
+            Q(field9__icontains=query) | Q(field10__icontains=query))
+        queryset6 = Address.objects.filter(
+            Q(field11__icontains=query) | Q(field12__icontains=query))
+
+        # Combine the querysets
+        # Add more as needed
+        queryset = queryset1 | queryset2 | queryset3 | queryset4 | queryset5 | queryset6
+
+        return queryset
+
+@api_view(['POST'])
+def flag_user_profile(request):
+    if request.method == 'POST':
+        serializer = FlagUserProfileSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data.get('username')
+            
+            try:
+                profile_to_flag = UserProfile.objects.get(username=username)
+            except UserProfile.DoesNotExist:
+                return Response({'detail': 'User profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Flag the user's profile by setting the 'is_flagged' field to True
+            profile_to_flag.is_flagged = True
+            profile_to_flag.save()
+            
+            return Response({'detail': 'User profile flagged successfully.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

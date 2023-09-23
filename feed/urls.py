@@ -15,6 +15,7 @@ router.register(r'video-posts', VideoPostViewSet)
 router.register(r'document-posts', DocumentPostViewSet)
 router.register(r'audio-posts', AudioPostViewSet)
 router.register(r'image-posts', ImagePostViewSet)
+router.register(r'other-posts', OtherPostViewSet)
 router.register(r'promote-posts', PromotePostViewSet)
 
 

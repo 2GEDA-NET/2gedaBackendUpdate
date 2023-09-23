@@ -96,6 +96,11 @@ urlpatterns = [
          name='business_account_register'),
     path('business/login/', BusinessAccountLoginView.as_view(),
          name='business_account_login'),
+    path('business-accounts/', ManagedBusinessAccountsView.as_view(),
+         name='managed_business_accounts'),
+
+    path('flag-profile/', flag_user_profile, name='flag-user-profile'),
+
 
 
 ]

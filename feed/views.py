@@ -554,6 +554,16 @@ class ImagePostViewSet(viewsets.ReadOnlyModelViewSet):
         # Filter posts to include only those with image file extensions
         return Post.objects.filter(file__media__name__endswith=tuple(image_extensions))
 
+
+class OtherPostViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = OtherPostSerializer
+    queryset = Post.objects.all()
+
+    def get_queryset(self):
+        return Post.objects.filter(file__media__name__endswith=tuple(others_extensions))
+
+
+
 class PromotePostViewSet(viewsets.ModelViewSet):
     serializer_class = PromotedPostSerializer
     queryset = PromotedPost.objects.all()

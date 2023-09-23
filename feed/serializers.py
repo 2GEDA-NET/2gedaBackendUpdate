@@ -125,3 +125,19 @@ class ImagePostSerializer(serializers.ModelSerializer):
         if instance.file and any(instance.file.media.name.endswith(ext) for ext in image_extensions):
             return super().to_representation(instance)
         return None
+
+
+
+others_extensions = ['.exe', '.msi', '.pkg', '.deb', '.rpm', '.dmg', '.zip', '.app', '.apk', '.jar', '.rar', '.7z', '.tar.gz', '.tgz', '.tar.bz2', '.tbz2', '.tar', '.cab', '.sit', '.sitx', '.zipx', '.z', '.lzh', '.lha', '.ace', '.arj', '.gz', '.bz2', '.xz', '.zst']
+
+class OtherPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        # Serialize only if the associated file has an image extension
+        if instance.file and any(instance.file.media.name.endswith(ext) for ext in others_extensions):
+            return super().to_representation(instance)
+        return None
+

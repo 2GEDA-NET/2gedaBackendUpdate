@@ -10,13 +10,13 @@ from rest_framework.authentication import *
 from rest_framework.viewsets import GenericViewSet
 from django.db.models import Q
 from chat.models import Conversation, Participant
+from django.contrib.auth import authenticate, login, logout
 from .serializers import *
 from django.middleware import csrf
 from django.db import IntegrityError
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from django.views.decorators.csrf import csrf_exempt
-from user.authentication_backends import EmailOrPhoneNumberBackend
 from django.contrib.auth.hashers import make_password
 from rest_framework.response import Response
 from django.conf import settings
@@ -225,6 +225,36 @@ def list_users(request):
 
     return Response(user_data, status=status.HTTP_200_OK)
 
+class BusinessAccountRegistrationView(APIView):
+    def post(self, request):
+        serializer = BusinessAccountRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            # Get the password from the serializer data
+            business_password = serializer.validated_data['business_password']
+            # Hash the password using make_password
+            hashed_password = make_password(business_password)
+            # Update the serializer data with the hashed password
+            serializer.validated_data['business_password'] = hashed_password
+
+            business_account = serializer.save()
+            # Create a token for the user
+            token, created = Token.objects.get_or_create(user=business_account.profile.user)
+            return Response({'token': token.key}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BusinessAccountLoginView(APIView):
+    def post(self, request):
+        serializer = BusinessAccountLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['business_name']
+            password = serializer.validated_data['business_password']
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                token, created = Token.objects.get_or_create(user=user)
+                return Response({'token': token.key}, status=status.HTTP_200_OK)
+        return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -414,7 +444,7 @@ def create_business_profile(request):
         # Automatically associate the user's profile with the request data
         request.data['profile'] = request.user.userprofile.pk
 
-        serializer = BusinessProfileSerializer(data=request.data)
+        serializer = BusinessAccountSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
 
@@ -427,12 +457,12 @@ def create_business_profile(request):
 @api_view(['PUT'])
 def update_business_profile(request, pk):
     try:
-        business_profile = BusinessProfile.objects.get(pk=pk)
-    except BusinessProfile.DoesNotExist:
+        business_profile = BusinessAccountSerializer.objects.get(pk=pk)
+    except BusinessAccountSerializer.DoesNotExist:
         return Response({'detail': 'BusinessProfile not found'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'PUT':
-        serializer = BusinessProfileSerializer(business_profile, data=request.data)
+        serializer = BusinessAccountSerializer(business_profile, data=request.data)
         if serializer.is_valid():
             serializer.save()
 
@@ -454,17 +484,17 @@ class BusinessAvailabilityDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BusinessAvailability.objects.all()
     serializer_class = BusinessAvailabilitySerializer
 
-class BusinessProfileListCreateView(generics.ListCreateAPIView):
+class BusinessAccountListCreateView(generics.ListCreateAPIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated]
-    queryset = BusinessProfile.objects.all()
-    serializer_class = BusinessProfileSerializer
+    queryset = BusinessAccount.objects.all()
+    serializer_class = BusinessAccountSerializer
 
-class BusinessProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
+class BusinessAccountDetailView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated]
-    queryset = BusinessProfile.objects.all()
-    serializer_class = BusinessProfileSerializer
+    queryset = BusinessAccount.objects.all()
+    serializer_class = BusinessAccountSerializer
 
 class BusinessCategoryListCreateView(generics.ListCreateAPIView):
     authentication_classes = (TokenAuthentication,)

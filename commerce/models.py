@@ -44,7 +44,7 @@ class SaleHistory(models.Model):
 class Product(models.Model):
     title = models.CharField(max_length=500)
     description = models.TextField()
-    business = models.ForeignKey(BusinessProfile, on_delete=models.CASCADE)
+    business = models.ForeignKey(BusinessAccount, on_delete=models.CASCADE)
     category = models.ForeignKey(ProductCategory, on_delete = models.CASCADE)
     price = models.CharField( max_length=100)
     sale_location = models.ForeignKey(SaleLocation, on_delete = models.CASCADE)

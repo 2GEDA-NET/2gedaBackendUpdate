@@ -63,9 +63,9 @@ urlpatterns = [
     path('business-availability/<int:pk>/',
          BusinessAvailabilityDetailView.as_view(), name='business-availability-detail'),
 
-    path('business-profile/', BusinessProfileListCreateView.as_view(),
+    path('business-profile/', BusinessAccountListCreateView.as_view(),
          name='business-profile-list'),
-    path('business-profile/<int:pk>/', BusinessProfileDetailView.as_view(),
+    path('business-profile/<int:pk>/', BusinessAccountDetailView.as_view(),
          name='business-profile-detail'),
 
     path('business-category/', BusinessCategoryListCreateView.as_view(),
@@ -87,8 +87,15 @@ urlpatterns = [
     # Notification url
     path('get-notifications/', get_notifications, name='get-notification'),
 
-# Get conversations encryption keys
-     path('get_encryption_keys/', EncryptionKeyAPIView.as_view(), name='get_encryption_keys'),
+    # Get conversations encryption keys
+    path('get_encryption_keys/', EncryptionKeyAPIView.as_view(),
+         name='get_encryption_keys'),
+    # Business authentication
+
+    path('business/register/', BusinessAccountRegistrationView.as_view(),
+         name='business_account_register'),
+    path('business/login/', BusinessAccountLoginView.as_view(),
+         name='business_account_login'),
 
 
 ]

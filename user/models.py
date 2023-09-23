@@ -124,7 +124,7 @@ class BusinessAvailability(models.Model):
 
 
 
-class BusinessProfile(models.Model):
+class BusinessAccount(models.Model):
     profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     role = models.CharField(max_length=250)
     image = models.ImageField(
@@ -133,6 +133,7 @@ class BusinessProfile(models.Model):
         BusinessCategory, on_delete=models.CASCADE)
     business_availability = models.OneToOneField('BusinessAvailability', on_delete=models.CASCADE)
     year_founded = models.DateField(blank=True, null=True)
+    business_name = models.CharField(max_length=250)
     business_password = models.CharField(max_length=200)
     # business_address = models.ForeignKey('Address', on_delete = models.CASCADE, related_name= 'Address', verbose_name='Business Address')
 

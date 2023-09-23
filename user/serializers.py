@@ -84,13 +84,13 @@ class BusinessAvailabilitySerializer(serializers.ModelSerializer):
         model = BusinessAvailability
         fields = '__all__'
 
-class BusinessProfileSerializer(serializers.ModelSerializer):
+class BusinessAccountSerializer(serializers.ModelSerializer):
     business_availability = BusinessAvailabilitySerializer()
     address = CurrentCityAddressSerializer()
     business_category = BusinessCategorySerializer()  # Include the BusinessCategorySerializer
 
     class Meta:
-        model = BusinessProfile
+        model = BusinessAccount
         fields = '__all__'
 
     def create(self, validated_data):
@@ -102,7 +102,7 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
         address = Address.objects.create(**address_data)
         business_category = BusinessCategory.objects.create(**business_category_data)  # Create business category
 
-        business_profile = BusinessProfile.objects.create(
+        business_profile = BusinessAccount.objects.create(
             business_availability=business_availability,
             address=address,
             business_category=business_category,  # Assign business category
@@ -271,3 +271,13 @@ class BlockedUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlockedUser
         fields = ('blocker', 'blocked_user', 'reason')
+    
+
+class BusinessAccountRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessAccount
+        fields = ['business_name', 'business_password', 'role', 'image', 'business_category', 'year_founded']
+
+class BusinessAccountLoginSerializer(serializers.Serializer):
+    business_name = serializers.CharField()
+    business_password = serializers.CharField()

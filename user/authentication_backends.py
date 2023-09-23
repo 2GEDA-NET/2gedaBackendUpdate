@@ -1,21 +1,21 @@
+# Create a file called custom_auth_backends.py in your app directory
+
 from django.contrib.auth.backends import ModelBackend
-from .models import User
+from .models import BusinessAccount
 
-class EmailOrPhoneNumberBackend(ModelBackend):
-    def authenticate(self, request, email_or_phone=None, password=None, **kwargs):
-        # Try to find the user by email
-        user = User.objects.filter(email=email_or_phone).first()
+class BusinessAccountAuthBackend(ModelBackend):
+    def authenticate(self, request, username=None, password=None, **kwargs):
+        try:
+            business_account = BusinessAccount.objects.get(
+                business_name=username,
+                business_password=password
+            )
+            return business_account.profile.user  # Return the associated user
+        except BusinessAccount.DoesNotExist:
+            return None
 
-        # If user is not found, try to find the user by phone number
-        if user is None and email_or_phone is not None:
-            try:
-                phone_number = int(email_or_phone)
-                user = User.objects.filter(phone_number=phone_number).first()
-            except ValueError:
-                pass
-
-        # Try to authenticate the user with the provided password
-        if user and user.check_password(password):
-            return user
-
-        return None
+    def get_user(self, user_id):
+        try:
+            return BusinessAccount.objects.get(profile__user__id=user_id).profile.user
+        except BusinessAccount.DoesNotExist:
+            return None

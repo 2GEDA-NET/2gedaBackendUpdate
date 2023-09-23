@@ -32,8 +32,8 @@ class BusinessCategoryAdmin(ImportExportModelAdmin):
 class BusinessAvailability(ImportExportModelAdmin):
     list_display = ()
 
-@admin.register(BusinessProfile)
-class BusinessProfileAdmin(ImportExportModelAdmin):
+@admin.register(BusinessAccount)
+class BusinessAccountAdmin(ImportExportModelAdmin):
     list_display = ('profile', 'role', 'business_category',)
     list_filter = ('business_category',)
 

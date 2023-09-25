@@ -4,6 +4,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from django.db.models import Q
 from django.utils.translation import gettext as _
+from django.contrib.auth.hashers import check_password
 
 class UserSerializer(serializers.ModelSerializer):
     
@@ -289,3 +290,15 @@ class GeneralSearchSerializer(serializers.Serializer):
 
 class FlagUserProfileSerializer(serializers.Serializer):
     username = serializers.CharField()
+
+
+
+class BusinessAccountChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not check_password(value, user.businessaccount.business_password):
+            raise serializers.ValidationError("Incorrect old password.")
+        return value

@@ -256,7 +256,7 @@ class BusinessAccountLoginView(APIView):
         if serializer.is_valid():
             username = serializer.validated_data['business_name']
             password = serializer.validated_data['business_password']
-            user = BusinessAccountAuthBackend.businessauthenticate(request, username=username, password=password)
+            user = BusinessAccountAuthBackend().authenticate(request, username=username, password=password)  # Use authenticate method
             if user is not None:
                 login(request, user)
                 token, created = Token.objects.get_or_create(user=user)
@@ -271,6 +271,24 @@ class ManagedBusinessAccountsView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return BusinessAccount.objects.filter(profile__user=user)
+
+
+class BusinessAccountChangePasswordView(UpdateAPIView):
+    serializer_class = BusinessAccountChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user = self.get_object()
+            new_password = serializer.validated_data['new_password']
+            user.businessaccount.business_password = new_password
+            user.businessaccount.save()
+            return Response({'detail': 'Password has been changed successfully.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):

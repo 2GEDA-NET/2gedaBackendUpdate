@@ -1,5 +1,15 @@
 from django.db import models
+from django.contrib.auth.hashers import make_password
 from user.models import *
+
+
+class StereoAccount(models.Model):
+    profile = models.ForeignKey(UserProfile,on_delete=models.CASCADE)
+    stereo_username = models.CharField(max_length= 250)
+    stereo_password = models.CharField(max_length= 250)
+
+    def set_password(self, password):
+        self.stereo_password = make_password(password)
 
 class Genre(models.Model):
     name = models.CharField(max_length=255)
@@ -19,7 +29,7 @@ class Song(models.Model):
     genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, blank=True)
 
 class MusicProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(StereoAccount, on_delete=models.CASCADE)
     favorite_genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, blank=True)
     playlists = models.ManyToManyField('Playlist', related_name='users', blank=True)
     listening_history = models.ManyToManyField(Song, related_name='listeners', blank=True)

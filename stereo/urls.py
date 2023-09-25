@@ -12,4 +12,7 @@ router.register(r'songs', SongViewSet)
 urlpatterns = [
     path('api/', include(router.urls)),
     # Add other URL patterns here as needed.
+    path('stereo/register/', StereoAccountRegistrationView.as_view(), name='stereo_account_register'),
+    path('stereo/login/', StereoAccountLoginView.as_view(), name='stereo_account_login'),
+
 ]

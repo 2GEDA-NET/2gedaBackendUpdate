@@ -12,7 +12,7 @@ from django.db.models import Q
 from business.models import BusinessDirectory
 from chat.models import *
 from django.contrib.auth import authenticate, login, logout
-
+from .authentication_backends import BusinessAccountAuthBackend
 from feed.models import *
 from .serializers import *
 from django.middleware import csrf
@@ -256,7 +256,7 @@ class BusinessAccountLoginView(APIView):
         if serializer.is_valid():
             username = serializer.validated_data['business_name']
             password = serializer.validated_data['business_password']
-            user = authenticate(request, username=username, password=password)
+            user = BusinessAccountAuthBackend.businessauthenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
                 token, created = Token.objects.get_or_create(user=user)

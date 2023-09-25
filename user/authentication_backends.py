@@ -4,7 +4,7 @@ from django.contrib.auth.backends import ModelBackend
 from .models import BusinessAccount
 
 class BusinessAccountAuthBackend(ModelBackend):
-    def authenticate(self, request, username=None, password=None, **kwargs):
+    def businessauthenticate(self, request, username=None, password=None, **kwargs):
         try:
             business_account = BusinessAccount.objects.get(
                 business_name=username,

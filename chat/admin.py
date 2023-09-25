@@ -3,6 +3,11 @@ from import_export.admin import ImportExportModelAdmin
 from .models import *
 
 # Register your models here.
+
+# @admin.register(Thread)
+# class ThreadAdmin(ImportExportModelAdmin):
+#     list_display = ('first_person', 'second_person', 'updated', 'timestamp',)
+
 @admin.register(Conversation)
 class ConversationAdmin(ImportExportModelAdmin):
     list_display = ('get_participant_names', 'group_name', 'is_group', 'get_group_member_names', 'updated_at', 'created_at', 'is_archived', 'unread_count')
@@ -18,6 +23,14 @@ class ConversationAdmin(ImportExportModelAdmin):
 # @admin.register(Message)
 # class MessageAdmin(ImportExportModelAdmin):
 #     list_display = ('conversation', 'sender', 'content', 'timestamp', 'is_read', 'is_delivered', 'is_private', 'is_public')
+
+@admin.register(BroadcastPlan)
+class BroadcastPlanAdmin(ImportExportModelAdmin):
+    list_display = ('name', 'description', 'price')
+
+@admin.register(BroadcastPermission)
+class BroadPermissionAdmin(ImportExportModelAdmin):
+    list_display = ('user', 'remaining_recipients')
 
 @admin.register(ChatGroup)
 class ChatGroupAdmin(ImportExportModelAdmin):

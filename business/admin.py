@@ -6,7 +6,15 @@ from import_export.admin import ImportExportModelAdmin
 # Register your models here.
 @admin.register(BusinessDirectory)
 class BusinessDirectoryAdmin(ImportExportModelAdmin):
-    list_display = ('name', 'address', 'phone_number', 'about')
+    list_display = ('name', 'address', 'phone_number', 'about', 'email', 'website')
+
+@admin.register(BusinessOwnerProfile)
+class BusinessOwnerProfileAdmin(ImportExportModelAdmin):
+    list_display = ('user', 'first_name', 'last_name', 'phone_number', 'email')
+
+@admin.register(BusinessDocument)
+class BusinessDocumentAdmin(ImportExportModelAdmin):
+    list_display = ('business', 'document_type', 'document_file')
 
 @admin.register(Address)
 class AddressAdmin(ImportExportModelAdmin):

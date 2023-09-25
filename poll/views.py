@@ -11,6 +11,17 @@ from rest_framework.authentication import *
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+# views.py
+from django.conf import settings
+from django.http import JsonResponse
+from django.shortcuts import redirect
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from paystackapi.paystack import Paystack
+from .models import Payment
+
+paystack = Paystack(secret_key=settings.PAYSTACK_SECRET_KEY)
+
 
 class OptionListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
@@ -222,3 +233,143 @@ class PollCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         # Set the user who is creating the poll as the poll's user field
         serializer.save(user=self.request.user)
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def initiate_payment(request):
+    # Get the amount and user from the request
+    user = request.user
+    amount = request.data.get('amount')
+
+    # Create a payment record
+    payment = Payment(user=user, amount=amount)
+    payment.save()
+
+    # Initialize the Paystack transaction
+    response = paystack.transaction.initialize(
+        amount=amount * 100,  # Amount should be in kobo (multiply by 100)
+        email=user.email,
+        reference=str(payment.id),  # Use the payment record ID as the reference
+        callback_url='your_callback_url_here',  # Specify your callback URL
+    )
+
+    # Redirect the user to the Paystack payment page
+    return redirect(response['data']['authorization_url'])
+
+@api_view(['POST'])
+def paystack_callback(request):
+    # Extract the reference and transaction status from the callback
+    reference = request.data.get('reference')
+    status = request.data.get('status')
+
+    try:
+        # Retrieve the payment record using the reference
+        payment = Payment.objects.get(id=reference)
+        if status == 'success':
+            # Update the payment status if it was successful
+            payment.status = 'success'
+            payment.save()
+        else:
+            # Handle other status scenarios (e.g., failed)
+            payment.status = 'failed'
+            payment.save()
+    except Payment.DoesNotExist:
+        pass  # Handle the case where the payment record is not found
+
+    # Return a JSON response to the Paystack callback
+    return JsonResponse({'status': 'ok'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cast_votes(request):
+    data = request.data
+    user = request.user
+
+    try:
+        # Check if the user has been approved to vote
+        user_profile = UserProfile.objects.get(user=user)
+    except UserProfile.DoesNotExist:
+        return Response({'detail': 'User profile not found.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Check if the user has made a successful payment
+        payment = Payment.objects.filter(user=user, status='success').latest('timestamp')
+    except Payment.DoesNotExist:
+        return Response({'detail': 'You need to make a payment to cast votes.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Initialize a list to store vote-related notifications
+    vote_notifications = []
+
+    for item in data:
+        poll_id = item.get('poll')
+        num_votes = item.get('num_votes', 1)  # Default to 1 vote if 'num_votes' is not specified
+
+        try:
+            # Check if the user has been approved to vote in this poll
+            poll = Poll.objects.get(id=poll_id)
+            if user not in poll.access_requests.all():
+                vote_notifications.append({'detail': f'You have not been approved to vote in poll ID {poll_id}.'})
+                continue
+
+            # Retrieve the cost of a single vote associated with the poll
+            try:
+                vote_cost = Vote.objects.get(user=user, poll_id=poll_id).cost
+            except Vote.DoesNotExist:
+                vote_notifications.append({'detail': f'This poll (ID {poll_id}) does not have a cost associated with it.'})
+                continue
+
+            # Check if the user has enough funds to cast the specified number of votes
+            required_amount = vote_cost * num_votes
+            if payment.amount >= required_amount:
+                # Create multiple vote records
+                for _ in range(num_votes):
+                    vote = Vote(user=user, poll_id=poll_id, cost=vote_cost)
+                    vote.save()
+
+                # Increment the vote count in the poll
+                poll.vote_count += num_votes
+                poll.save()
+
+                # Deduct the total vote cost from the user's payment
+                payment.amount -= required_amount
+                payment.save()
+
+                # Create a notification for the poll owner
+                message = f'User {user.username} has cast {num_votes} vote(s) on your poll: {poll.question}.'
+                sender = user  # The user who cast the vote
+                recipient = poll.user  # The poll owner
+                notification = Notification(sender=sender, recipient=recipient, message=message)
+                notification.save()
+
+                vote_notifications.append({'detail': f'Successfully cast {num_votes} vote(s) on poll ID {poll_id}.'})
+            else:
+                vote_notifications.append({'detail': f'Insufficient funds to cast {num_votes} vote(s) on poll ID {poll_id}.'})
+        except Poll.DoesNotExist:
+            vote_notifications.append({'detail': f'Poll with ID {poll_id} not found.'})
+
+    return Response({'vote_notifications': vote_notifications}, status=status.HTTP_200_OK)
+
+
+
+class PollsWithVoteCountView(generics.ListAPIView):
+    serializer_class = PollSerializer
+
+    def get_queryset(self):
+        # Retrieve the list of polls with their respective vote counts
+        polls = Poll.objects.all()
+        poll_data = []
+
+        for poll in polls:
+            # Calculate the vote count for each poll
+            vote_count = poll.vote_set.count()
+
+            # Create a dictionary with poll data and vote count
+            poll_data.append({
+                'poll': poll,
+                'vote_count': vote_count
+            })
+
+        return poll_data

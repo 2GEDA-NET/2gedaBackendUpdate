@@ -20,4 +20,10 @@ urlpatterns = [
     path('access-request/', AccessRequestView.as_view(), name='access-request'),
     path('approve-access/', AccessApprovalView.as_view(), name='approve-access'),
     path('deny-access/', AccessDeclineView.as_view(), name='deny-access'),
+    path('initiate-payment/', initiate_payment, name='initiate-payment'),
+    path('paystack-callback/', paystack_callback, name='paystack-callback'),
+    path('cast-vote/', cast_votes, name='cast-vote'),
+    path('polls-with-vote-count/', PollsWithVoteCountView.as_view(), name='polls-with-vote-count'),
+
+
 ]

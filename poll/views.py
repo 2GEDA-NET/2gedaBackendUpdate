@@ -2,7 +2,7 @@ from rest_framework import generics
 from rest_framework.decorators import api_view, permission_classes, action
 from poll.suggestions import suggest_polls
 from rest_framework.exceptions import PermissionDenied
-
+from django.http import Http404
 from poll.utils import create_notification
 from .models import *
 from .serializers import *
@@ -373,3 +373,23 @@ class PollsWithVoteCountView(generics.ListAPIView):
             })
 
         return poll_data
+
+class PollResultsView(generics.RetrieveAPIView):
+    serializer_class = PollResultsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        # Get the poll ID from the URL
+        poll_id = self.kwargs.get('poll_id')
+        
+        try:
+            # Retrieve the poll
+            poll = Poll.objects.get(id=poll_id)
+            
+            # Check if the user is the owner of the poll
+            if poll.user == self.request.user:
+                return poll
+            else:
+                raise PermissionDenied("You do not have permission to view this poll's results.")
+        except Poll.DoesNotExist:
+            raise Http404("Poll not found.")

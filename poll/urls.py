@@ -24,6 +24,7 @@ urlpatterns = [
     path('paystack-callback/', paystack_callback, name='paystack-callback'),
     path('cast-vote/', cast_votes, name='cast-vote'),
     path('polls-with-vote-count/', PollsWithVoteCountView.as_view(), name='polls-with-vote-count'),
+    path('polls/results/<int:poll_id>/', PollResultsView.as_view(), name='poll-results'),
 
 
 ]

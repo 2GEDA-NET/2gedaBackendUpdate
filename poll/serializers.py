@@ -81,3 +81,8 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = '__all__'
+
+class PollResultsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Poll
+        fields = ['id', 'question', 'options', 'type', 'created_at', 'is_active', 'is_ended', 'vote_count']

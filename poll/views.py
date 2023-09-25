@@ -1,5 +1,5 @@
 from rest_framework import generics
-
+from rest_framework.decorators import api_view, permission_classes, action
 from poll.suggestions import suggest_polls
 from .models import *
 from .serializers import *
@@ -130,3 +130,16 @@ class SuggestedPollsAPIView(generics.ListAPIView):
         suggested_polls = suggest_polls(user_profile)
 
         return suggested_polls
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def log_poll_view(request, poll_id):
+    try:
+        poll = Poll.objects.get(id=poll_id)
+    except Poll.DoesNotExist:
+        return Response({'detail': 'Poll not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Log the user's interaction with the poll
+    PollView.objects.get_or_create(user=request.user, poll=poll)
+
+    return Response(status=status.HTTP_200_OK)

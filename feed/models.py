@@ -114,7 +114,7 @@ class PromotedPost(models.Model):
 class AdvertCategory(models.Model):
     name = models.CharField(max_length=250, blank=True, null= True)
 
-class Adevert(models.Model):
+class Advert(models.Model):
     title = models.CharField(max_length=250, blank=True, null=True)
     category = models.ForeignKey(AdvertCategory, on_delete=models.CASCADE)
     duration = models.CharField(max_length=250, choices=DURATION_CHOICES)

@@ -12,9 +12,15 @@ class VoteSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PollSerializer(serializers.ModelSerializer):
+    count_views = serializers.SerializerMethodField()
+
+
     class Meta:
         model = Poll
         fields = '__all__'
+    
+    def get_count_views(self, obj):
+        return obj.count_views()
 
 
     def create(self, validated_data):

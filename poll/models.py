@@ -50,6 +50,10 @@ class Poll(models.Model):
     # Add a field to store the actual end time of the poll
     end_time = models.DateTimeField(null=True, blank=True)
 
+
+    def count_views(self):
+        return PollView.objects.filter(poll=self).count()
+
     def set_end_time(self):
         """
         Calculate and set the end time based on the duration.
@@ -69,4 +73,10 @@ class Poll(models.Model):
         else:
             raise ValueError("Duration is required.")
 
-    
+class PollView(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'poll')

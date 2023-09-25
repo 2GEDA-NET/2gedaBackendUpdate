@@ -20,4 +20,7 @@ urlpatterns = [
     path('search-polls/', SearchPollsView.as_view(), name='search-polls'),
     path('api/suggested-polls/', SuggestedPollsAPIView.as_view(), name='suggested-polls'),
 
+    path('polls/<int:poll_id>/log-view/', log_poll_view, name='log-poll-view'),
+
+
 ]

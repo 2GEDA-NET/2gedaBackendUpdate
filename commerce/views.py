@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework import generics
+from django.db.models import Q
 from .models import *
 from rest_framework.authentication import *
 from .serializers import *
@@ -38,11 +39,27 @@ class AdvertList(generics.ListCreateAPIView):
     queryset = Advert.objects.all()
     serializer_class = AdvertSerializer
 
-class AdvertDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsAuthenticated,)
-    authentication_classes = (TokenAuthentication,)
+    def get_queryset(self):
+        # Filter advertisements by the currently authenticated user
+        return Advert.objects.filter(owner=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class AdvertDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Advert.objects.all()
+    authentication_classes = (TokenAuthentication,)
     serializer_class = AdvertSerializer
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Check if the user owns the advertisement before allowing deletion
+        if instance.owner == request.user:
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'detail': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
 
 # Product Category Views
 class ProductCategoryList(generics.ListCreateAPIView):
@@ -228,3 +245,18 @@ class PaystackCallbackView(APIView):
         else:
             # Payment failed
             return Response({'error': 'Payment verification failed.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductSearchAPIView(APIView):
+    def get(self, request):
+        query = request.query_params.get('query', '')
+    
+        if query:
+            results = Product.objects.filter(
+                Q(title__icontains = query) |
+                Q(category__icontains = query) 
+            )
+            serializer = ProductSerializer(results, many = True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response([], status=status.HTTP_200_OK)

@@ -32,7 +32,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ('user', 'favorite_genre', 'playlists', 'listening_history', 'other_profile_fields_if_any')
 
+
 class StereoAccountRegistrationSerializer(serializers.ModelSerializer):
+    user_role = serializers.ChoiceField(choices=[('artist', 'Artist'), ('listener', 'Listener')])
+
     class Meta:
         model = StereoAccount
-        fields = ['stereo_username', 'stereo_password']
+        fields = ['stereo_username', 'stereo_password', 'user_role']

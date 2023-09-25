@@ -7,6 +7,9 @@ class StereoAccount(models.Model):
     profile = models.ForeignKey(UserProfile,on_delete=models.CASCADE)
     stereo_username = models.CharField(max_length= 250)
     stereo_password = models.CharField(max_length= 250)
+    is_artist = models.BooleanField(default=False)
+    is_listener = models.BooleanField(default=True)
+    artist_name = models.CharField(max_length=250, blank=True, null=True)
 
     def set_password(self, password):
         self.stereo_password = make_password(password)

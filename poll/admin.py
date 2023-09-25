@@ -13,7 +13,18 @@ class OptionAdmin(ImportExportModelAdmin):
 class PollAdmin(ImportExportModelAdmin):
     list_display = ('user', 'question', 'options', 'duration', 'type',)
 
+@admin.register(Payment)
+class PaymentAdmin(ImportExportModelAdmin):
+    list_display = ('user', 'amount', 'transaction_reference', 'status', 'timestamp')
+
+@admin.register(PollMedia)
+class PollMediaPayment(ImportExportModelAdmin):
+    list_display = ('image',)
+
+@admin.register(PollView)
+class PollViewAdmin(ImportExportModelAdmin):
+    list_display = ('user', 'poll', 'timestamp')
 
 @admin.register(Vote)
 class VoteAdmin(ImportExportModelAdmin):
-    list_display = ('user', 'option')
+    list_display = ('user', 'poll', 'timestamp', 'cost')

@@ -4,15 +4,28 @@ from .models import *
 # Register your models here.
 
 
+
+@admin.register(ProductCategory)
+class ProductCategoryAdmin(ImportExportModelAdmin):
+    list_display = ('name', 'image', 'description')
+
 @admin.register(Store)
 class StoreAdmin(ImportExportModelAdmin):
     list_display = ('userId', 'name', 'create_at')
 
 
-@admin.register(ProductCategory)
-class CategoryAdmin(ImportExportModelAdmin):
-    list_display = ('name', 'description')
+@admin.register(SaleLocation)
+class SaleLocationAdmin(ImportExportModelAdmin):
+    list_display = ('name',)
 
+@admin.register(ProductReview)
+class ProductAdmin(ImportExportModelAdmin):
+    list_display = ('user', 'product', 'rating', 'review_text', 'created_at',)
+
+
+@admin.register(Order)
+class OrderAdmin(ImportExportModelAdmin):
+    list_display = ('buyer', 'status', 'shipping_address', 'billing_address', 'created_at', 'updated_at')
 
 @admin.register(Product)
 class ProductAdmin(ImportExportModelAdmin):
@@ -29,10 +42,6 @@ class ProductImgAdmin(ImportExportModelAdmin):
 @admin.register(PromotionPlan)
 class PromotionPlanAdmin(ImportExportModelAdmin):
     list_display = ('name', 'amount',)
-
-# @admin.register(ProductDetail)
-# class ProductDetailAdmin(ImportExportModelAdmin):
-#     list_display = ('productId', 'organic', 'expiration', 'review', 'gram')
 
 
 @admin.register(Cart)

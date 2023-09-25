@@ -77,7 +77,7 @@ class UserProfile(models.Model):
     stickers = models.ManyToManyField('self', related_name='sticking', symmetrical=False)
     is_flagged = models.BooleanField(default=False, verbose_name='Flagged')
     favorite_categories = models.ManyToManyField('BusinessCategory', related_name='users_with_favorite', blank=True)
-    searched_polls = models.ManyToManyField('Poll', related_name='users_searched', blank=True)
+    searched_polls = models.ManyToManyField('poll.Poll', related_name='users_searched', blank=True)
 
 
     def sticker_count(self):

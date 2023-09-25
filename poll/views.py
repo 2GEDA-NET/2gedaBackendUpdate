@@ -1,6 +1,7 @@
 from rest_framework import generics
 from rest_framework.decorators import api_view, permission_classes, action
 from poll.suggestions import suggest_polls
+from rest_framework.exceptions import PermissionDenied
 from .models import *
 from .serializers import *
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
@@ -143,3 +144,54 @@ def log_poll_view(request, poll_id):
     PollView.objects.get_or_create(user=request.user, poll=poll)
 
     return Response(status=status.HTTP_200_OK)
+
+class AccessRequestView(generics.CreateAPIView):
+    serializer_class = AccessRequestSerializer  # Create a serializer for access requests
+
+    def perform_create(self, serializer):
+        poll = serializer.validated_data['poll']
+        user = self.request.user
+        
+        # Check if the poll is private
+        if poll.type == 'Private':
+            # Add the user to the list of access requests
+            poll.access_requests.add(user)
+        else:
+            # If the poll is public, allow the user to vote directly
+            poll.voters.add(user)
+        serializer.save()
+
+
+class AccessApprovalView(generics.UpdateAPIView):
+    serializer_class = AccessApprovalSerializer  # Create a serializer for access approval/denial
+
+    def perform_update(self, serializer):
+        poll = serializer.validated_data['poll']
+        user = serializer.validated_data['user']
+        approval_status = serializer.validated_data['approval_status']
+
+        # Check if the user is the creator of the poll
+        if self.request.user == poll.user:
+            if poll.type == 'Private':
+                if approval_status:
+                    # If approved, add the user to the list of poll voters
+                    poll.voters.add(user)
+                    poll.access_requests.remove(user)
+                else:
+                    # If denied, remove the user from access requests
+                    poll.access_requests.remove(user)
+            else:
+                # If the poll is public, no need for access approval
+                poll.voters.add(user)
+        else:
+            raise PermissionDenied("You do not have permission to approve/deny access requests.")
+        serializer.save()
+
+
+class PollCreateView(generics.CreateAPIView):
+    serializer_class = PollCreateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Set the user who is creating the poll as the poll's user field
+        serializer.save(user=self.request.user)

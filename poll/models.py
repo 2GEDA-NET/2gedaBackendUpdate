@@ -40,13 +40,12 @@ class Poll(models.Model):
     duration = models.CharField(max_length=250, choices=POLL_DURATION_CHOICES)
     
     type = models.CharField(max_length=250, choices=POLL_TYPE)
-    image = models.ImageField(upload_to='poll-media/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True, verbose_name='Active')
     is_ended = models.BooleanField(default=False, verbose_name='Ended')
 
-    media = models.ForeignKey(PollMedia, on_delete=models.SET_NULL)
-
+    media = models.ForeignKey(PollMedia, on_delete=models.SET_NULL, null=True)
+    access_requests = models.ManyToManyField(User, related_name='requested_polls', blank=True)
     # Add a field to store the actual end time of the poll
     end_time = models.DateTimeField(null=True, blank=True)
 

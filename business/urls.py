@@ -9,4 +9,6 @@ router.register(r'business_directories', views.BusinessDirectoryViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('claim-business/', views.BusinessClaimView.as_view(), name='claim-business'),
+
 ]

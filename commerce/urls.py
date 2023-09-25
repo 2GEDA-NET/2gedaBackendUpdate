@@ -4,7 +4,7 @@ from . import views
 urlpatterns = [
     # Avert URLs
     path('adverts/', views.AdvertList.as_view(), name='advert-list'),
-    path('advert/<int:pk>/', views.AdvertDetail.as_view(), name='advert-detail'),
+    path('advert/<int:pk>/', views.AdvertDetailView.as_view(), name='advert-detail'),
 
     # Product Category URLs
     path('product-categories/', views.ProductCategoryList.as_view(),

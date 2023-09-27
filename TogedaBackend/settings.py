@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'business',
     'poll',
     'stereo',
+    'tv',
 ]
 
 

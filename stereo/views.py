@@ -169,7 +169,7 @@ class PlaylistCountView(APIView):
 
     def get(self, request):
         # Get the user's profile and retrieve the playlist count
-        user_profile = request.user.profile
+        user_profile = request.user.musicprofile
         playlist_count = user_profile.playlist_count
 
         # Serialize the playlist count and return it as a response

@@ -42,3 +42,9 @@ class VideoTagSerializer(serializers.ModelSerializer):
     class Meta:
         model = VideoTag
         fields = '__all__'
+
+
+class TVAccountRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        models = TVAccount
+        fields = ['tv_username', 'tv_password']

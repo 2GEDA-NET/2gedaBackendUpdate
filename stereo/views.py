@@ -88,9 +88,9 @@ class StereoAccountRegistrationView(CreateAPIView):
         user_role = serializer.validated_data['user_role']
         # Set the user role based on the selected role
         if user_role == 'artist':
-            serializer.save(profile=self.request.user.profile, is_artist=True, is_listener=False)
+            serializer.save(profile=self.request.user.userprofile, is_artist=True, is_listener=False)
         else:
-            serializer.save(profile=self.request.user.profile, is_artist=False, is_listener=True)
+            serializer.save(profile=self.request.user.userprofile, is_artist=False, is_listener=True)
 
 class StereoAccountLoginView(APIView):
     def post(self, request):

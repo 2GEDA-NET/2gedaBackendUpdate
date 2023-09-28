@@ -386,7 +386,6 @@ def add_reaction(request, content_type, object_id, reaction_type):
         return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_reactions(request, content_type, object_id):
@@ -413,13 +412,29 @@ def get_reactions(request, content_type, object_id):
         # Serialize the reactions
         reaction_serializer = ReactionSerializer(reactions, many=True)
 
+        # Get the list of users reacting to the content
+        reacting_users = reactions.values('user').distinct()
+        user_ids = [user['user'] for user in reacting_users]
+
+        # Serialize the user IDs and their reactions
+        user_reactions = []
+        for user_id in user_ids:
+            user = User.objects.get(pk=user_id)
+            user_reactions.append({
+                'user_id': user_id,
+                'username': user.username,
+                'reactions': [r['reaction_type'] for r in reactions.filter(user=user)],
+            })
+
         return Response({
             'reacting_users_count': reacting_users_count,
-            'reactions': reaction_serializer.data
+            'reactions': reaction_serializer.data,
+            'reacting_users': user_reactions,  # Include the list of users reacting
         }, status=status.HTTP_200_OK)
 
     except (Post.DoesNotExist, Comment.DoesNotExist, Reply.DoesNotExist):
         return Response({'detail': 'Content object not found.'}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 @api_view(['POST'])

@@ -20,7 +20,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'phone_number', 'password']
+        fields = ['email', 'phone_number', 'username','password']
 
     def validate(self, validated_data):
         email = validated_data.get('email')
@@ -35,13 +35,14 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         email = validated_data.get('email')
         phone_number = validated_data.get('phone_number')
+        username = validated_data.get('username')
         
         # Debugging statement: Print the email and phone number
         print(f"Creating user with Email: {email}, Phone Number: {phone_number}")
 
         # Create and save the User instance
         user = User.objects.create_user(
-            username = email or phone_number,  # Use email or phone_number as the username
+            username = username,
             email=email,
             phone_number=phone_number,
             password=validated_data.get('password'),

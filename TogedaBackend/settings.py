@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     'user',
     'chat',
     'commerce',
+    'connect',
+    'live',
     'feed',
     'ticket',
     'business',

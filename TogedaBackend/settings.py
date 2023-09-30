@@ -145,15 +145,17 @@ ASGI_APPLICATION = "TogedaBackend.asgi.application"
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': '2gedadb',      # Name of your MySQL database
-        'USER': 'root',  # Your MySQL username
-        'PASSWORD': 'root',    # Your MySQL password
-        'HOST': 'localhost',       # Set the host to the MySQL server
-        'PORT': '3306',            # MySQL server port (default is 3306)
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'defaultdb',     # Name of your PostgreSQL database
+        'USER': 'doadmin',       # Your PostgreSQL username
+        'PASSWORD': 'AVNS_gQxrc5GwOiFoIRk8hHA',  # Your PostgreSQL password
+        'HOST': 'db-postgresql-nyc1-57451-do-user-14333400-0.b.db.ondigitalocean.com',  # Set the host to your PostgreSQL server
+        'PORT': '25060',         # PostgreSQL server port (usually 5432, but you provided 25060)
+        'OPTIONS': {
+            'sslmode': 'require',  # Require SSL/TLS for the connection
+        },
     }
 }
-
 
 
 # Password validation

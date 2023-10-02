@@ -229,3 +229,13 @@ CHANNEL_LAYERS = {
 PAYSTACK_PUBLIC_KEY = 'your_public_key'
 PAYSTACK_SECRET_KEY = 'your_secret_key'
 PAYSTACK_PAYMENT_CALLBACK_URL = 'your_callback_url'  # This is the URL where Paystack will redirect after payment
+
+AWS_ACCESS_KEY_ID = 'AKIAUO3VINYO2QCOZVBL '
+AWS_SECRET_ACCESS_KEY = 'pPP/8FeBRp7QVWzAa6OKmBbmBwPIjK1xjAqMggFl'
+AWS_STORAGE_BUCKET_NAME = '2geda-bucket'
+AWS_S3_SIGNATURE_NAME = 's3v4',
+AWS_S3_REGION_NAME = 'eu-north-1'
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL =  None
+AWS_S3_VERITY = True
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'

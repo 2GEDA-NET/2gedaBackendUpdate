@@ -48,21 +48,6 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     otp = serializers.CharField()
     new_password = serializers.CharField(write_only=True, validators=[MinLengthValidator(7, message='Your password is too short! Minimum of 7 length is required')])
 
-    def validate_token(self, data):
-        new_password = data.get('new_password')
-        try:
-            reset_request = OtpReceiver.objects.get(otp=otp)
-           
-        except OtpReceiver.DoesNotExist:
-            raise serializers.ValidationError("Invalid or expired token.")
-
-        # Check if the token is still valid 
-        expiration_time = reset_request.created_at + timezone.timedelta(seconds=3900)
-        if timezone.now() > expiration_time:
-            raise serializers.ValidationError("Otp has expired.")
-
-        return otp
-
     def update(self, instance, validated_data):
         # Allow the user to reset their password
         new_password = validated_data["new_password"]
@@ -86,8 +71,6 @@ class ReportedUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReportedUser
         fields = '__all__'
-
-
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:

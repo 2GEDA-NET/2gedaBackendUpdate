@@ -25,4 +25,6 @@ urlpatterns = [
     path("chat/", include('chat.urls')),
     path("business/", include('business.urls')),
     path("poll/", include('poll.urls')),
+    path("education/", include('education.urls')),
+    # path("connect/", include('connect.urls')),
 ]

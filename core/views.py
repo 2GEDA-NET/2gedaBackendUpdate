@@ -8,47 +8,19 @@ from rest_framework.viewsets import ModelViewSet
 
 
 from .serializers import *
-
-
 from core.models import UserModel, OtpReceiver
-
-
 from django.contrib.auth import authenticate
-
-
 from rest_framework.exceptions import ValidationError
-
-
 from rest_framework.authtoken.models import Token
-
-
 from rest_framework.authentication import TokenAuthentication
-
-
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
-
 from .models import OtpReceiver
-
-
 from django.core.mail import send_mail
-
-
 from rest_framework.decorators import action
-
-
 from . otp_sender import *
-
-
 from django.db import transaction
-
-
 from rest_framework.views import APIView
-
-
 from django.core.exceptions import PermissionDenied
-
-
 from django.utils import timezone
 from datetime import timedelta
 
@@ -59,7 +31,6 @@ from django.views.decorators.csrf import csrf_protect
 from ctypes import pointer
 
 from django.utils.decorators import method_decorator
-
 
 import json  # Add this import for JSON formatting
 
@@ -125,60 +96,32 @@ from rest_framework.generics import *
 
 
 
-@method_decorator(csrf_protect, name='dispatch')
 
 class RegisterView(ModelViewSet):
-
-
     serializer_class = UserRegistrationSerializer
-
-
     queryset = UserModel.objects.all()
-
-
     http_method_names = ['post']
 
-
     def get_serializer_context(self):
-
-
         return {'request': self.request}
 
-    
-
     def create(self, request, *args, **kwargs):
-
-
         data = request.data
-
-
         phone = data.get('phone')
-
-
         email = data.get('email')
-
-
         username = data.get('username')
 
-
-
         try:
-
-
             if UserModel.objects.filter(username=username).exists():
-
-
                 return Response({'status': 'fail', 'message': 'Username already exist'}, status=status.HTTP_400_BAD_REQUEST)
                 
-
-
             # '''Check if a user with the given phone number or email already exists.
             # We are checking for the two since we know that every user will always have one of the two, as in
             # blank mobile number or email at the point of registration'''
 
             user = None
 
-            if UserModel.objects.filter(phone=phone).exists() and UserModel.objects.filter(email=email).exists():
+            if UserModel.objects.filter(Q(phone=phone) | Q(email=email)).exists():
                 user_phone = UserModel.objects.filter(phone=phone).first()
                 user_email = UserModel.objects.filter(email=email).first()
 
@@ -205,29 +148,29 @@ class RegisterView(ModelViewSet):
 
                 registration_send_otp(user_input=email, is_email=True)
                 user = UserModel.objects.get(email=email)
+                user_otp = OtpReceiver.objects.get(user=user)
                 message = f"OTP Successfully sent to {email}"
-
                 return Response({'message': message}, status=status.HTTP_200_OK)
 
             elif phone:
                 registration_send_otp(user_input=phone, is_email=False)
-                user = UserModel.objects.get(email=email)
+                user = UserModel.objects.get(phone=phone)
                 message = f"OTP Successfully sent to {phone}"
                 print(message)
 
                 return Response({'message': message}, status=status.HTTP_200_OK)
             else:
 
-                raise ValueError('Email or phone number is required for OTP sending')  
+                raise ValueError('Email or phone number is required for OTP sending')
+            
                 # user.registration_timestamp = timezone.now()
-
-                user.save()  
-
-        # return Response({'message': message}, status=status.HTTP_200_OK)
-
+            user_otp = OtpReceiver.objects.get(user=user)
+            if not user_otp.otp.exists():
+                user.delete()
+                return Response({'message': 'Please Restart your Registration Process.'}, status=status.HTTP_400_BAD_REQUEST)
+            
         except Exception as error_message:
-            return Response({'status': 'fail', 'message': str(error_message)}, status=status.HTTP)
-
+            return Response({'status': 'fail', 'message': str(error_message)}, status=status.HTTP_400_BAD_REQUEST)
 
     @transaction.atomic
     @action(detail=False, methods=['post'], url_path='resend-otp')
@@ -253,54 +196,20 @@ class RegisterView(ModelViewSet):
 
                 return Response({'message': 'User has already been verified'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Check the resend limit and reset count after verification
-            # if user.resend_count < int(settings.MAX_RESEND_LIMIT):
-                # Generate and send a new OTP
-
             if "@" in email:
 
                 registration_send_otp(user_input=email, is_email=True)
             else:
                 registration_send_otp(user_input=phone, is_email=False)
 
-                # user.resend_count += 1
             user.save()
             return Response({'message': 'OTP resent successfully'}, status=status.HTTP_200_OK)
-
-        # else:
-
-                # Check if enough time has passed since registration
-
-                # registration_timestamp = user.registration_timestamp
-
-                # current_time = timezone.now()
-
-                # time_difference = current_time - registration_timestamp
-
-
-                # You can choose the time threshold as per your requirement, here we use 1 hour (3600 seconds)
-
-                # time_threshold = timedelta(hours=24)
-
-
-                # if time_difference < time_threshold:
-
-                #     remaining_time = time_threshold - time_difference
-
-                #     return Response({'message': 'Resend request is too soon, please wait for {}.'.format(remaining_time)}, status=status.HTTP_400_BAD_REQUEST)
-
-                # else:
-
-                #     return Response({'message': 'Maximum OTP resend limit reached today, try again after 24 hours'}, status=status.HTTP_400_BAD_REQUEST)
-
 
         except Exception as error_message:
 
             return Response({'status': 'fail', 'message': str(error_message)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-@method_decorator(csrf_protect, name='dispatch')
 class VerifyOtpView(generics.UpdateAPIView):
 
     serializer_class = VerifyOtpUserSerializer
@@ -318,7 +227,7 @@ class VerifyOtpView(generics.UpdateAPIView):
             otp_receiver = OtpReceiver.objects.get(otp=otp)
             user = otp_receiver.user
             # Check if the token is still valid
-            expiration_time = otp_receiver.created_at + timedelta(minutes=7)
+            expiration_time = otp_receiver.created_at + timedelta(minutes=67)
 
             if timezone.now() > expiration_time:
 
@@ -327,14 +236,6 @@ class VerifyOtpView(generics.UpdateAPIView):
             # Mark the user as verified
             user.is_verified = True
             user.save()
-
-            # Reset the resend_count field
-
-            # user.resend_count = 0
-
-            # user.save()
-
-
             # Delete the OTP receiver record
 
             otp_receiver.delete()
@@ -380,7 +281,7 @@ class UserLoginView(generics.GenericAPIView):
         serializer = self.serializer_class(user)
         return Response({'status': 'Login successful', 'user': serializer.data, 'token': token.key})
 
-# @method_decorator(csrf_protect, name='dispatch')
+@method_decorator(csrf_protect, name='dispatch')
 
 class LogoutView(APIView):
     authentication_classes = [TokenAuthentication]
@@ -430,9 +331,6 @@ class PasswordResetRequestView(ModelViewSet):
 
             else:
                 raise ValueError('Email or phone number is required for OTP sending')  
-
-            # user.registration_timestamp = timezone.now()
-            # user.save()  
         except Exception as error_message:
 
 
@@ -444,20 +342,12 @@ class PasswordResetRequestView(ModelViewSet):
     def password_resend_otp(self, request):
         try:
             user = request.user  # Get the user from the request
-            # Check the resend limit
-            # if user.resend_count < int(settings.MAX_RESEND_LIMIT):
-                # Generate and send a new OTP
             if "@" in user.email:
                 password_send_otp(user_input=user.email, is_email=True)
 
             else:
 
                 password_send_otp(user_input=user.phone, is_email=False)
-
-
-                # Decrement the resend count
-
-                # user.resend_count += 1
 
             user.save()
 
@@ -467,40 +357,6 @@ class PasswordResetRequestView(ModelViewSet):
                     'message': 'OTP resent successfully'
 
                     }, status=status.HTTP_200_OK)
-
-            # else:
-
-            #     # Check if enough time has passed since registration
-
-            #     registration_timestamp = user.registration_timestamp
-
-            #     current_time = timezone.now()
-
-            #     time_difference = current_time - registration_timestamp
-
-
-            #     # You can choose the time threshold as per your requirement, here we use 1 hour (3600 seconds)
-
-            #     time_threshold = timedelta(hours=24)
-
-
-            #     if time_difference < time_threshold:
-
-            #         remaining_time = time_threshold - time_difference
-
-            #         return Response({
-
-            #             'message': 'Resend request is too soon, please wait for {}.'.format(remaining_time)
-
-            #         }, status=status.HTTP_400_BAD_REQUEST)
-
-            #     else:
-
-            #         return Response({
-
-            #             'message': 'Maximum OTP resend limit reached today, try again after 24 hours'
-
-            #         }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as error_message:
 

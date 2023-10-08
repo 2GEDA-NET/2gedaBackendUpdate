@@ -77,7 +77,7 @@ LOCAL_APPS = [
     'core',
     'chat',
     'commerce',
-    'connect',
+    # 'connect',
     'live',
     'feed',
     'ticket',
@@ -85,6 +85,7 @@ LOCAL_APPS = [
     'poll',
     'stereo',
     'tv',
+    'education'
 ]
 
 
@@ -98,6 +99,9 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.BasicAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSIONS_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
     ],
 }
 
@@ -116,30 +120,31 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "https://example.com",
-    "https://sub.example.com",
-    "http://localhost:8080",
-    "http://127.0.0.1:9000",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     # "https://example.com",
+#     # "https://sub.example.com",
+#     "http://localhost:8080",
+#     "http://localhost:3000",
+#     # "http://127.0.0.1:9000",
+# ]
 
-CORS_ALLOW_HEADERS = (
-    "accept",
-    "authorization",
-    "content-type",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
-)
+# CORS_ALLOW_HEADERS = (
+#     "accept",
+#     "authorization",
+#     "content-type",
+#     "user-agent",
+#     "x-csrftoken",
+#     "x-requested-with",
+# )
 
-CORS_ALLOW_METHODS = (
-    "DELETE",
-    "GET",
-    "OPTIONS",
-    "PATCH",
-    "POST",
-    "PUT",
-)
+# CORS_ALLOW_METHODS = (
+#     "DELETE",
+#     "GET",
+#     "OPTIONS",
+#     "PATCH",
+#     "POST",
+#     "PUT",
+# )
 
 ASGI_APPLICATION = 'TogedaBackend.routing.application'
 
@@ -179,8 +184,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "TogedaBackend.wsgi.application"
-# ASGI_APPLICATION = "TogedaBackend.asgi.application"
+# WSGI_APPLICATION = "TogedaBackend.wsgi.application"
+ASGI_APPLICATION = "TogedaBackend.asgi.application"
 
 
 
@@ -206,10 +211,10 @@ DATABASES = {
         'PASSWORD': env("DB_PASSWORD"),
         'HOST': env("DB_HOST"),
         'PORT': env('DB_PORT'),
-#         # 'OPTIONS': {
-#         #     'sslmode': 'require',
+        'OPTIONS': {
+            'sslmode': 'require',
 
-    # },
+    },
 }
 }
 
@@ -240,7 +245,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-# AUTH_USER_MODEL = 'user.User'
 
 
 
@@ -267,17 +271,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
-        # 'CONFIG': {
-        #     'hosts': [('127.0.0.1', 6379)],
-        # }
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        }
     }
 }
 
 
 # settings.py
-# PAYSTACK_PUBLIC_KEY = env('PAYSTACK_PULIC_KEY')
-# PAYSTACK_SECRET_KEY= env('PAYSTACK_SECRET_KEY')
-# PAYSTACK_PAYMENT_CALLBACK_URL = env('PAYSTACK_PAYMENT_CALLBACK_URL')  # This is the URL where Paystack will redirect after payment
+PAYSTACK_PUBLIC_KEY = env('PAYSTACK_PULIC_KEY')
+PAYSTACK_SECRET_KEY= env('PAYSTACK_SECRET_KEY')
+PAYSTACK_PAYMENT_CALLBACK_URL = env('PAYSTACK_PAYMENT_CALLBACK_URL')  # This is the URL where Paystack will redirect after payment
 
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')

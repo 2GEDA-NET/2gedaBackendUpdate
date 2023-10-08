@@ -1,8 +1,7 @@
 from django.db import models
 from datetime import datetime
-from user.models import *
+from core.models import *
 from django.db import models
-from user.models import *
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.utils.functional import cached_property
@@ -21,7 +20,7 @@ class ProductCategory(models.Model):
     
 
 class Store(models.Model):
-    userId = models.ForeignKey(User, on_delete = models.CASCADE)
+    userId = models.ForeignKey(UserModel, on_delete = models.CASCADE)
     name = models.CharField( max_length=100)
     create_at = models.DateTimeField(auto_now_add=True)
     
@@ -66,7 +65,7 @@ class Product(models.Model):
 
 
 class ProductReview(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     rating = models.PositiveIntegerField(default=5)  # Rating from 1 to 5, you can customize this
     review_text = models.TextField()
@@ -97,7 +96,7 @@ class ProductImg(models.Model):
     # url = models.URLField(max_length=200, blank=True, null = True)
 
 class Cart(models.Model):
-    userId = models.ForeignKey(User, on_delete=models.CASCADE)
+    userId = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     quantity = models.IntegerField()
 
 class CartItem(models.Model):
@@ -121,7 +120,7 @@ class Order(models.Model):
     STATUS_CHOICES = ((PENDING, _('pending')), (COMPLETED, _('completed')))
 
     buyer = models.ForeignKey(
-        User, related_name='orders', on_delete=models.CASCADE)
+        UserModel, related_name='orders', on_delete=models.CASCADE)
     status = models.CharField(
         max_length=1, choices=STATUS_CHOICES, default=PENDING)
     shipping_address = models.ForeignKey(

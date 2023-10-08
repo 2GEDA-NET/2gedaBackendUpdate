@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password
-from user.models import *
+from core.models import *
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -20,7 +20,7 @@ class StereoAccount(models.Model):
 
 
 class DownloadRecord(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     song = models.ForeignKey('Song', on_delete=models.CASCADE)
     downloaded_at = models.DateTimeField(auto_now_add=True)
 

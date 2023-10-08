@@ -5,7 +5,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from chat.utils import calculate_cost
-from user.models import User
+from core.models import UserModel
 from chat.models import BroadcastPermission, BroadcastPlan, Conversation, ChatMessage
 
 

@@ -1,10 +1,10 @@
 from django.db import models
 from datetime import datetime, timedelta
-from user.models import *
+from core.models import *
 
 
 class Payment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     transaction_reference = models.CharField(max_length=100, unique=True)
     status = models.CharField(max_length=20, default='pending')
@@ -21,7 +21,7 @@ class PollMedia(models.Model):
     image = models.ImageField(upload_to='poll-images/')
 
 class Vote(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     poll = models.ForeignKey('Poll', on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     cost = models.DecimalField(max_digits=10, decimal_places=2)  # Add a cost field for each vote
@@ -47,7 +47,7 @@ POLL_DURATION_CHOICES = [
 ]
 
 class Poll(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     question = models.CharField(max_length=250)
     options = models.ForeignKey(Option, on_delete=models.CASCADE)
     
@@ -60,7 +60,7 @@ class Poll(models.Model):
     is_ended = models.BooleanField(default=False, verbose_name='Ended')
 
     media = models.ForeignKey(PollMedia, on_delete=models.SET_NULL, null=True)
-    access_requests = models.ManyToManyField(User, related_name='requested_polls', blank=True)
+    access_requests = models.ManyToManyField(UserModel, related_name='requested_polls', blank=True)
     # Add a field to store the actual end time of the poll
     end_time = models.DateTimeField(null=True, blank=True)
 
@@ -91,7 +91,7 @@ class Poll(models.Model):
 
 
 class PollView(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
 

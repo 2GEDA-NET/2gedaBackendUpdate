@@ -1,4 +1,4 @@
-from user.models import Notification
+from core.models import Notification
 
 
 def send_post_promotion_notification(user, message):

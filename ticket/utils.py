@@ -1,5 +1,5 @@
 import requests
-from user.utils import send_notification
+from core.utils import send_notification
 from .models import Notification  # Import the Notification model if not already imported
 from django.core.mail import send_mail
 import paystackapi

@@ -1,10 +1,10 @@
 from django.db import models
-from user.models import *
+from core.models import *
 
 # Create your models here.
 
 class BusinessOwnerProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(UserModel, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=15)

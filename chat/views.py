@@ -3,7 +3,7 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from chat.consumers import calculate_cost
-from user.models import UserProfile
+from core.models import UserProfile
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import *
 from .serializers import *
@@ -12,7 +12,7 @@ from rest_framework.authentication import *
 from rest_framework.generics import *
 from rest_framework import status, permissions
 from rest_framework.response import Response
-import paystack
+from paystackapi import paystack
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import *
 

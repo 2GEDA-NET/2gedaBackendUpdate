@@ -1,5 +1,5 @@
 from django.db import models
-from user.models import *
+from core.models import *
 
 # Create your models here.
 class EventCategory(models.Model):
@@ -8,8 +8,8 @@ class EventCategory(models.Model):
 
 
 class Event(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    attendees = models.ManyToManyField(User, related_name='attended_events', blank=True)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+    attendees = models.ManyToManyField(UserModel, related_name='attended_events', blank=True)
     image = models.ImageField(upload_to='event-images/', blank=True, null=True)
     title = models.CharField(max_length=250)
     desc = models.TextField()
@@ -49,7 +49,7 @@ ACCOUNT_TYPE = (
 )
 
 class PayOutInfo(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     bank_name = models.ForeignKey(Bank, on_delete=models.CASCADE)
     account_name = models.CharField(max_length=250, blank=True, null=True)
     account_number = models.BigIntegerField()
@@ -64,7 +64,7 @@ class Withdraw(models.Model):
 
 
 class WithdrawalHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, default='Pending', choices=[
         ('Pending', 'Pending'),
@@ -79,7 +79,7 @@ class WithdrawalHistory(models.Model):
 
 class WithdrawalRequest(models.Model):
     details = models.ForeignKey(PayOutInfo, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, default='Pending', choices=[
         ('Pending', 'Pending'),
@@ -94,7 +94,7 @@ class WithdrawalRequest(models.Model):
 
 
 class TicketPurchase(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)  # Assuming you have an Event model
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE) 
     payment_status = models.CharField(max_length=250, default='Pending', choices=[('Pending', 'Pending'), ('Successful', 'Successful'), ('Failed', 'Failed')])
@@ -108,7 +108,7 @@ class TicketPurchase(models.Model):
         verbose_name_plural = "Ticket Purchases"
 
 class EventPromotionRequest(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     request_date = models.DateTimeField(auto_now_add=True)
     is_approved = models.BooleanField(default=False)

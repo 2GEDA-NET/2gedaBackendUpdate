@@ -1,7 +1,7 @@
 # suggestions.py (create a new Python file for your suggestions logic)
 
 from poll.utils import calculate_similarity
-from user.utils import get_frequently_searched_polls
+from core.utils import get_frequently_searched_polls
 from .models import Poll
 
 

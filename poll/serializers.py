@@ -52,7 +52,7 @@ class AccessRequestSerializer(serializers.Serializer):
 
 class AccessApprovalSerializer(serializers.Serializer):
     poll_id = serializers.PrimaryKeyRelatedField(queryset=Poll.objects.all())
-    user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    user_id = serializers.PrimaryKeyRelatedField(queryset=UserModel.objects.all())
     approval_status = serializers.BooleanField()
 
     def create(self, validated_data):

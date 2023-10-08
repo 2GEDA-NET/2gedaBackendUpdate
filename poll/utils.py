@@ -1,7 +1,7 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from user.models import Notification
+from core.models import Notification
 
 def calculate_similarity(frequently_searched_polls, all_polls):
     # Extract the text (e.g., question) from frequently searched polls

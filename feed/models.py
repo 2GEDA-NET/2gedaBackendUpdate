@@ -1,5 +1,5 @@
 from django.db import models
-from user.models import *
+from core.models import *
 from commerce.models import *
 # Create your models here.
 
@@ -23,7 +23,7 @@ class PromotionPlan(models.Model):
 
 
 class Post(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     file = models.ForeignKey(PostMedia, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
     timestamp = models.TimeField()
@@ -40,18 +40,18 @@ class Post(models.Model):
         default=True, verbose_name='Personal Post')
     # Define a ManyToManyField for tagged users
     tagged_users = models.ManyToManyField(
-        User, related_name='tagged_in_posts', blank=True)
+        UserModel, related_name='tagged_in_posts', blank=True)
 
 
 class SharePost(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     caption = models.TextField(blank=True, null=True)
     shared_post = models.ForeignKey('Post', on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
 
 
 class Comment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE, null=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
     content = models.TextField()
     media = models.ForeignKey(CommentMedia, on_delete=models.CASCADE, blank= True, null= True)
@@ -61,7 +61,7 @@ class Comment(models.Model):
 
 
 class Reply(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE, null=True)
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True)
     content = models.TextField()
     reaction = models.ForeignKey(
@@ -85,7 +85,7 @@ class Reaction(models.Model):
 
 
 class Repost(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(UserModel, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
     post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True)
     timestamp = models.TimeField()
@@ -96,13 +96,13 @@ class Repost(models.Model):
 
 
 class SavedPost(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True)
     timestamp = models.TimeField()
 
 
 class PromotedPost(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     promotion_plan = models.ForeignKey(PromotionPlan, on_delete=models.CASCADE)
     promotion_status = models.CharField(max_length=20, choices=[(

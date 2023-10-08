@@ -20,7 +20,7 @@ from rest_framework.response import Response
 from paystackapi.paystack import Paystack
 from .models import Payment
 
-paystack = Paystack(secret_key=settings.PAYSTACK_SECRET_KEY)
+# paystack = Paystack(secret_key=settings.PAYSTACK_SECRET_KEY)
 
 
 class OptionListCreateView(generics.ListCreateAPIView):

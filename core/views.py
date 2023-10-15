@@ -240,9 +240,10 @@ class VerifyOtpView(generics.UpdateAPIView):
 
             otp_receiver.delete()
             token, created = Token.objects.get_or_create(user=user)
-            return Response({'message': 'Account verified successfully', 'token': token.key}, status=status.HTTP_200_OK)
+            return Response({'message': f'Account verified successfully. Welcome {user.username}', 'token': token.key}, status=status.HTTP_200_OK)
         except Exception as error_message:
             return Response({'status': 'fail', 'message': str(error_message)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
@@ -279,7 +280,7 @@ class UserLoginView(generics.GenericAPIView):
         # Generate or retrieve the user's authentication token
         token, created = Token.objects.get_or_create(user=user)
         serializer = self.serializer_class(user)
-        return Response({'status': 'Login successful', 'user': serializer.data, 'token': token.key})
+        return Response({'status': f'Login successful. Welcome {user.username}', 'token': token.key})
 
 @method_decorator(csrf_protect, name='dispatch')
 
@@ -450,9 +451,8 @@ class PasswordResetConfirmView(generics.UpdateAPIView):
 
 
 @api_view(['PUT'])
-
 @permission_classes([IsAuthenticated])
-
+@authentication_classes([TokenAuthentication])
 def update_user_profile(request):
 
     user = request.user
@@ -461,18 +461,19 @@ def update_user_profile(request):
     if request.method == 'PUT':
 
         serializer = UserProfileUpdateSerializer(
-
             instance=user, data=request.data)
+        user_updated = UserProfile.objects.get(user=user)
 
-        if serializer.is_valid():
-
+        if serializer.is_valid(raise_exception=True):
+            user_updated.has_updated_profile = True
+            # confirm_message = 'True'
             serializer.save()
+            return Response({"message": "User profile updated successfully", 'has_updated_profile': user_updated.has_updated_profile}, status=status.HTTP_200_OK )
+        else:
+            # confirm_message = 'False'
+            return Response({'message': serializer.errors, 'has_updated_profie': f'{user_updated.has_updated_profile}'}, status=status.HTTP_400_BAD_REQUEST )
 
-            return Response({"message": "User profile updated successfully"})
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
+        
 
 @api_view(['POST'])
 

@@ -26,5 +26,6 @@ urlpatterns = [
     path("business/", include('business.urls')),
     path("poll/", include('poll.urls')),
     path("education/", include('education.urls')),
+    path("settings_app/", include('settings_app.urls')),
     # path("connect/", include('connect.urls')),
 ]

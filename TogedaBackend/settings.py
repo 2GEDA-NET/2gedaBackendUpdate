@@ -86,6 +86,7 @@ LOCAL_APPS = [
     'stereo',
     'tv',
     'education'
+    'settings_app'
 ]
 
 

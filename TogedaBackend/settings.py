@@ -150,14 +150,15 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'defaultdb',     # Name of your PostgreSQL database
         'USER': 'doadmin',       # Your PostgreSQL username
-        'PASSWORD': 'AVNS_gQxrc5GwOiFoIRk8hHA',  # Your PostgreSQL password
-        'HOST': 'db-postgresql-nyc1-57451-do-user-14333400-0.b.db.ondigitalocean.com',  # Set the host to your PostgreSQL server
+        'PASSWORD': 'AVNS_b5PwmrgfjKeuSF66cmj',  # Your PostgreSQL password
+        'HOST': 'db-postgresql-nyc3-33815-do-user-14333400-0.c.db.ondigitalocean.com',  # Set the host to your PostgreSQL server
         'PORT': '25060',         # PostgreSQL server port (usually 5432, but you provided 25060)
         'OPTIONS': {
             'sslmode': 'require',  # Require SSL/TLS for the connection
         },
     }
 }
+
 
 
 # Password validation

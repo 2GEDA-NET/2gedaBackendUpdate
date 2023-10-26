@@ -134,7 +134,7 @@ TEMPLATES = [
     },
 ]
 
-# WSGI_APPLICATION = "TogedaBackend.wsgi.application"
+WSGI_APPLICATION = "TogedaBackend.wsgi.application"
 ASGI_APPLICATION = "TogedaBackend.asgi.application"
 
 

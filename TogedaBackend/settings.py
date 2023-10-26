@@ -96,7 +96,7 @@ MIDDLEWARE = [
 
 
 
-ASGI_APPLICATION = 'TogedaBackend.routing.application'
+# ASGI_APPLICATION = 'TogedaBackend.routing.application'
 
 CHANNEL_LAYERS = {
     'default': {

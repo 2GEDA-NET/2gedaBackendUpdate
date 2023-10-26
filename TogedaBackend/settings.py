@@ -30,6 +30,7 @@ SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
+
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
 
@@ -161,8 +162,13 @@ DATABASES = {
         'OPTIONS': {
             'sslmode': 'require',
         },
+    },
+    'development': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'development_db.sqlite3'),
     }
 }
+
 
 
 # Password validation

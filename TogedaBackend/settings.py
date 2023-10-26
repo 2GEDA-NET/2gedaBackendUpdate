@@ -12,21 +12,26 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os
+import os
+from decouple import config, Csv
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = config('SECRET_KEY')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-tr!lkr3ucofs0a6mco83cibr_6imvh6sjb$ol0mloic##bsop_"
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -148,17 +153,16 @@ ASGI_APPLICATION = "TogedaBackend.asgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'defaultdb',     # Name of your PostgreSQL database
-        'USER': 'doadmin',       # Your PostgreSQL username
-        'PASSWORD': 'AVNS_b5PwmrgfjKeuSF66cmj',  # Your PostgreSQL password
-        'HOST': 'db-postgresql-nyc3-33815-do-user-14333400-0.c.db.ondigitalocean.com',  # Set the host to your PostgreSQL server
-        'PORT': '25060',         # PostgreSQL server port (usually 5432, but you provided 25060)
+        'NAME': config('DATABASE_NAME'),
+        'USER': config('DATABASE_USER'),
+        'PASSWORD': config('DATABASE_PASSWORD'),
+        'HOST': config('DATABASE_HOST'),
+        'PORT': config('DATABASE_PORT', default='', cast=int),
         'OPTIONS': {
-            'sslmode': 'require',  # Require SSL/TLS for the connection
+            'sslmode': 'require',
         },
     }
 }
-
 
 
 # Password validation
@@ -207,12 +211,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your_email@gmail.com'
-EMAIL_HOST_PASSWORD = 'your_email_password'
 
 
 
@@ -226,17 +224,26 @@ CHANNEL_LAYERS = {
 }
 
 
-# settings.py
-PAYSTACK_PUBLIC_KEY = 'your_public_key'
-PAYSTACK_SECRET_KEY = 'your_secret_key'
-PAYSTACK_PAYMENT_CALLBACK_URL = 'your_callback_url'  # This is the URL where Paystack will redirect after payment
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
-AWS_ACCESS_KEY_ID = 'AKIAUO3VINYO2QCOZVBL '
-AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = '2geda-bucket'
-AWS_S3_SIGNATURE_NAME = 's3v4',
-AWS_S3_REGION_NAME = 'eu-north-1'
-AWS_S3_FILE_OVERWRITE = False
-AWS_DEFAULT_ACL =  None
-AWS_S3_VERITY = True
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# Paystack Integration
+PAYSTACK_PUBLIC_KEY = config('PAYSTACK_PUBLIC_KEY')
+PAYSTACK_SECRET_KEY = config('PAYSTACK_SECRET_KEY')
+PAYSTACK_PAYMENT_CALLBACK_URL = config('PAYSTACK_PAYMENT_CALLBACK_URL')
+
+# AWS S3 Configuration
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_SIGNATURE_NAME = config('AWS_S3_SIGNATURE_NAME')
+AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME')
+AWS_S3_FILE_OVERWRITE = config('AWS_S3_FILE_OVERWRITE', default=False, cast=bool)
+AWS_DEFAULT_ACL = config('AWS_DEFAULT_ACL')
+AWS_S3_VERITY = config('AWS_S3_VERITY', default=True, cast=bool)
+DEFAULT_FILE_STORAGE = config('DEFAULT_FILE_STORAGE')

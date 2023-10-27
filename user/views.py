@@ -38,6 +38,10 @@ from rest_framework.generics import *
 import pyotp
 import secrets
 import base64
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 
@@ -46,11 +50,17 @@ TWILIO_AUTH_TOKEN = settings.TWILIO_AUTH_TOKEN
 TWILIO_PHONE_NUMBER = settings.TWILIO_PHONE_NUMBER
 
 
+
+# Within your view function
 def generate_otp_code(secret_key):
     totp = pyotp.TOTP(secret_key)
     otp_code = totp.now()
-    return otp_code
 
+    # Log the secret key and OTP code for debugging
+    logger.debug(f"Secret Key: {secret_key}")
+    logger.debug(f"OTP Code: {otp_code}")
+
+    return otp_code
 
 # Authentication APIs
 @api_view(['POST'])

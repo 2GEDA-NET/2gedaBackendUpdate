@@ -39,6 +39,8 @@ import pyotp
 import secrets
 import base64
 import logging
+from google.oauth2 import service_account
+
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -50,6 +52,13 @@ TWILIO_AUTH_TOKEN = settings.TWILIO_AUTH_TOKEN
 TWILIO_PHONE_NUMBER = settings.TWILIO_PHONE_NUMBER
 
 
+credentials = service_account.Credentials.from_service_account_file('geda-403314-9575a2d9bab8.json', scopes=['https://www.googleapis.com/auth/gmail.send'])
+email = "your-email@gmail.com"
+
+def send_email(subject, message, to_email):
+    credentials = credentials.with_subject(email)
+    message = create_message("your-email@gmail.com", to_email, subject, message)
+    send_message(credentials, message)
 
 # Within your view function
 def generate_otp_code(secret_key):

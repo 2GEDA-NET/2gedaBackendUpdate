@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "geda-403314",
+  "private_key_id": "9575a2d9bab8347278e1a64cbb0bb003fc8181be",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCVnZdqRThvncTj\n726O70YO25o6xQCRP2XWmPDedTQ+HKZu6JjtYrbmS9u4tU0cU25R7DOnN3vU46Mn\nYIqae+nuL8d3DIB/wd+mwX9oDs/3aSetbo9DZ0IQxvcEHZw6E7dgeW7Ve/HvaisZ\nw9pV6fPSWJwXICGsPaiS2VY4PZlUcW5lc2vX2TVl8srPPqMWkI8lMny57Wsi+pdH\nQfjKHd5NfPIW2GRl/+KQ8hVltmeJaOeKvuxCvrAmeussn3qBdnMX+NHBZJ4uvl0E\nwkC/S3zm4mo/Lvvbap2XwviEXdjp0fB5QacHxUp6bppe02kSuKgvdXW1Sn/QeQwS\nSRu22bbnAgMBAAECggEAE7FEZrZpsTdA3Qd8s8+GlxoMeMPJSVTg4JgMzBr9H1fC\nCEMRLd2aWUGO0Ab8+Ud588p1GgNRhznXFa29UIwSxEkBpge9OhOYjmhVjqq0cMok\ncM1mieajaXXmuWH0WCiUMFyLXAoOVAbTWXbP3BMJBpynHtwZ0oPjFkEI+ioRbm20\nJgQDV6E4ksB28aingvTMsgUGQY1RPj9Yoca1fuRJsFHGClXUdr9j2J1OpZ2VZYK9\nyM5KACq+JojQ2O2X4o1Jn7zcNSdZGhq3Om5Ke735dA9q7BVqIkdMpWR/BLeNK+KT\nz5nYMSxYvOuJrTGNID2ZMdRX5JfpIjgJEI+aNafagQKBgQDGaKnEdnKRTbnpP1Bx\n7mjvW//OkMmyx2ll11fy2qzrUqNExydskvrRlWCx1uOobrG3zLddLcx99wpa+O4F\nvfbh1C8uNOJfs5OpQEztVPQpwvbsLrd5ZjlqOahkts+JOHnEXgbGpcD89aiGBWxy\nsO+6rbWTb2PJkaJlulDy8mh7xwKBgQDBCzTPN/RBzYWyMWOfJ27rnixwl42lYHnm\nUbjHn7u4QmO6IPt+qadEYmWMEf3tXn7R2v4oJV2Pg3VUf3oc2py0q2hqkTYGK0eg\nzIt/ZZQ/UIeCO+evVvAPb+BllqKdOkjtTZLY7uke4xTTkhwL3/P6KqElYFH5q11o\naw/g6PGr4QKBgFgyvIzuDn3TLHqoP4116sXEgtGDgXXsuUihUqJNXSL6yENRuI/G\nQqMaITLNEMSV+IB5C2XrbwTr5XmNQNnimTXISfTjY2IhhNlvEQNLiYJq/bL+DWd0\n7r7uxJGIxnb8WPzWw3JYypJobbKuBIhzaQ32HEpe8N/w0l0gVs24voOPAoGALoyA\nOHN6n59qXLSSHB+LHJ+wgZnZ2wXvfv03vFMlFeJUX95yJnHMVq4PZH42J9XAaOQQ\noyeXbvK5CR4QGQMSBHLMo93OFCC9jeWkwZyB6d6GPn4peNtS2bYVewmevqD+UtKA\n1XSOnBcPv5Cc2LQxBaLf5r5aJgUPag1e79Hb7KECgYEAu3XyFKEZqDR3wcqKJ/qy\nw3QFVXQ0gTq6C1G8oMuj1GZANxZ1HqbGoNEUcQJidO7zrGZ3hUqeQRyh9MehCek2\nRD/g84G8aE/4/SpMQZ60Y6MQQQjTxfL/JAIOKbB2tcvSe0kbHKaA+kYjSNLwRZls\nF5vBPr1TrvvyzTrAo6ZPmyY=\n-----END PRIVATE KEY-----\n",
+  "client_email": "id-geda-otp@geda-403314.iam.gserviceaccount.com",
+  "client_id": "104386661455125871610",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/id-geda-otp%40geda-403314.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

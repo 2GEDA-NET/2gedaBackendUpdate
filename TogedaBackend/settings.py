@@ -34,7 +34,6 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -54,6 +53,11 @@ INSTALLED_APPS = [
     'channels',
     'rest_framework',
     'django_filters',
+
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'django_otp.plugins.otp_hotp',
+    'django_otp.plugins.otp_static',
 
     # apps
     'user',
@@ -91,9 +95,9 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    'django_otp.middleware.OTPMiddleware',
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
 
 
 # ASGI_APPLICATION = 'TogedaBackend.routing.application'
@@ -106,7 +110,6 @@ CHANNEL_LAYERS = {
         },
     },
 }
-
 
 
 AUTHENTICATION_BACKENDS = [
@@ -136,7 +139,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "TogedaBackend.wsgi.application"
 ASGI_APPLICATION = "TogedaBackend.asgi.application"
-
 
 
 # Database
@@ -170,7 +172,6 @@ DATABASES = {
 }
 
 
-
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
@@ -178,9 +179,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", },
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator", },
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator", },
 ]
 
 
@@ -198,7 +199,6 @@ USE_TZ = True
 AUTH_USER_MODEL = 'user.User'
 
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
@@ -210,14 +210,10 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-
-
 
 
 CHANNEL_LAYERS = {
@@ -249,7 +245,13 @@ AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_SIGNATURE_NAME = config('AWS_S3_SIGNATURE_NAME')
 AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME')
-AWS_S3_FILE_OVERWRITE = config('AWS_S3_FILE_OVERWRITE', default=False, cast=bool)
+AWS_S3_FILE_OVERWRITE = config(
+    'AWS_S3_FILE_OVERWRITE', default=False, cast=bool)
 AWS_DEFAULT_ACL = config('AWS_DEFAULT_ACL')
 AWS_S3_VERITY = config('AWS_S3_VERITY', default=True, cast=bool)
 DEFAULT_FILE_STORAGE = config('DEFAULT_FILE_STORAGE')
+
+
+TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = config('TWILIO_PHONE_NUMBER')

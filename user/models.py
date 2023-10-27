@@ -5,6 +5,8 @@ from django.conf import settings
 from .managers import UserManager
 from location_field.models.plain import PlainLocationField
 
+
+
 # Create your models here.
 
 class ProfileMedia(models.Model):
@@ -22,6 +24,8 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False, verbose_name='Verified')
     last_seen = models.DateTimeField(null=True, blank=True)
     objects = UserManager()
+    otp = models.CharField(max_length=5, blank=True)
+    otp_verified = models.BooleanField(default=False)
 
     class Meta:
         swappable = 'AUTH_USER_MODEL'

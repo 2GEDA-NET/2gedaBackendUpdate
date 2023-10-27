@@ -2,6 +2,10 @@ from ctypes import pointer
 import json  # Add this import for JSON formatting
 from datetime import timezone
 from django.db.models import *
+# from otp.models import Device
+# from otp.models import TOTPDevice
+from twilio.rest import Client  # Import the Twilio client
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -31,9 +35,21 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework import status, permissions
 from rest_framework import generics, filters, viewsets
 from rest_framework.generics import *
-
+import pyotp
+import secrets
 
 # Create your views here.
+
+TWILIO_ACCOUNT_SID = settings.TWILIO_ACCOUNT_SID
+TWILIO_AUTH_TOKEN = settings.TWILIO_AUTH_TOKEN
+TWILIO_PHONE_NUMBER = settings.TWILIO_PHONE_NUMBER
+
+
+def generate_otp_code(secret_key):
+    totp = pyotp.TOTP(secret_key)
+    otp_code = totp.now()
+    return otp_code
+
 
 # Authentication APIs
 @api_view(['POST'])
@@ -87,8 +103,34 @@ def create_user(request):
         if serializer.is_valid():
             try:
                 user = serializer.save()
+
+                secret_key = secrets.token_urlsafe(16)
+                user.secret_key = secret_key
+                user.save()
+
                 token, created = Token.objects.get_or_create(user=user)
                 token_key = token.key
+
+                # Generate the OTP code using the user's secret key
+                otp_code = generate_otp_code(user.secret_key)
+
+                # Send the OTP to the user via email
+                send_mail(
+                    '2geda OTP Verification Code',
+                    f'Hi, {user.username}, Your OTP code is: {otp_code}',
+                    '2gedafullstack@gmail.com',
+                    [user.email],  # Replace with the user's email field
+                    fail_silently=False,
+                )
+
+                # Send the OTP to the user's phone number via Twilio
+                client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+                message = client.messages.create(
+                    body=f'Hi, {user.username}, Your OTP code is: {otp_code}',
+                    from_=TWILIO_PHONE_NUMBER,
+                    to=phone_number,  # Replace with the user's phone_number field
+                )
+
                 response_data = serializer.data
                 response_data['token'] = token_key
                 return Response(response_data, status=status.HTTP_201_CREATED)
@@ -97,6 +139,33 @@ def create_user(request):
                 return Response({'error': 'Account details already exist.'}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])  # Use the appropriate permission class
+def verify_otp(request):
+    if request.method == 'POST':
+        data = request.data
+        otp_code = data.get('otp_code')
+
+        if not otp_code:
+            return Response({'error': 'OTP code is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get the user's secret key from the authenticated user
+        secret_key = request.user.secret_key
+
+        # Verify the OTP code
+        totp = pyotp.TOTP(secret_key)
+        is_valid = totp.verify(otp_code)
+
+        if is_valid:
+            # Mark the user as verified or perform any other action
+            request.user.is_verified = True
+            request.user.save()
+
+            return Response({'message': 'OTP code is valid.'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid OTP code.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['PUT'])
@@ -256,7 +325,8 @@ class BusinessAccountLoginView(APIView):
         if serializer.is_valid():
             username = serializer.validated_data['business_name']
             password = serializer.validated_data['business_password']
-            user = BusinessAccountAuthBackend().authenticate(request, username=username, password=password)  # Use authenticate method
+            user = BusinessAccountAuthBackend().authenticate(request, username=username,
+                                                             password=password)  # Use authenticate method
             if user is not None:
                 login(request, user)
                 token, created = Token.objects.get_or_create(user=user)
@@ -281,7 +351,8 @@ class BusinessAccountChangePasswordView(UpdateAPIView):
         return self.request.user
 
     def update(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer = self.get_serializer(
+            data=request.data, context={'request': request})
         if serializer.is_valid():
             user = self.get_object()
             new_password = serializer.validated_data['new_password']
@@ -741,21 +812,22 @@ class SearchAPIView(generics.ListAPIView):
 
         return queryset
 
+
 @api_view(['POST'])
 def flag_user_profile(request):
     if request.method == 'POST':
         serializer = FlagUserProfileSerializer(data=request.data)
         if serializer.is_valid():
             username = serializer.validated_data.get('username')
-            
+
             try:
                 profile_to_flag = UserProfile.objects.get(username=username)
             except UserProfile.DoesNotExist:
                 return Response({'detail': 'User profile not found.'}, status=status.HTTP_404_NOT_FOUND)
-            
+
             # Flag the user's profile by setting the 'is_flagged' field to True
             profile_to_flag.is_flagged = True
             profile_to_flag.save()
-            
+
             return Response({'detail': 'User profile flagged successfully.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -37,6 +37,7 @@ from rest_framework import generics, filters, viewsets
 from rest_framework.generics import *
 import pyotp
 import secrets
+import base64
 
 # Create your views here.
 
@@ -104,7 +105,9 @@ def create_user(request):
             try:
                 user = serializer.save()
 
-                secret_key = secrets.token_urlsafe(16)
+                # secret_key = secrets.token_urlsafe(16)
+                # Generate a random 16-character secret key and encode it in Base32
+                secret_key = base64.b32encode(secrets.token_bytes(10)).decode('utf-8')
                 user.secret_key = secret_key
                 user.save()
 

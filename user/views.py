@@ -60,18 +60,17 @@ def send_email(subject, message, to_email):
     message = create_message("2gedafullstack@gmail.com", to_email, subject, message)
     send_message(credentials, message)
 
-
 # Within your view function
 def generate_otp_code(secret_key, length=5):
-    totp = pyotp.TOTP(secret_key)
-    current_time = int(time.time())  # Get the current timestamp
-    otp_code = totp.at(current_time).zfill(length)
+    totp = pyotp.TOTP(secret_key, digits=length)  # Set the digits parameter
+    otp_code = totp.now()
 
     # Log the secret key and OTP code for debugging
     logger.debug(f"Secret Key: {secret_key}")
     logger.debug(f"OTP Code: {otp_code}")
 
     return otp_code
+
 
 
 # Authentication APIs

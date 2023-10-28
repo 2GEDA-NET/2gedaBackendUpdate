@@ -1,6 +1,6 @@
 from ctypes import pointer
 import json  # Add this import for JSON formatting
-from datetime import time, timezone
+import time  # Import the time module
 from django.db.models import *
 # from otp.models import Device
 # from otp.models import TOTPDevice
@@ -60,16 +60,19 @@ def send_email(subject, message, to_email):
     message = create_message("2gedafullstack@gmail.com", to_email, subject, message)
     send_message(credentials, message)
 
+
 # Within your view function
 def generate_otp_code(secret_key, length=5):
     totp = pyotp.TOTP(secret_key)
-    otp_code = totp.at(for_time=int(time.time())).zfill(length)
+    current_time = int(time.time())  # Get the current timestamp
+    otp_code = totp.at(current_time).zfill(length)
 
     # Log the secret key and OTP code for debugging
     logger.debug(f"Secret Key: {secret_key}")
     logger.debug(f"OTP Code: {otp_code}")
 
     return otp_code
+
 
 # Authentication APIs
 @api_view(['POST'])

@@ -11,10 +11,10 @@ class ProfileMediaAdmin(ImportExportModelAdmin):
 @admin.register(User)
 class UsersAdmin(ImportExportModelAdmin):
     list_display = ('username', 'first_name', 'last_name','email','phone_number',
-                    'is_business', 'is_personal', 'is_admin')
+                    'is_business', 'is_personal', 'is_admin','is_verified')
     search_fields = ['username', 'first_name', 'last_name']
     list_editable = ['is_business', 'is_personal', 'is_admin',]
-    list_filter = ('is_business', 'is_personal', 'is_admin',)
+    list_filter = ('is_business', 'is_personal', 'is_admin','is_verified')
 
 
 @admin.register(UserProfile)

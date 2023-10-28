@@ -20,7 +20,7 @@ urlpatterns = [
     #     Authentication urls
     path('register/', create_user, name='user_register'),
     path('login/', obtain_auth_token, name='api_token'),
-    path('verify_otp/', verify_otp, name='verify_otp'),
+    path('verify-otp/', verify_otp, name='verify_otp'),
     #     path('password-change/', PasswordChangeViewSet.as_view, name='change_password'),
     path('', UserAPIView.as_view(), name='user_detail'),
     path('update-profile/', update_user_profile, name='update_user_profile'),

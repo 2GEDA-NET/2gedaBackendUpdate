@@ -1,6 +1,6 @@
 from ctypes import pointer
 import json  # Add this import for JSON formatting
-from datetime import timezone
+from datetime import time, timezone
 from django.db.models import *
 # from otp.models import Device
 # from otp.models import TOTPDevice
@@ -61,9 +61,9 @@ def send_email(subject, message, to_email):
     send_message(credentials, message)
 
 # Within your view function
-def generate_otp_code(secret_key):
+def generate_otp_code(secret_key, length=5):
     totp = pyotp.TOTP(secret_key)
-    otp_code = totp.now()
+    otp_code = totp.at(for_time=int(time.time())).zfill(length)
 
     # Log the secret key and OTP code for debugging
     logger.debug(f"Secret Key: {secret_key}")

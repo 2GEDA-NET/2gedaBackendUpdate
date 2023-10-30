@@ -2,6 +2,7 @@ from ctypes import pointer
 import json  # Add this import for JSON formatting
 import time  # Import the time module
 from django.db.models import *
+from django.db.models import Q
 # from otp.models import Device
 # from otp.models import TOTPDevice
 from twilio.rest import Client  # Import the Twilio client
@@ -235,29 +236,34 @@ def resend_otp(request):
 
         return Response({'message': 'New OTP code has been sent.'}, status=status.HTTP_200_OK)
 
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @csrf_exempt
 def login_view(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
-    if not username or not password:
-        return Response({'error': 'Both username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        # Attempt authentication with username
+        user = authenticate(request, username=username, password=password)
 
-    User = get_user_model()
-    user = User.objects.filter(
-        Q(email=username) | Q(phone_number=username) | Q(username=username)
-    ).first()
+        # If not authenticated with username, try with email
+        if user is None:
+            user = authenticate(request, email=username, password=password)
 
-    if user is None or not user.check_password(password):
-        return Response({'error': 'Invalid login credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+        # If not authenticated with email, try with phone number
+        if user is None:
+            user = authenticate(request, phone_number=username, password=password)
 
-    # User is authenticated, generate or retrieve a token
-    token, created = Token.objects.get_or_create(user=user)
+        if user is not None:
+            # Log the user in and return a success response
+            login(request, user)
+            return JsonResponse({'message': 'Login successful', 'token': user.auth_token.key})
+        else:
+            # Authentication failed; return an error response
+            return JsonResponse({'error': 'Invalid login credentials'}, status=401)
 
-    return Response({'token': token.key, 'message': 'Login successful.'}, status=status.HTTP_200_OK)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
 @api_view(['POST'])

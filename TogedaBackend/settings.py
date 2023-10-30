@@ -89,7 +89,6 @@ REST_FRAMEWORK = {
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     # 'channels.middleware.WebSocketMiddleware',
-    'TogedaBackend.authentication_backends.CustomAuthBackend',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

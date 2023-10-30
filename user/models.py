@@ -20,7 +20,7 @@ class User(AbstractUser):
     is_personal = models.BooleanField(
         default=False, verbose_name='Personal Account')
     is_admin = models.BooleanField(default=False, verbose_name='Admin Account')
-    phone_number = models.CharField(max_length=25, unique=True, null=True, blank=True)
+    phone_number = models.BigIntegerField(unique=True, null=True, blank=True)
     is_verified = models.BooleanField(default=False, verbose_name='Verified')
     last_seen = models.DateTimeField(null=True, blank=True)
     objects = UserManager()

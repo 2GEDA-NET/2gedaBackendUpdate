@@ -165,6 +165,7 @@ def create_user(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])  # Use the appropriate permission class
 @authentication_classes([TokenAuthentication])
@@ -180,17 +181,22 @@ def verify_otp(request):
         secret_key = request.user.secret_key
 
         # Verify the OTP code
-        totp = pyotp.TOTP(secret_key)
-        is_valid = totp.verify(otp_code)
+        try:
+            totp = pyotp.TOTP(secret_key)
+            is_valid = totp.verify(otp_code)
 
-        if is_valid:
-            # Mark the user as verified or perform any other action
-            request.user.is_verified = True
-            request.user.save()
+            if is_valid:
+                # Mark the user as verified or perform any other action
+                request.user.is_verified = True
+                request.user.save()
+                return Response({'message': 'OTP code is valid.'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Invalid OTP code.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            return Response({'message': 'OTP code is valid.'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Invalid OTP code.'}, status=status.HTTP_400_BAD_REQUEST)
+        except pyotp.utils.BadSecretBase32:
+            return Response({'error': 'Invalid secret key format.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': 'An error occurred while verifying the OTP code.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['PUT'])

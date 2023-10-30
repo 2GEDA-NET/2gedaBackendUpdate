@@ -26,6 +26,7 @@ class User(AbstractUser):
     objects = UserManager()
     otp = models.CharField(max_length=5, blank=True)
     otp_verified = models.BooleanField(default=False)
+    secret_key = models.CharField(max_length=64)
 
     class Meta:
         swappable = 'AUTH_USER_MODEL'

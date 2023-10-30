@@ -199,6 +199,39 @@ def verify_otp(request):
         else:
             return Response({'error': 'Invalid OTP code.'}, status=status.HTTP_400_BAD_REQUEST)
 
+
+# Define your view for resending OTP
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])  # Use the appropriate permission class
+@authentication_classes([TokenAuthentication])
+def resend_otp(request):
+    if request.method == 'POST':
+        user = request.user
+
+        # Generate a new OTP code using the user's secret key
+        otp_code = generate_otp_code(user.secret_key)
+
+        # Send the new OTP to the user via email
+        send_mail(
+            '2geda OTP Verification Code',
+            f'Hi, {user.username}, Your new OTP code is: {otp_code}',
+            '2gedafullstack@gmail.com',
+            [user.email],  # Replace with the user's email field
+            fail_silently=False,
+        )
+
+        # Send the new OTP to the user's phone number via Twilio
+        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        message = client.messages.create(
+            body=f'Hi, {user.username}, Your new OTP code is: {otp_code}',
+            from_=TWILIO_PHONE_NUMBER,
+            to=user.phone_number,  # Replace with the user's phone_number field
+        )
+
+        return Response({'message': 'New OTP code has been sent.'}, status=status.HTTP_200_OK)
+
+
+
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_user_profile(request):

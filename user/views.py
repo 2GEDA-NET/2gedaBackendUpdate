@@ -211,6 +211,10 @@ def resend_otp(request):
         # Generate a new OTP code using the user's secret key
         otp_code = generate_otp_code(user.secret_key)
 
+
+        user.otp = otp_code
+        user.save()
+
         # Send the new OTP to the user via email
         send_mail(
             '2geda OTP Verification Code',

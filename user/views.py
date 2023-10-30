@@ -167,6 +167,7 @@ def create_user(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])  # Use the appropriate permission class
+@authentication_classes([TokenAuthentication])
 def verify_otp(request):
     if request.method == 'POST':
         data = request.data

@@ -97,6 +97,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     'django_otp.middleware.OTPMiddleware',
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'rest_framework.authtoken.middleware.AuthenticationMiddleware',
 ]
 
 

@@ -244,16 +244,20 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        # Attempt authentication with username
-        user = authenticate(request, username=username, password=password)
+        if not username or not password:
+            return JsonResponse({'error': 'Both username and password are required.'}, status=400)
 
-        # If not authenticated with username, try with email
-        if user is None:
+        user = None
+
+        if '@' in username:
+            # If username contains '@', treat it as an email
             user = authenticate(request, email=username, password=password)
-
-        # If not authenticated with email, try with phone number
-        if user is None:
+        elif username.isdigit():
+            # If username is a number, treat it as a phone number
             user = authenticate(request, phone_number=username, password=password)
+        else:
+            # Otherwise, treat it as a username
+            user = authenticate(request, username=username, password=password)
 
         if user is not None:
             # Log the user in and return a success response
@@ -264,7 +268,6 @@ def login_view(request):
             return JsonResponse({'error': 'Invalid login credentials'}, status=401)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

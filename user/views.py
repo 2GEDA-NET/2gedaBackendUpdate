@@ -138,6 +138,8 @@ def create_user(request):
                 # Generate the OTP code using the user's secret key
                 otp_code = generate_otp_code(user.secret_key)
 
+                user.otp = otp_code
+                user.save()
                 # Send the OTP to the user via email
                 send_mail(
                     '2geda OTP Verification Code',
@@ -167,7 +169,7 @@ def create_user(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])  # Use the appropriate permission class
+@permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def verify_otp(request):
     if request.method == 'POST':
@@ -180,24 +182,22 @@ def verify_otp(request):
         # Get the user's secret key from the authenticated user
         secret_key = request.user.secret_key
 
-        # Verify the OTP code
-        try:
-            totp = pyotp.TOTP(secret_key)
-            is_valid = totp.verify(otp_code)
+        # Get the stored OTP code from the user's model
+        stored_otp = request.user.otp
 
-            if is_valid:
-                # Mark the user as verified or perform any other action
-                request.user.is_verified = True
-                request.user.save()
-                return Response({'message': 'OTP code is valid.'}, status=status.HTTP_200_OK)
-            else:
-                return Response({'error': 'Invalid OTP code.'}, status=status.HTTP_400_BAD_REQUEST)
+        print(f'Received OTP: {otp_code}')
+        print(f'Secret Key: {secret_key}')
+        print(f'Stored OTP: {stored_otp}')
 
-        except pyotp.utils.BadSecretBase32:
-            return Response({'error': 'Invalid secret key format.'}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({'error': 'An error occurred while verifying the OTP code.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        # Compare the entered OTP code with the stored OTP code
+        if otp_code == stored_otp:
+            # OTP code is valid
+            request.user.is_verified = True
+            request.user.otp_verified = True
+            request.user.save()
+            return Response({'message': 'OTP code is valid.'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid OTP code.'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])

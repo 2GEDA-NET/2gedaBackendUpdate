@@ -236,6 +236,43 @@ def resend_otp(request):
         return Response({'message': 'New OTP code has been sent.'}, status=status.HTTP_200_OK)
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_exempt
+def login_view(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+
+    if not username or not password:
+        return Response({'error': 'Both username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    User = get_user_model()
+    user = User.objects.filter(
+        Q(email=username) | Q(phone_number=username) | Q(username=username)
+    ).first()
+
+    if user is None or not user.check_password(password):
+        return Response({'error': 'Invalid login credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # User is authenticated, generate or retrieve a token
+    token, created = Token.objects.get_or_create(user=user)
+
+    return Response({'token': token.key, 'message': 'Login successful.'}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout_view(request):
+    # Get the user's token
+    user = request.user
+    try:
+        token = Token.objects.get(user=user)
+        token.delete()  # Delete the token
+        return Response({'message': 'Logout successful.'}, status=status.HTTP_200_OK)
+    except Token.DoesNotExist:
+        return Response({'error': 'No token found for the user.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])

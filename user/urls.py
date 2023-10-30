@@ -19,7 +19,8 @@ urlpatterns = [
 
     #     Authentication urls
     path('register/', create_user, name='user_register'),
-    path('login/', obtain_auth_token, name='api_token'),
+    path('login/', login_view, name='api_token'),
+    path('logout/', logout_view, name='api_token'),
     path('verify-otp/', verify_otp, name='verify_otp'),
     path('resend-otp/', resend_otp, name='resend-otp'),
     #     path('password-change/', PasswordChangeViewSet.as_view, name='change_password'),

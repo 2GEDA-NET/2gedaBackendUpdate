@@ -225,7 +225,7 @@ def resend_otp(request):
         message = client.messages.create(
             body=f'Hi, {user.username}, Your new OTP code is: {otp_code}',
             from_=TWILIO_PHONE_NUMBER,
-            to=user.phone_number,  # Replace with the user's phone_number field
+            to='+' + user.phone_number,  # Add the plus sign to the phone number
         )
 
         return Response({'message': 'New OTP code has been sent.'}, status=status.HTTP_200_OK)

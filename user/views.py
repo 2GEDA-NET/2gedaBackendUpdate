@@ -244,8 +244,8 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        print(username)
-        print(password)
+        print(f'Username: {username}')
+        print(f'Password: {password}')
 
         if not username or not password:
             return JsonResponse({'error': 'Both username and password are required.'}, status=400)
@@ -253,13 +253,13 @@ def login_view(request):
         user = None
 
         if '@' in username:
-            # If username contains '@', treat it as an email
+            print('Trying email authentication')
             user = authenticate(request, email=username, password=password)
         elif username.isdigit():
-            # If username is a number, treat it as a phone number
+            print('Trying phone number authentication')
             user = authenticate(request, phone_number=username, password=password)
         else:
-            # Otherwise, treat it as a username
+            print('Trying username authentication')
             user = authenticate(request, username=username, password=password)
 
         if user is not None:

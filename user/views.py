@@ -657,7 +657,15 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (TokenAuthentication,)
     queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
+    serializer_class = UserProfileSerializer2
+
+    def get_object(self):
+        # Get the UserProfile object for the currently authenticated user
+        return UserProfile.objects.get(user=self.request.user)
+
+    def perform_update(self, serializer):
+        # When updating, set the user field to the current user
+        serializer.save(user=self.request.user)
 
 
 # Business APIs

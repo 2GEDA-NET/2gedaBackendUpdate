@@ -309,3 +309,17 @@ class CheckProfileUpdateStatus(serializers.Serializer):
     class Meta:
         model = UserProfile
         fields = ('has_updated_profile',)
+
+
+
+class UserSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name']
+
+class UserProfileSerializer2(serializers.ModelSerializer):
+    user = UserSerializer2()
+
+    class Meta:
+        model = UserProfile
+        fields = ['user', 'work', 'date_of_birth', 'gender', 'custom_gender', 'religion']

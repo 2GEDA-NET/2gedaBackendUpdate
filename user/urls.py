@@ -27,6 +27,7 @@ urlpatterns = [
     path('', UserAPIView.as_view(), name='user_detail'),
     path('profile/update-status/', UserProfileHasUpdatedProfileView.as_view(), name='user-profile-update-status'),
     path('update-profile/', update_user_profile, name='update_user_profile'),
+    path('api/user-profile/update/', UserProfileViewSet.as_view({'put': 'update'}), name='user-profile-update'),
     path('search-user/', UserSearchAPIView.as_view(), name='search_user'),
     path('delete-account/', delete_account, name='delete_account'),
     path('delete-user/<str:username>/', delete_account_by_username,

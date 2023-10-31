@@ -86,6 +86,7 @@ class UserProfile(models.Model):
     has_updated_profile = models.BooleanField(default=False)
 
 
+
     def sticker_count(self):
         return self.stickers.count()
 

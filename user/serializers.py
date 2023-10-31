@@ -318,6 +318,7 @@ class UserSerializer2(serializers.ModelSerializer):
         fields = ['first_name', 'last_name']
 
 class UserProfileSerializer2(serializers.ModelSerializer):
+    date_of_birth = serializers.DateField(format='%Y-%m-%d')
     user = UserSerializer2()
 
     class Meta:

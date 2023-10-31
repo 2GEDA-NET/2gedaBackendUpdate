@@ -1,3 +1,4 @@
+import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser, User
 from django.utils.translation import gettext as _
@@ -71,7 +72,7 @@ class UserProfile(models.Model):
     # Create a one-to-one relationship with the User model
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     work = models.CharField(max_length=255, blank=True, null=True)
-    date_of_birth = models.DateField(blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True,)
     gender = models.CharField(
         max_length=15, choices=GENDER_CHOICES, blank=True, null=True)
     custom_gender = models.CharField(max_length=250, blank=True, null=True)
@@ -93,6 +94,14 @@ class UserProfile(models.Model):
     def sticking_count(self):
         return UserProfile.objects.filter(stickers=self.user).count()
     
+    @property
+    def date_of_birth(self):
+        return self._date_of_birth.strftime('%Y-%m-%d')
+
+    @date_of_birth.setter
+    def date_of_birth(self, value):
+        self._date_of_birth = datetime.datetime.strptime(value, '%Y-%m-%d').date()
+        
     def __str__(self):
         return self.user.username
 

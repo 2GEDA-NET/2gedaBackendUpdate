@@ -654,8 +654,8 @@ class ReportUserViewSet(RetrieveAPIView):
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
-    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer2
 
@@ -664,11 +664,14 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         user_profile = self.get_object()
-        date_of_birth = self.request.data.get('date_of_birth')
+        
+        # Update the first name and last name fields
+        user_profile.first_name = self.request.data.get('first_name')
+        user_profile.last_name = self.request.data.get('last_name')
 
+        date_of_birth = self.request.data.get('date_of_birth')
         try:
             formatted_date = datetime.datetime.strptime(date_of_birth, '%Y-%m-%d').date()
-            print(formatted_date)
             user_profile.date_of_birth = formatted_date
             user_profile.save()
             return Response({'message': 'Profile updated successfully'})

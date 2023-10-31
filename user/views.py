@@ -291,6 +291,7 @@ def update_user_profile(request):
 class UserProfileHasUpdatedProfileView(generics.RetrieveAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
     def get_object(self):
         # Retrieve the user's profile based on the authenticated user

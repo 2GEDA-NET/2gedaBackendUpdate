@@ -310,7 +310,7 @@ def update_user_profile(request):
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def user_profile_update_status(request):
     # Get the current user based on the request
     user = request.user

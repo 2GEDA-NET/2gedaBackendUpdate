@@ -303,3 +303,9 @@ class BusinessAccountChangePasswordSerializer(serializers.Serializer):
         if not check_password(value, user.businessaccount.business_password):
             raise serializers.ValidationError("Incorrect old password.")
         return value
+
+
+class CheckProfileUpdateStatus(serializers.Serializer):
+    class Meta:
+        model = UserProfile
+        fields = ('has_updated_profile',)

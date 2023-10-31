@@ -187,10 +187,6 @@ def verify_otp(request):
         # Get the stored OTP code from the user's model
         stored_otp = request.user.otp
 
-        print(f'Received OTP: {otp_code}')
-        print(f'Secret Key: {secret_key}')
-        print(f'Stored OTP: {stored_otp}')
-
         # Compare the entered OTP code with the stored OTP code
         if otp_code == stored_otp:
             # OTP code is valid
@@ -245,9 +241,6 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        print(username)
-        print(password)
-
         if not username or not password:
             return JsonResponse({'error': 'Both username and password are required.'}, status=400)
 
@@ -290,6 +283,23 @@ def update_user_profile(request):
             serializer.save()
             return Response({"message": "User profile updated successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileUpdateStatusView(APIView):
+    def get(self, request):
+        # Get the current user based on the request
+        user = request.user
+
+        if user.is_authenticated:
+            # Retrieve the user's profile
+            try:
+                user_profile = UserProfile.objects.get(user=user)
+                has_updated_profile = user_profile.has_updated_profile
+                return Response({'has_updated_profile': has_updated_profile})
+            except UserProfile.DoesNotExist:
+                return Response({'error': 'User profile not found'}, status=status.HTTP_NOT_FOUND)
+        else:
+            return Response({'error': 'User not authenticated'}, status=status.HTTP_UNAUTHORIZED)
 
 
 @api_view(['POST'])

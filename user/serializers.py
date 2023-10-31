@@ -324,3 +324,6 @@ class UserProfileSerializer2(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['user', 'work', 'date_of_birth', 'gender', 'custom_gender', 'religion']
+
+
+        

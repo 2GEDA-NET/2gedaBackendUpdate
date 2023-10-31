@@ -663,21 +663,26 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         return UserProfile.objects.get(user=self.request.user)
 
     def perform_update(self, serializer):
-        user_profile = self.get_object()
-        
-        # Update the first name and last name fields
-        user_profile.first_name = self.request.data.get('first_name')
-        user_profile.last_name = self.request.data.get('last_name')
+            user_profile = self.get_object()
 
-        date_of_birth = self.request.data.get('date_of_birth')
-        try:
-            formatted_date = datetime.datetime.strptime(date_of_birth, '%Y-%m-%d').date()
-            user_profile.date_of_birth = formatted_date
+            # Update the first name and last name fields
+            user_profile.first_name = self.request.data.get('first_name')
+            user_profile.last_name = self.request.data.get('last_name')
+
+            date_of_birth = self.request.data.get('date_of_birth')
+
+            # Check if date_of_birth is not empty before parsing it
+            if date_of_birth:
+                try:
+                    formatted_date = datetime.datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+                    user_profile.date_of_birth = formatted_date
+                except ValueError:
+                    return Response({'error': 'Invalid date format. Please use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Save the user_profile object
             user_profile.save()
-            return Response({'message': 'Profile updated successfully'})
-        except ValueError:
-            return Response({'error': 'Invalid date format. Please use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
 
+            return Response({'message': 'Profile updated successfully'})
 
 # Business APIs
 class BusinessCategoryViewSet(viewsets.ModelViewSet):

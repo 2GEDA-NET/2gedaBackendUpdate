@@ -288,10 +288,10 @@ def update_user_profile(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserProfileHasUpdatedProfileView(generics.RetrieveAPIView):
+class UserProfileHasUpdatedProfileView(generics.GenericAPIView):
     serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
+    # permission_classes = [AllowAny]
+    # authentication_classes = [TokenAuthentication]
 
     def get_object(self):
         # Retrieve the user's profile based on the authenticated user

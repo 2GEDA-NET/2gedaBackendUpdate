@@ -54,15 +54,20 @@ TWILIO_AUTH_TOKEN = settings.TWILIO_AUTH_TOKEN
 TWILIO_PHONE_NUMBER = settings.TWILIO_PHONE_NUMBER
 
 
-credentials = service_account.Credentials.from_service_account_file('geda-403314-9575a2d9bab8.json', scopes=['https://www.googleapis.com/auth/gmail.send'])
+credentials = service_account.Credentials.from_service_account_file(
+    'geda-403314-9575a2d9bab8.json', scopes=['https://www.googleapis.com/auth/gmail.send'])
 email = "2gedafullstack@gmail.com"
+
 
 def send_email(subject, message, to_email):
     credentials = credentials.with_subject(email)
-    message = create_message("2gedafullstack@gmail.com", to_email, subject, message)
+    message = create_message("2gedafullstack@gmail.com",
+                             to_email, subject, message)
     send_message(credentials, message)
 
 # Within your view function
+
+
 def generate_otp_code(secret_key, length=5):
     totp = pyotp.TOTP(secret_key, digits=length)  # Set the digits parameter
     otp_code = totp.now()
@@ -72,7 +77,6 @@ def generate_otp_code(secret_key, length=5):
     logger.debug(f"OTP Code: {otp_code}")
 
     return otp_code
-
 
 
 # Authentication APIs
@@ -130,7 +134,8 @@ def create_user(request):
 
                 # secret_key = secrets.token_urlsafe(16)
                 # Generate a random 16-character secret key and encode it in Base32
-                secret_key = base64.b32encode(secrets.token_bytes(10)).decode('utf-8')
+                secret_key = base64.b32encode(
+                    secrets.token_bytes(10)).decode('utf-8')
                 user.secret_key = secret_key
                 user.save()
 
@@ -167,7 +172,6 @@ def create_user(request):
                 return Response({'error': 'Account details already exist.'}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 @api_view(['POST'])
@@ -209,7 +213,6 @@ def resend_otp(request):
         # Generate a new OTP code using the user's secret key
         otp_code = generate_otp_code(user.secret_key)
 
-
         user.otp = otp_code
         user.save()
 
@@ -227,11 +230,12 @@ def resend_otp(request):
         message = client.messages.create(
             body=f'Hi, {user.username}, Your new OTP code is: {otp_code}',
             from_=TWILIO_PHONE_NUMBER,
-            to='+' + str(user.phone_number),  # Convert user.phone_number to a string and add the plus sign
+            # Convert user.phone_number to a string and add the plus sign
+            to='+' + str(user.phone_number),
         )
 
-
         return Response({'message': 'New OTP code has been sent.'}, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -271,7 +275,6 @@ def logout_view(request):
         return Response({'message': 'Logout successful.'}, status=status.HTTP_200_OK)
     except Token.DoesNotExist:
         return Response({'error': 'No token found for the user.'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 @api_view(['PUT'])
@@ -663,26 +666,36 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         return UserProfile.objects.get(user=self.request.user)
 
     def perform_update(self, serializer):
-            user_profile = self.get_object()
+        user_profile = self.get_object()
 
-            # Update the first name and last name fields
-            user_profile.first_name = self.request.data.get('first_name')
-            user_profile.last_name = self.request.data.get('last_name')
+        # Update the first name and last name fields
+        user_profile.first_name = self.request.data.get('first_name')
+        user_profile.last_name = self.request.data.get('last_name')
 
-            date_of_birth = self.request.data.get('date_of_birth')
+        date_of_birth = self.request.data.get('date_of_birth')
 
-            # Check if date_of_birth is not empty before parsing it
-            if date_of_birth:
-                try:
-                    formatted_date = datetime.datetime.strptime(date_of_birth, '%Y-%m-%d').date()
-                    user_profile.date_of_birth = formatted_date
-                except ValueError:
-                    return Response({'error': 'Invalid date format. Please use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
+        # Print the data for debugging
+        print("Received Data:")
+        print(f"first_name: {user_profile.first_name}")
+        print(f"last_name: {user_profile.last_name}")
+        print(f"date_of_birth: {date_of_birth}")
 
-            # Save the user_profile object
-            user_profile.save()
+        # Check if date_of_birth is not empty before parsing it
+        if date_of_birth:
+            try:
+                formatted_date = datetime.datetime.strptime(
+                    date_of_birth, '%Y-%m-%d').date()
+                user_profile.date_of_birth = formatted_date
+                print(f"Parsed Date: {formatted_date}")
+            except ValueError:
+                return Response({'error': 'Invalid date format. Please use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            return Response({'message': 'Profile updated successfully'})
+        # Save the user_profile object
+        user_profile.save()
+        print("Profile Saved")
+
+        return Response({'message': 'Profile updated successfully'})
+
 
 # Business APIs
 class BusinessCategoryViewSet(viewsets.ModelViewSet):

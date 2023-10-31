@@ -31,6 +31,7 @@ from django.conf import settings
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.decorators import authentication_classes, permission_classes
 from django.contrib.auth import authenticate, login
+from .authentication_backends import *
 from rest_framework.views import *
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework import status, permissions
@@ -244,23 +245,13 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        print(f'Username: {username}')
-        print(f'Password: {password}')
+        print(username)
+        print(password)
 
         if not username or not password:
             return JsonResponse({'error': 'Both username and password are required.'}, status=400)
 
-        user = None
-
-        if '@' in username:
-            print('Trying email authentication')
-            user = authenticate(request, email=username, password=password)
-        elif username.isdigit():
-            print('Trying phone number authentication')
-            user = authenticate(request, phone_number=username, password=password)
-        else:
-            print('Trying username authentication')
-            user = authenticate(request, username=username, password=password)
+        user = authenticate(request, username=username, password=password)
 
         if user is not None:
             # Log the user in and return a success response

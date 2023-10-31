@@ -116,6 +116,7 @@ CHANNEL_LAYERS = {
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'user.authentication_backends.BusinessAccountAuthBackend',
+    'user.authentication_backends.CustomAuthBackend',
 ]
 
 

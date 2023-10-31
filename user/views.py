@@ -286,6 +286,9 @@ def update_user_profile(request):
 
 
 class UserProfileUpdateStatusView(APIView):
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         # Get the current user based on the request
         user = request.user

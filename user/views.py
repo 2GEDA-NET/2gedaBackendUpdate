@@ -660,12 +660,19 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     serializer_class = UserProfileSerializer2
 
     def get_object(self):
-        # Get the UserProfile object for the currently authenticated user
         return UserProfile.objects.get(user=self.request.user)
 
     def perform_update(self, serializer):
-        # When updating, set the user field to the current user
-        serializer.save(user=self.request.user)
+        user_profile = self.get_object()
+        date_of_birth = self.request.data.get('date_of_birth')
+
+        try:
+            formatted_date = datetime.datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+            user_profile.date_of_birth = formatted_date
+            user_profile.save()
+            return Response({'message': 'Profile updated successfully'})
+        except ValueError:
+            return Response({'error': 'Invalid date format. Please use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Business APIs

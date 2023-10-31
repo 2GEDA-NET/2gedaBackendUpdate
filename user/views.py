@@ -241,6 +241,9 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
+        print(username)
+        print(password)
+
         if not username or not password:
             return JsonResponse({'error': 'Both username and password are required.'}, status=400)
 

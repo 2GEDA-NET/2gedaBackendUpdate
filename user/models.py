@@ -94,13 +94,13 @@ class UserProfile(models.Model):
     def sticking_count(self):
         return UserProfile.objects.filter(stickers=self.user).count()
     
-    @property
-    def date_of_birth(self):
-        return self._date_of_birth.strftime('%Y-%m-%d')
+    # @property
+    # def date_of_birth(self):
+    #     return self._date_of_birth.strftime('%Y-%m-%d')
 
-    @date_of_birth.setter
-    def date_of_birth(self, value):
-        self._date_of_birth = datetime.datetime.strptime(value, '%Y-%m-%d').date()
+    # @date_of_birth.setter
+    # def date_of_birth(self, value):
+    #     self._date_of_birth = datetime.datetime.strptime(value, '%Y-%m-%d').date()
         
     def __str__(self):
         return self.user.username

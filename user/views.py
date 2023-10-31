@@ -668,6 +668,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
         try:
             formatted_date = datetime.datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+            print(formatted_date)
             user_profile.date_of_birth = formatted_date
             user_profile.save()
             return Response({'message': 'Profile updated successfully'})

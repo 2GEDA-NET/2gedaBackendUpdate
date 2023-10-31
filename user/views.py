@@ -288,24 +288,24 @@ def update_user_profile(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserProfileUpdateStatusView(APIView):
-    authentication_classes = [TokenAuthentication,]
-    # permission_classes = [IsAuthenticated]
+# class UserProfileUpdateStatusView(APIView):
+#     authentication_classes = [TokenAuthentication,]
+#     # permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        # Get the current user based on the request
-        user = request.user
+#     def get(self, request):
+#         # Get the current user based on the request
+#         user = request.user
 
-        if user.is_authenticated:
-            # Retrieve the user's profile
-            try:
-                user_profile = UserProfile.objects.get(user=user)
-                has_updated_profile = user_profile.has_updated_profile
-                return Response({'has_updated_profile': has_updated_profile})
-            except UserProfile.DoesNotExist:
-                return Response({'error': 'User profile not found'}, status=status.HTTP_NOT_FOUND)
-        else:
-            return Response({'error': 'User not authenticated'}, status=status.HTTP_UNAUTHORIZED)
+#         if user.is_authenticated:
+#             # Retrieve the user's profile
+#             try:
+#                 user_profile = UserProfile.objects.get(user=user)
+#                 has_updated_profile = user_profile.has_updated_profile
+#                 return Response({'has_updated_profile': has_updated_profile})
+#             except UserProfile.DoesNotExist:
+#                 return Response({'error': 'User profile not found'}, status=status.HTTP_NOT_FOUND)
+#         else:
+#             return Response({'error': 'User not authenticated'}, status=status.HTTP_UNAUTHORIZED)
 
 
 @api_view(['GET'])

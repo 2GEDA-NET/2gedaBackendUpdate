@@ -668,6 +668,9 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         user_profile = self.get_object()
 
+        print("Received Data:")
+        print(self.request.data)
+
         # Update the first name and last name fields
         user_profile.first_name = self.request.data.get('first_name')
         user_profile.last_name = self.request.data.get('last_name')

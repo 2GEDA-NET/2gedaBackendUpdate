@@ -672,10 +672,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         print(self.request.data)
 
         # Update the first name and last name fields
-        user_profile.first_name = self.request.data.get('first_name')
-        user_profile.last_name = self.request.data.get('last_name')
-
+        user_profile.first_name = self.request.data.get('user')['first_name']
+        user_profile.last_name = self.request.data.get('user')['last_name']
         date_of_birth = self.request.data.get('date_of_birth')
+    
 
         # Print the data for debugging
         print("Received Data:")

@@ -672,15 +672,21 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         print(self.request.data)
 
         # Update the first name and last name fields
-        user_profile.first_name = self.request.data.get('user')['first_name']
-        user_profile.last_name = self.request.data.get('user')['last_name']
+        user_profile.user.first_name = self.request.data.get('user')['first_name']
+        user_profile.user.last_name = self.request.data.get('user')['last_name']
         date_of_birth = self.request.data.get('date_of_birth')
+        user_profile.work = self.request.data.get('work')
+        user_profile.gender = self.request.data.get('identity')
+        user_profile.custom_gender = self.request.data.get('custom_gender')
     
 
         # Print the data for debugging
         print("Received Data:")
-        print(f"first_name: {user_profile.first_name}")
-        print(f"last_name: {user_profile.last_name}")
+        print(f"first_name: {user_profile.user.first_name}")
+        print(f"last_name: {user_profile.user.last_name}")
+        print(f"work: {user_profile.work}")
+        print(f"gender: {user_profile.gender}")
+        print(f"gender: {user_profile.custom_gender}")
         print(f"date_of_birth: {date_of_birth}")
 
         # Check if date_of_birth is not empty before parsing it

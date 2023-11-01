@@ -49,3 +49,7 @@ class PhoneNumber(models.Model):
     phone_number2 = models.BigIntegerField(blank=True, null=True)
     phone_number3 = models.BigIntegerField(blank=True, null=True)
     phone_number4 = models.BigIntegerField(blank=True, null=True)
+
+
+    def __str__(self):
+        return self.phone_number1

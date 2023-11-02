@@ -681,6 +681,9 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         user_profile.gender = self.request.data.get('identity')
         user_profile.religion = self.request.data.get('religion')
         user_profile.custom_gender = self.request.data.get('custom_gender')
+        profile_image_data = self.request.data.get('profile_image')
+        cover_image_data = self.request.data.get('cover_image')
+
 
         if user_profile.gender == 1 or user_profile.gender == "Male":
             user_profile.gender = 'Male'
@@ -695,6 +698,19 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             user_profile.religion = 'Muslim'
         else:
             user_profile.religion = 'Indegineous'
+        
+
+        if profile_image_data:
+            # Assuming the field name in the serializer is 'profile_image'
+            # You may need to adjust this based on your serializer
+            user_profile.media = profile_image_data
+            # Save the uploaded profile image
+
+        if cover_image_data:
+            # Assuming the field name in the serializer is 'cover_image'
+            # You may need to adjust this based on your serializer
+            user_profile.cover_image = cover_image_data
+            # Save the uploaded cover image
 
         # Print the data for debugging
         print("Received Data:")
@@ -705,6 +721,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         print(f"custom_gender: {user_profile.custom_gender}")
         print(f"custom_gender: {user_profile.religion}")
         print(f"date_of_birth: {date_of_birth}")
+        print(f"profile_image: {user_profile.media}")
+        print(f"cover_image: {user_profile.cover_image}")
 
         # Check if date_of_birth is not empty before parsing it
         if date_of_birth:

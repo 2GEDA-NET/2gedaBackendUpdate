@@ -317,13 +317,20 @@ class UserSerializer2(serializers.ModelSerializer):
         model = User
         fields = ['first_name', 'last_name']
 
+
+class ProfileMediaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileMedia
+        fields = '__all__'
+
 class UserProfileSerializer2(serializers.ModelSerializer):
     date_of_birth = serializers.DateField(format='%Y-%m-%d')
     user = UserSerializer2()
+    profile_image = ProfileMediaSerializer()
 
     class Meta:
         model = UserProfile
-        fields = ['user', 'work', 'date_of_birth', 'gender', 'custom_gender', 'religion']
+        fields = ['user', 'work', 'date_of_birth', 'gender', 'custom_gender', 'religion', 'cover_image', 'profile_image']
 
 
         

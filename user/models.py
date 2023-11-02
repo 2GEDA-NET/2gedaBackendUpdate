@@ -78,8 +78,9 @@ class UserProfile(models.Model):
     custom_gender = models.CharField(max_length=250, blank=True, null=True)
     religion = models.CharField(
         max_length=20, choices=RELIGION_CHOICES, verbose_name='Religion')
-    media = models.ForeignKey(ProfileMedia, on_delete= models.CASCADE,blank=True, null=True)
-    address = models.ForeignKey('Address', on_delete = models.CASCADE, null = True)
+    media = models.ForeignKey(ProfileMedia, on_delete=models.CASCADE, blank=True, null=True, related_name='user_media')
+    cover_image = models.ForeignKey(ProfileMedia, on_delete=models.CASCADE, blank=True, null=True, related_name='user_cover_image')
+    address = models.ForeignKey('Address', on_delete=models.CASCADE, null=True, related_name='user_address')
     stickers = models.ManyToManyField('self', related_name='sticking', symmetrical=False)
     is_flagged = models.BooleanField(default=False, verbose_name='Flagged')
     favorite_categories = models.ManyToManyField('BusinessCategory', related_name='users_with_favorite', blank=True)

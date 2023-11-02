@@ -43,7 +43,7 @@ class Address(models.Model):
 
     def __str__(self):
         # return str(self.street + ' ' + self.city + ' ' + self.state + ' '  + self.country)
-        return self.id
+        return self.street
 
 class PhoneNumber(models.Model):
     phone_number1 = models.BigIntegerField(blank=True, null=True)

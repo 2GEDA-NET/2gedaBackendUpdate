@@ -25,6 +25,7 @@ class PromotionPlan(models.Model):
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     file = models.ForeignKey(PostMedia, on_delete=models.SET_NULL, null=True)
+    url = models.URLField(blank=True, null=True)
     content = models.TextField()
     timestamp = models.TimeField()
     reaction = models.ForeignKey(

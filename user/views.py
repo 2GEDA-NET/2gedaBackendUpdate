@@ -672,28 +672,29 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         print(self.request.data)
 
         # Update the first name and last name fields
-        user_profile.user.first_name = self.request.data.get('user')['first_name']
-        user_profile.user.last_name = self.request.data.get('user')['last_name']
+        user_profile.user.first_name = self.request.data.get('user')[
+            'first_name']
+        user_profile.user.last_name = self.request.data.get('user')[
+            'last_name']
         date_of_birth = self.request.data.get('date_of_birth')
         user_profile.work = self.request.data.get('work')
         user_profile.gender = self.request.data.get('identity')
         user_profile.religion = self.request.data.get('religion')
         user_profile.custom_gender = self.request.data.get('custom_gender')
 
-        if user_profile.gender == 1:
+        if user_profile.gender == 1 or user_profile.gender == "Male":
             user_profile.gender = 'Male'
-        elif user_profile.gender == 2:
+        elif user_profile.gender == 2 or user_profile.gender == "Female":
             user_profile.gender = 'Female'
         else:
             user_profile.gender = 'Rather not say'
 
-        if user_profile.religion == 1:
+        if user_profile.religion == 1 or user_profile.religion == 'Christain':
             user_profile.religion = 'Christain'
-        elif user_profile.religion == 2:
+        elif user_profile.religion == 2  or user_profile.religion == 'Muslim':
             user_profile.religion = 'Muslim'
         else:
             user_profile.religion = 'Indegineous'
-    
 
         # Print the data for debugging
         print("Received Data:")
@@ -702,6 +703,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         print(f"work: {user_profile.work}")
         print(f"gender: {user_profile.gender}")
         print(f"custom_gender: {user_profile.custom_gender}")
+        print(f"custom_gender: {user_profile.religion}")
         print(f"date_of_birth: {date_of_birth}")
 
         # Check if date_of_birth is not empty before parsing it

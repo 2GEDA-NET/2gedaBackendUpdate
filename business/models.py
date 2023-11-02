@@ -42,7 +42,8 @@ class Address(models.Model):
     country = models.CharField(max_length=250)
 
     def __str__(self):
-        return str(self.street + ' ' + self.city + ' ' + self.state + ' '  + self.country)
+        # return str(self.street + ' ' + self.city + ' ' + self.state + ' '  + self.country)
+        return self.id
 
 class PhoneNumber(models.Model):
     phone_number1 = models.BigIntegerField(blank=True, null=True)

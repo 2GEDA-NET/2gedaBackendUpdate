@@ -706,13 +706,13 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         if profile_image_data:
             # Assuming the field name in the serializer is 'profile_image'
             # You may need to adjust this based on your serializer
-            user_profile.media = profile_image_data
+            user_profile.media.media = profile_image_data
             # Save the uploaded profile image
 
         if cover_image_data:
             # Assuming the field name in the serializer is 'cover_image'
             # You may need to adjust this based on your serializer
-            user_profile.cover_image = cover_image_data
+            user_profile.cover_image.media = cover_image_data
             # Save the uploaded cover image
 
         # Print the data for debugging

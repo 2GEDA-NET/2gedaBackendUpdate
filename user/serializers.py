@@ -327,6 +327,8 @@ class UserProfileSerializer2(serializers.ModelSerializer):
     date_of_birth = serializers.DateField(format='%Y-%m-%d')
     user = UserSerializer2()
     profile_image = ProfileMediaSerializer(required=False)  # Add required=False here
+    cover_image = ProfileMediaSerializer(required=False)  # Add required=False here
+    
 
 
     class Meta:

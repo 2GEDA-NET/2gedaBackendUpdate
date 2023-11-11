@@ -681,9 +681,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         user_profile.gender = self.request.data.get('identity')
         user_profile.religion = self.request.data.get('religion')
         user_profile.custom_gender = self.request.data.get('custom_gender')
-        profile_image_data = self.request.data.get('profile_image')
-        cover_image_data = self.request.data.get('cover_image')
-
+        profile_image_data = self.request.FILES('profile_image')
+        cover_image_data = self.request.FILES('cover_image')
 
         print(cover_image_data)
         print(profile_image_data)
@@ -697,11 +696,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
         if user_profile.religion == 1 or user_profile.religion == 'Christain':
             user_profile.religion = 'Christain'
-        elif user_profile.religion == 2  or user_profile.religion == 'Muslim':
+        elif user_profile.religion == 2 or user_profile.religion == 'Muslim':
             user_profile.religion = 'Muslim'
         else:
             user_profile.religion = 'Indegineous'
-        
 
         if profile_image_data:
             # Assuming the field name in the serializer is 'profile_image'
@@ -740,7 +738,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         # Save the user_profile object
         user_profile.save()
         user_profile.user.save()
-        user_profile.media.media.save()
+        user_profile.media.save()
         print("Profile Saved")
 
         return Response({'message': 'Profile updated successfully'})

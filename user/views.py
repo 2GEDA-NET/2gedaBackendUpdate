@@ -685,6 +685,9 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         cover_image_data = self.request.data.get('cover_image')
 
 
+        print(cover_image_data)
+        print(profile_image_data)
+
         if user_profile.gender == 1 or user_profile.gender == "Male":
             user_profile.gender = 'Male'
         elif user_profile.gender == 2 or user_profile.gender == "Female":

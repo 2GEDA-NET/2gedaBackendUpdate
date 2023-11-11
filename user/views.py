@@ -724,8 +724,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         print(f"custom_gender: {user_profile.custom_gender}")
         print(f"custom_gender: {user_profile.religion}")
         print(f"date_of_birth: {date_of_birth}")
-        print(f"profile_image: {user_profile.media}")
-        print(f"cover_image: {user_profile.cover_image}")
+        print(f"profile_image: {user_profile.media.media}")
+        print(f"cover_image: {user_profile.cover_image.media}")
 
         # Check if date_of_birth is not empty before parsing it
         if date_of_birth:
@@ -740,6 +740,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         # Save the user_profile object
         user_profile.save()
         user_profile.user.save()
+        user_profile.media.media.save()
         print("Profile Saved")
 
         return Response({'message': 'Profile updated successfully'})

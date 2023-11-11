@@ -722,8 +722,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         print(f"custom_gender: {user_profile.custom_gender}")
         print(f"custom_gender: {user_profile.religion}")
         print(f"date_of_birth: {date_of_birth}")
-        print(f"profile_image: {user_profile.media.media}")
-        print(f"cover_image: {user_profile.cover_image.media}")
+        print(f"profile_image: {user_profile.media}")
+        print(f"cover_image: {user_profile.cover_image}")
 
         # Check if date_of_birth is not empty before parsing it
         if date_of_birth:

@@ -681,8 +681,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         user_profile.gender = self.request.data.get('identity')
         user_profile.religion = self.request.data.get('religion')
         user_profile.custom_gender = self.request.data.get('custom_gender')
-        profile_image_data = self.request.FILES('profile_image')
-        cover_image_data = self.request.FILES('cover_image')
+        profile_image_data = self.request.FILES['profile_image']
+        cover_image_data = self.request.FILES['cover_image']
 
         print(cover_image_data)
         print(profile_image_data)

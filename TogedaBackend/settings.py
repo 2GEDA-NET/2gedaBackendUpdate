@@ -38,6 +38,8 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 CORS_ORIGIN_ALLOW_ALL = True
 # Application definition
 
+
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -81,6 +83,9 @@ INSTALLED_APPS = [
     'storages'
    
 ]
+#csfr
+
+CSRF_TRUSTED_ORIGINS = ['https://eab6-102-88-37-219.ngrok-free.app']
 
 
 # Add DRF authentication and permission classes
@@ -165,7 +170,7 @@ ASGI_APPLICATION = "TogedaBackend.asgi.application"
 #     }
 # }
 
-ALLOWED_HOSTS = ['2gedaBackendUpdate-dev.eu-west-2.elasticbeanstalk.com']
+# ALLOWED_HOSTS = ['92e8-102-88-33-21.ngrok-free.app','127.0.0.1',]
 
 DATABASES = {
     'default': {

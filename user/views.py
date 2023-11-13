@@ -150,21 +150,21 @@ def create_user(request):
                 user.otp = otp_code
                 user.save()
                 # Send the OTP to the user via email
-                send_mail(
-                    '2geda OTP Verification Code',
-                    f'Hi, {user.username}, Your OTP code is: {otp_code}',
-                    '2gedafullstack@gmail.com',
-                    [user.email],  # Replace with the user's email field
-                    fail_silently=False,
-                )
+                # send_mail(
+                #     '2geda OTP Verification Code',
+                #     f'Hi, {user.username}, Your OTP code is: {otp_code}',
+                #     '2gedafullstack@gmail.com',
+                #     [user.email],  # Replace with the user's email field
+                #     fail_silently=False,
+                # )
 
-                # Send the OTP to the user's phone number via Twilio
-                client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-                message = client.messages.create(
-                    body=f'Hi, {user.username}, Your OTP code is: {otp_code}',
-                    from_=TWILIO_PHONE_NUMBER,
-                    to=phone_number,  # Replace with the user's phone_number field
-                )
+                # # Send the OTP to the user's phone number via Twilio
+                # client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+                # message = client.messages.create(
+                #     body=f'Hi, {user.username}, Your OTP code is: {otp_code}',
+                #     from_=TWILIO_PHONE_NUMBER,
+                #     to=phone_number,  # Replace with the user's phone_number field
+                # )
 
                 response_data = serializer.data
                 response_data['token'] = token_key
@@ -244,8 +244,8 @@ def resend_otp(request):
 @csrf_exempt
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        username = request.data['username']
+        password = request.data['password']
 
         print(username)
         print(password)
@@ -713,8 +713,11 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         user_profile.custom_gender = self.request.data.get('custom_gender')
         # profile_image_data = self.request.FILES('profile_image')
         # cover_image_data = self.request.data.get('cover_image')
-        profile_image_data = self.request.FILES['profile_image']
+        
+
         cover_image_data = self.request.FILES['cover_image']
+
+        profile_image_data = self.request.FILES['profile_image']
 
         cover_image = UserCoverImage.objects.create(user=self.request.user, cover_image=cover_image_data)
 

@@ -14,6 +14,10 @@ class ProfileMedia(models.Model):
     media = models.FileField(upload_to='profile_files/', blank=True, null=True)
 
 
+class CoverImageMedia(models.Model):
+    media = models.FileField(upload_to='cover_files/', blank=True, null=True)
+
+
 class User(AbstractUser):
     email = models.EmailField(unique=True, null=True, blank=True)
     is_business = models.BooleanField(
@@ -79,7 +83,7 @@ class UserProfile(models.Model):
     religion = models.CharField(
         max_length=20, choices=RELIGION_CHOICES, verbose_name='Religion')
     media = models.ForeignKey(ProfileMedia, on_delete=models.CASCADE, blank=True, null=True, related_name='user_media')
-    cover_image = models.ForeignKey(ProfileMedia, on_delete=models.CASCADE, blank=True, null=True, related_name='user_cover_image')
+    cover_image = models.ForeignKey(CoverImageMedia, on_delete=models.CASCADE, blank=True, null=True, related_name='user_cover_image')
     address = models.ForeignKey('Address', on_delete=models.CASCADE, null=True, related_name='user_address')
     stickers = models.ManyToManyField('self', related_name='sticking', symmetrical=False)
     is_flagged = models.BooleanField(default=False, verbose_name='Flagged')

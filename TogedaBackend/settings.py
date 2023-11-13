@@ -14,7 +14,9 @@ from pathlib import Path
 import os
 import os
 from decouple import config, Csv
+import ssl
 
+ssl._create_default_https_context = ssl._create_unverified_context
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -163,6 +165,7 @@ ASGI_APPLICATION = "TogedaBackend.asgi.application"
 #     }
 # }
 
+ALLOWED_HOSTS = ['2gedaBackendUpdate-dev.eu-west-2.elasticbeanstalk.com']
 
 DATABASES = {
     'default': {

@@ -6,6 +6,7 @@ from user.models import *
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.utils.functional import cached_property
+from storages.backends.s3boto3 import S3Boto3Storage
 
 
 
@@ -111,7 +112,7 @@ def upload_location(instance, filename):
     return "%s/%s.%s" % ("img", datetime.now(), ext)
 
 class FileUpload(models.Model):
-    cartId =  models.ImageField(upload_to=upload_location, height_field=None, width_field=None, max_length=None)
+    cartId =  models.ImageField(upload_to=upload_location, storage=S3Boto3Storage(), height_field=None, width_field=None, max_length=None)
 
 
 class Order(models.Model):

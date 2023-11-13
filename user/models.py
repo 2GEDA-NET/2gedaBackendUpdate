@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from django.conf import settings
 from .managers import UserManager
 from location_field.models.plain import PlainLocationField
+from storages.backends.s3boto3 import S3Boto3Storage
 
 
 
@@ -68,6 +69,16 @@ RELIGION_CHOICES = [
     ('Others', 'Others'),
 ]
 
+class UserCoverImage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    cover_image = models.ImageField(upload_to='cover_image/', storage=S3Boto3Storage() )
+
+
+class UserProfileImage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    profile_image = models.ImageField(upload_to='cover_image/', storage=S3Boto3Storage() )
+
+
 class UserProfile(models.Model):
     # Create a one-to-one relationship with the User model
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -78,8 +89,8 @@ class UserProfile(models.Model):
     custom_gender = models.CharField(max_length=250, blank=True, null=True)
     religion = models.CharField(
         max_length=20, choices=RELIGION_CHOICES, verbose_name='Religion')
-    media = models.ForeignKey(ProfileMedia, on_delete=models.CASCADE, blank=True, null=True, related_name='user_media')
-    cover_image = models.ForeignKey(ProfileMedia, on_delete=models.CASCADE, blank=True, null=True, related_name='user_cover_image')
+    media = models.ForeignKey(UserProfileImage, on_delete=models.CASCADE, blank=True, null=True, related_name='user_media')
+    cover_image = models.ForeignKey(UserCoverImage, on_delete=models.CASCADE, blank=True, null=True, related_name='user_cover_image')
     address = models.ForeignKey('Address', on_delete=models.CASCADE, null=True, related_name='user_address')
     stickers = models.ManyToManyField('self', related_name='sticking', symmetrical=False)
     is_flagged = models.BooleanField(default=False, verbose_name='Flagged')

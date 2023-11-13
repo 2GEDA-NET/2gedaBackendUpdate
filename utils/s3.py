@@ -36,12 +36,12 @@ def get_file_from_s3(s3_key, local_path):
         return False
 
 # Example usage
-file_to_upload = 'path/to/local/file.txt'
-s3_key = 'folder/filename.txt'
+# file_to_upload = 'path/to/local/file.txt'
+# s3_key = 'folder/filename.txt'
 
-if upload_file_to_s3(file_to_upload, s3_key):
-    print(f"File {file_to_upload} uploaded to S3 with key {s3_key}")
+# if upload_file_to_s3(file_to_upload, s3_key):
+#     print(f"File {file_to_upload} uploaded to S3 with key {s3_key}")
 
-local_download_path = 'path/to/local/downloaded_file.txt'
-if get_file_from_s3(s3_key, local_download_path):
-    print(f"File downloaded from S3 with key {s3_key} to {local_download_path}")
+# local_download_path = 'path/to/local/downloaded_file.txt'
+# if get_file_from_s3(s3_key, local_download_path):
+#     print(f"File downloaded from S3 with key {s3_key} to {local_download_path}")

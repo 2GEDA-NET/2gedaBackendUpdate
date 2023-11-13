@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_hotp',
     'django_otp.plugins.otp_static',
     
+    
 
     # apps
     'user',
@@ -255,11 +256,12 @@ AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_SIGNATURE_NAME = config('AWS_S3_SIGNATURE_NAME')
 AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME')
-AWS_S3_FILE_OVERWRITE = config(
-    'AWS_S3_FILE_OVERWRITE', default=False, cast=bool)
-AWS_DEFAULT_ACL = config('AWS_DEFAULT_ACL')
-AWS_S3_VERITY = config('AWS_S3_VERITY', default=True, cast=bool)
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_S3_VERITY = True
 DEFAULT_FILE_STORAGE = config('DEFAULT_FILE_STORAGE')
+
+
 
 
 TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID')

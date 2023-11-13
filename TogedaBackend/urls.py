@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from reward.api.v1 import urls as reward_url
+from utils import urls as utils_url
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -26,5 +27,6 @@ urlpatterns = [
     path("chat/", include('chat.urls')),
     path("business/", include('business.urls')),
     path("poll/", include('poll.urls')),
-    path("reward/", include(reward_url))
+    path("reward/", include(reward_url)),
+    path("", include(utils_url))
 ]

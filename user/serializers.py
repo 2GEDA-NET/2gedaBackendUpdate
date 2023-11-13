@@ -5,6 +5,7 @@ from rest_framework import serializers
 from django.db.models import Q
 from django.utils.translation import gettext as _
 from django.contrib.auth.hashers import check_password
+from typing import Any
 
 class UserSerializer(serializers.ModelSerializer):
     
@@ -324,14 +325,25 @@ class ProfileMediaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UserProfileSerializer2(serializers.ModelSerializer):
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
     date_of_birth = serializers.DateField(format='%Y-%m-%d')
-    user = UserSerializer2()
-    profile_image = ProfileMediaSerializer()
+    # user = UserSerializer2()
+    # profile_image = ProfileMediaSerializer()
 
     class Meta:
         model = UserProfile
-        fields = ['user', 'work', 'date_of_birth', 'gender', 'custom_gender', 'religion', 'cover_image', 'profile_image']
+        fields = ['user', 'work', 'date_of_birth', 'gender', 'custom_gender', 'religion']
 
+
+    def to_representation(self, instance: User) -> dict[str, Any]:
+        """return proper structure for user"""
+       
+        data = {**super().to_representation(instance)}
+        
+        data.update({'message': 'Profile updated successfully'})
+        return data
 
 
 class Acct_Sync_Serializer(serializers.ModelSerializer):

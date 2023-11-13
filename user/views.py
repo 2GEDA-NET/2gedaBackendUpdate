@@ -43,6 +43,7 @@ import base64
 import logging
 from google.oauth2 import service_account
 from reward.models import Reward
+from .models import UserCoverImage, UserProfileImage
 
 
 # Configure logging
@@ -700,17 +701,25 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         print(self.request.data)
 
         # Update the first name and last name fields
-        user_profile.user.first_name = self.request.data.get('user')[
-            'first_name']
-        user_profile.user.last_name = self.request.data.get('user')[
-            'last_name']
+        user = self.request.data.get("user")
+        # user_profile.user.first_name = user.first_name
+            
+        # user_profile.user.last_name = user.last_name
+
         date_of_birth = self.request.data.get('date_of_birth')
         user_profile.work = self.request.data.get('work')
         user_profile.gender = self.request.data.get('identity')
         user_profile.religion = self.request.data.get('religion')
         user_profile.custom_gender = self.request.data.get('custom_gender')
-        profile_image_data = self.request.data.get('profile_image')
-        cover_image_data = self.request.data.get('cover_image')
+        # profile_image_data = self.request.FILES('profile_image')
+        # cover_image_data = self.request.data.get('cover_image')
+        profile_image_data = self.request.FILES['profile_image']
+        cover_image_data = self.request.FILES['cover_image']
+
+        cover_image = UserCoverImage.objects.create(user=self.request.user, cover_image=cover_image_data)
+
+        profile_image = UserProfileImage.objects.create(user=self.request.user, profile_image=profile_image_data)
+
 
 
         if user_profile.gender == 1 or user_profile.gender == "Male":
@@ -728,16 +737,16 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             user_profile.religion = 'Indegineous'
         
 
-        if profile_image_data:
+        if profile_image:
             # Assuming the field name in the serializer is 'profile_image'
             # You may need to adjust this based on your serializer
-            user_profile.media = profile_image_data
+            user_profile.media = profile_image
             # Save the uploaded profile image
 
-        if cover_image_data:
+        if cover_image:
             # Assuming the field name in the serializer is 'cover_image'
             # You may need to adjust this based on your serializer
-            user_profile.cover_image = cover_image_data
+            user_profile.cover_image = cover_image
             # Save the uploaded cover image
 
         # Print the data for debugging

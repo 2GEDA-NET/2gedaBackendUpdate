@@ -29,11 +29,14 @@ def create_post(request):
         post_data = request.data
         post_media_data = post_data.pop('media', None)
 
+        # Set the user field to the authenticated user making the request
+        post_data['user'] = request.user.id
+
         # Create a new post
         post_serializer = PostSerializer(
             data=post_data, context={'request': request})
         if post_serializer.is_valid():
-            post = post_serializer.save(user=request.user)
+            post = post_serializer.save()
 
             # Attach media if provided
             if post_media_data:
@@ -44,6 +47,7 @@ def create_post(request):
                     post.save()
 
             return Response(post_serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

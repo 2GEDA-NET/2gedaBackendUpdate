@@ -719,11 +719,20 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
         profile_image_data = self.request.FILES['profile_image']
 
-        cover_image = UserCoverImage.objects.create(user=self.request.user, cover_image=cover_image_data)
+        # cover_image = UserCoverImage.objects.create(user=self.request.user, cover_image=cover_image_data)
 
-        profile_image = UserProfileImage.objects.create(user=self.request.user, profile_image=profile_image_data)
+        # profile_image = UserProfileImage.objects.create(user=self.request.user, profile_image=profile_image_data)
 
+        # Check if 'cover_image' and 'profile_image' are present in the request
+        if 'cover_image' in self.request.FILES:
+            cover_image_data = self.request.FILES.get('cover_image')
+            cover_image = UserCoverImage.objects.create(user=self.request.user, cover_image=cover_image_data)
+            user_profile.cover_image = cover_image
 
+        if 'profile_image' in self.request.FILES:
+            profile_image_data = self.request.FILES.get('profile_image')
+            profile_image = UserProfileImage.objects.create(user=self.request.user, profile_image=profile_image_data)
+            user_profile.media = profile_image
 
         if user_profile.gender == 1 or user_profile.gender == "Male":
             user_profile.gender = 'Male'

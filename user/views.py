@@ -732,8 +732,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         else:
             user_profile.gender = 'Rather not say'
 
-        if user_profile.religion == 1 or user_profile.religion == 'Christain':
-            user_profile.religion = 'Christain'
+        if user_profile.religion == 1 or user_profile.religion == 'Christainity':
+            user_profile.religion = 'Christainity'
         elif user_profile.religion == 2  or user_profile.religion == 'Muslim':
             user_profile.religion = 'Muslim'
         else:

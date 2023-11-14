@@ -714,6 +714,9 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         # profile_image_data = self.request.FILES('profile_image')
         # cover_image_data = self.request.data.get('cover_image')
         
+        
+        # Initialize profile_image with a default value
+        profile_image = None
 
         # cover_image_data = self.request.FILES['cover_image']
 

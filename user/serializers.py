@@ -24,11 +24,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ['email', 'phone_number', 'username','password']
 
     def validate(self, validated_data):
+        error = {}
         email = validated_data.get('email')
         phone_number = validated_data.get('phone_number')
 
         if not email and not phone_number:
-            raise serializers.ValidationError("Enter an email or a phone number.")
+            error["error"] = "Enter an email or a phone number"
+            raise serializers.ValidationError(error)
 
         return validated_data
 

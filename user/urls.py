@@ -30,6 +30,7 @@ urlpatterns = [
     path('update-profile/', update_user_profile, name='update_user_profile'),
     path('user-profile/update/', UserProfileViewSet.as_view({'put': 'update'}), name='user-profile-update'),
     path('search-user/', UserSearchAPIView.as_view(), name='search_user'),
+    path('update-profile-images/', UserProfileMobile.as_view(), name='profile-images-update'),
     path('delete-account/', delete_account, name='delete_account'),
     path('delete-user/<str:username>/', delete_account_by_username,
          name='delete_account_by_username'),
@@ -39,6 +40,7 @@ urlpatterns = [
          name='delete_user_by_username_or_id'),
     path('block/', block_user, name='block-user'),
     path('blocked-users/', list_blocked_users, name='list-blocked-users'),
+    
 
 
     #     Stick urls

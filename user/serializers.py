@@ -337,13 +337,6 @@ class UserProfileSerializer2(serializers.ModelSerializer):
         fields = ['user', 'work', 'date_of_birth', 'gender', 'custom_gender', 'religion']
 
 
-    def to_representation(self, instance: User) -> dict[str, Any]:
-        """return proper structure for user"""
-       
-        data = {**super().to_representation(instance)}
-        
-        data.update({'message': 'Profile updated successfully'})
-        return data
 
 
 class Acct_Sync_Serializer(serializers.ModelSerializer):

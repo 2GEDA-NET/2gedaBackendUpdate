@@ -320,16 +320,17 @@ def update_user_profile(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserProfileHasUpdatedProfileView(generics.GenericAPIView):
+class UserProfileHasUpdatedProfileView(APIView):
     serializer_class = UserProfileSerializer
-    # permission_classes = [AllowAny]
-    # authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
-    def get_object(self):
+    def get(self, request, format=None):
         # Retrieve the user's profile based on the authenticated user
         user = self.request.user
-        profile, created = UserProfile.objects.get_or_create(user=user)
-        return profile
+        profile = UserProfile.objects.get(user=user)
+        value = profile.has_updated_profile
+        return Response({"response": value}, status=200)
 
 
 @api_view(['POST'])
@@ -683,6 +684,22 @@ class ReportUserViewSet(RetrieveAPIView):
     lookup_field = 'user_id'
 
 # End of report users
+
+class UserProfileMobile(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    queryset = UserProfile.objects.all()
+
+    def get(self, request, format=None):
+        cover_image_data = self.request.FILES['cover_image']
+        profile_image_data = self.request.FILES['profile_image']
+        UserCoverImage.objects.create(user=request.user, cover_image=cover_image_data)
+        UserProfileImage.objects.create(user=request.user, profile_image=profile_image_data)
+
+        return Response({'message': 'Profile updated successfully'})
+
+
+
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):

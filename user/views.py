@@ -690,7 +690,7 @@ class UserProfileMobile(APIView):
     authentication_classes = [TokenAuthentication]
     queryset = UserProfile.objects.all()
 
-    def get(self, request, format=None):
+    def put(self, request, format=None):
         cover_image_data = self.request.FILES['cover_image']
         profile_image_data = self.request.FILES['profile_image']
         UserCoverImage.objects.create(user=request.user, cover_image=cover_image_data)

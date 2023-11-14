@@ -112,7 +112,8 @@ urlpatterns = [
 
     path('flag-profile/', flag_user_profile, name='flag-user-profile'),
 
-    path('suggestions/', Acct_Sync.as_view())
+    path('suggestions/', Acct_Sync.as_view()),
+    path('users-list/', UserInfo.as_view()),
 
 ]
 

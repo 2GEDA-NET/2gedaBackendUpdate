@@ -665,3 +665,6 @@ class UserPostsView(ListAPIView):
         # Filter posts by the authenticated user
         user = self.request.user
         return Post.objects.filter(user=user)
+    
+
+

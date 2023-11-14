@@ -1110,3 +1110,10 @@ class Acct_Sync(APIView):
         phone = request.data["phone_number"]
         user = User.objects.filter(phone_number__in=phone).values()
         return Response(list(user), status=200)
+    
+
+class UserInfo(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, format=None):
+        user = UserProfile.objects.filter(user=request.user).values()
+        return Response(list(user), status=200)

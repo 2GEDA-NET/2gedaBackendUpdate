@@ -26,7 +26,7 @@ class ReplySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PostSerializer(serializers.ModelSerializer):
-    reaction = ReactionSerializer()
+    reaction = ReactionSerializer(required=False)
     media = PostMediaSerializer(required=False)  # Nested serializer for media upload
     comments = CommentSerializer(many=True)
     

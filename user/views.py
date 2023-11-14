@@ -773,7 +773,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
                 print(f"Parsed Date: {formatted_date}")
             except ValueError:
                 return Response({'error': 'Invalid date format. Please use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
-
+        user_profile.has_updated_profile = True
         # Save the user_profile object
         user_profile.save()
         user_profile.user.save()

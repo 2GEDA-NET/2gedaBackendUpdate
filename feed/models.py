@@ -27,11 +27,11 @@ class Post(models.Model):
     file = models.ForeignKey(PostMedia, on_delete=models.SET_NULL, null=True)
     url = models.URLField(blank=True, null=True)
     content = models.TextField()
-    timestamp = models.TimeField()
+    timestamp = models.TimeField(auto_now_add=True)
     reaction = models.ForeignKey(
         'Reaction', on_delete=models.SET_NULL, null=True)
     comments = models.ForeignKey(
-        'Comment', on_delete=models.SET_NULL, null=True, related_name='post_comments')
+        'Comment', on_delete=models.SET_NULL, null=True, related_name='post_comments', blank= True)
     product = models.ForeignKey(
         Product, on_delete=models.SET_NULL, null=True, blank=True)
     hashtag = models.CharField(max_length=250, blank=True)

@@ -737,7 +737,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         elif user_profile.religion == 2  or user_profile.religion == 'Muslim':
             user_profile.religion = 'Muslim'
         else:
-            user_profile.religion = 'Indegineous'
+            user_profile.religion = 'Indigenous'
         
 
         if profile_image:

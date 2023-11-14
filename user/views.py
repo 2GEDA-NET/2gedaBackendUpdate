@@ -715,9 +715,9 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         # cover_image_data = self.request.data.get('cover_image')
         
 
-        cover_image_data = self.request.FILES['cover_image']
+        # cover_image_data = self.request.FILES['cover_image']
 
-        profile_image_data = self.request.FILES['profile_image']
+        # profile_image_data = self.request.FILES['profile_image']
 
         # cover_image = UserCoverImage.objects.create(user=self.request.user, cover_image=cover_image_data)
 

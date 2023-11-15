@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.generics import *
-
+from django.db.models import Count
 from feed.utils import send_post_promotion_notification
 from .models import *
 from .serializers import *
@@ -19,7 +19,6 @@ from rest_framework.decorators import *
 from paystackapi.transaction import Transaction
 from django.conf import settings
 from reward.models import Reward
-
 
 
 @api_view(['POST'])
@@ -61,7 +60,8 @@ def post_feed(request):
     sticking_users = user_profile.stickers.all()
 
     # Retrieve posts from users that the current user follows, ordered by timestamp
-    posts = Post.objects.filter(user__userprofile__in=sticking_users).order_by('-timestamp')
+    posts = Post.objects.filter(
+        user__userprofile__in=sticking_users).order_by('-timestamp')
 
     # Serialize the posts
     post_serializer = PostSerializer(
@@ -71,9 +71,9 @@ def post_feed(request):
         Reward.objects.create(medium="post_creation", user=request.user)
     except:
         pass
-    
 
     return Response(post_serializer.data, status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -169,6 +169,8 @@ def admin_create_post(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # View to view all posts
+
+
 @api_view(['GET'])
 def admin_view_posts(request):
     posts = Post.objects.all()
@@ -176,8 +178,9 @@ def admin_view_posts(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 # View to edit a post
-@api_view(['PUT'])
 
+
+@api_view(['PUT'])
 @permission_classes([IsAdminUser])  # Only admin can edit posts
 def admin_edit_post(request, post_id):
     try:
@@ -191,6 +194,8 @@ def admin_edit_post(request, post_id):
         return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 # View to delete a post
+
+
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])  # Only admin can delete posts
 def admin_delete_post(request, post_id):
@@ -214,7 +219,8 @@ def create_comment(request, post_id):
 
         # Create a new comment associated with the post and the current user
         comment_data = {
-            'text': request.data.get('text'),  # Replace 'text' with the field name for your comment content
+            # Replace 'text' with the field name for your comment content
+            'text': request.data.get('text'),
             'post': post,
             'user': request.user,
         }
@@ -302,7 +308,8 @@ def create_reply(request, post_id, comment_id):
 
         # Create a new reply associated with the comment and the current user
         reply_data = {
-            'text': request.data.get('text'),  # Replace 'text' with the field name for your reply content
+            # Replace 'text' with the field name for your reply content
+            'text': request.data.get('text'),
             'comment': comment,
             'user': request.user,
         }
@@ -317,6 +324,7 @@ def create_reply(request, post_id, comment_id):
     except Comment.DoesNotExist:
         return Response({'detail': 'Comment not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+
 class ReplyViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (TokenAuthentication,)
@@ -330,13 +338,19 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
+    def list(self, request, *args, **kwargs):
+        # Annotate the queryset with shares_count
+        queryset = Post.objects.annotate(shares_count=Count('shares'))
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['POST'])
     def share_post(self, request, pk=None):
         post = self.get_object()
-        
+
         # Create a new Share instance to record the sharing
         SharePost.objects.create(user=request.user, shared_post=post)
-        
+
         return Response({"detail": "Post shared successfully."}, status=status.HTTP_201_CREATED)
 
 
@@ -391,7 +405,8 @@ def add_reaction(request, content_type, object_id, reaction_type):
                 reaction_serializer.save()
                 try:
                     if reaction_serializer.validated_data["reaction_type"] == "like":
-                        Reward.objects.create(user=request.user, medium="reaction")
+                        Reward.objects.create(
+                            user=request.user, medium="reaction")
                 except:
                     pass
                 return Response(reaction_serializer.data, status=status.HTTP_201_CREATED)
@@ -456,7 +471,6 @@ def get_reactions(request, content_type, object_id):
         return Response({'detail': 'Content object not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_or_update_reaction(request, object_type, object_id):
@@ -476,11 +490,13 @@ def create_or_update_reaction(request, object_type, object_id):
             return Response({'detail': 'Invalid object type.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if a reaction already exists for this user and object
-        existing_reaction = Reaction.objects.filter(user=user, object_id=object_id).first()
+        existing_reaction = Reaction.objects.filter(
+            user=user, object_id=object_id).first()
 
         if existing_reaction:
             # If a reaction exists, update it with the new reaction type
-            serializer = ReactionSerializer(existing_reaction, data=reaction_data)
+            serializer = ReactionSerializer(
+                existing_reaction, data=reaction_data)
         else:
             # If no reaction exists, create a new one
             serializer = ReactionSerializer(data=reaction_data)
@@ -514,7 +530,8 @@ def toggle_reaction(request, object_type, object_id):
             return Response({'detail': 'Invalid object type.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if a reaction already exists for this user and object
-        existing_reaction = Reaction.objects.filter(user=user, object_id=object_id).first()
+        existing_reaction = Reaction.objects.filter(
+            user=user, object_id=object_id).first()
 
         if existing_reaction:
             # If a reaction exists, delete it
@@ -532,7 +549,6 @@ def toggle_reaction(request, object_type, object_id):
 
     except Post.DoesNotExist:
         return Response({'detail': 'Object not found.'}, status=status.HTTP_404_NOT_FOUND)
-
 
 
 # Search Post
@@ -580,7 +596,6 @@ class AudioPostViewSet(viewsets.ReadOnlyModelViewSet):
         return Post.objects.filter(file__media__name__endswith=tuple(audio_extensions))
 
 
-
 class ImagePostViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ImagePostSerializer
     queryset = Post.objects.all()
@@ -598,7 +613,6 @@ class OtherPostViewSet(viewsets.ReadOnlyModelViewSet):
         return Post.objects.filter(file__media__name__endswith=tuple(others_extensions))
 
 
-
 class PromotePostViewSet(viewsets.ModelViewSet):
     serializer_class = PromotedPostSerializer
     queryset = PromotedPost.objects.all()
@@ -606,7 +620,8 @@ class PromotePostViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         # Get the selected promotion plan ID and post ID from the request
         plan_id = request.data.get('plan_id')
-        post_id = request.data.get('post_id')  # Assuming you expect 'post_id' in the request
+        # Assuming you expect 'post_id' in the request
+        post_id = request.data.get('post_id')
 
         try:
             # Retrieve the selected promotion plan
@@ -665,6 +680,3 @@ class UserPostsView(ListAPIView):
         # Filter posts by the authenticated user
         user = self.request.user
         return Post.objects.filter(user=user)
-    
-
-

@@ -47,6 +47,8 @@ class PostSerializer(serializers.ModelSerializer):
     media = PostMediaSerializer(required=False)
     comments = CommentSerializer(many=True, required=False)
     shares_count = serializers.SerializerMethodField()
+    shares = SharePostSerializer(many=True, read_only=True)  # Add this line
+
 
     class Meta:
         model = Post

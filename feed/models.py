@@ -44,7 +44,7 @@ class Post(models.Model):
         'Comment', on_delete=models.SET_NULL, null=True, related_name='post_comments', blank= True)
     # product = models.ForeignKey(
     #     Product, on_delete=models.SET_NULL, null=True, blank=True)
-    hashtag = models.TextField(null=True, blank=True)
+    hashtag = models.TextField(default='', null=True, blank=True)
     is_business_post = models.BooleanField(
         default=False, verbose_name='Business Post')
     is_personal_post = models.BooleanField(

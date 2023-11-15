@@ -21,6 +21,7 @@ from django.conf import settings
 from reward.models import Reward
 
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_post(request):

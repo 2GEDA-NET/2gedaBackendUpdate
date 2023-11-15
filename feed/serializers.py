@@ -13,7 +13,15 @@ class PostMediaSerializer(serializers.ModelSerializer):
 class ReactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reaction
-        fields = ['reaction_type']
+        fields = '__all__'
+
+    def to_internal_value(self, data):
+        # Handle both serialized representation and instance
+        if isinstance(data, Reaction):
+            return data
+        
+
+        return super().to_internal_value(data)
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -31,25 +39,11 @@ class ReplySerializer(serializers.ModelSerializer):
         model = Reply
         fields = '__all__'
 
-
-class SharePostSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
-
-    class Meta:
-        model = SharePost
-        fields = '__all__'
-
-
 class PostSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
     reaction = ReactionSerializer(required=False)
-    # Nested serializer for media upload
-    media = PostMediaSerializer(required=False)
-    comments = CommentSerializer(many=True, required=False)
-    shares_count = serializers.SerializerMethodField()
-    shares = SharePostSerializer(many=True, read_only=True)  # Add this line
-
-
+    media = PostMediaSerializer(required=False)  # Nested serializer for media upload
+    comments = CommentSerializer(many=True, required = False)
+    
     class Meta:
         model = Post
         fields = '__all__'

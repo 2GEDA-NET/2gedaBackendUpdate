@@ -53,9 +53,12 @@ class SharePostSerializer(serializers.ModelSerializer):
 
 
 class PostUserSerializer(serializers.ModelSerializer):
+
+    work = serializers.CharField(source='userprofile.work', read_only=True)
+
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', ]
+        fields = ['first_name', 'last_name', 'username', 'work']
 
 
 class PostSerializer(serializers.ModelSerializer):

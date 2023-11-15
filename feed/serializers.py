@@ -66,7 +66,7 @@ class PostSerializer(serializers.ModelSerializer):
     user = PostUserSerializer()
     reaction = ReactionSerializer(required=False)
     # Nested serializer for media upload
-    media = PostMediaSerializer(required=False)
+    media = PostMediaSerializer(many=True, required=False)
     comments = CommentSerializer(many=True, required=False)
     hashtag = HashTagSerializer(many=True, required=False)
     shares_count = serializers.SerializerMethodField()

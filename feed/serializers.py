@@ -68,7 +68,7 @@ class GetPostMediaSerializer(serializers.ModelSerializer):
         fields = ('id', 'media')  # Include other fields as needed
 
 
-class PostSerializer(serializers.ModelSerializer):
+class PostSerializer(serializers.Serializer):
     user = PostUserSerializer()
     reaction = ReactionSerializer(required=False)
     # Nested serializer for media upload
@@ -78,9 +78,9 @@ class PostSerializer(serializers.ModelSerializer):
     shares_count = serializers.SerializerMethodField()
     shares = SharePostSerializer(many=True, read_only=True)  # Add this line
 
-    class Meta:
-        model = Post
-        fields = '__all__'
+    # class Meta:
+    #     model = Post
+    #     fields = '__all__'
 
     def get_shares_count(self, obj):
         return obj.shares.count()

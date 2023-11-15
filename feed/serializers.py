@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from user.serializers import UserSerializer
 from .models import *
 
 class PostMediaSerializer(serializers.ModelSerializer):
@@ -25,11 +27,19 @@ class ReplySerializer(serializers.ModelSerializer):
         model = Reply
         fields = '__all__'
 
+class SharePostSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = SharePost
+        fields = '__all__'
+
 class PostSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
     reaction = ReactionSerializer(required=False)
     media = PostMediaSerializer(required=False)  # Nested serializer for media upload
     comments = CommentSerializer(many=True, required = False)
-    
+    shared_post = SharePostSerializer()
     class Meta:
         model = Post
         fields = '__all__'

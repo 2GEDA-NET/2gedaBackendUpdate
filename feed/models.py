@@ -42,6 +42,9 @@ class Post(models.Model):
     # Define a ManyToManyField for tagged users
     tagged_users = models.ManyToManyField(
         User, related_name='tagged_in_posts', blank=True)
+    
+
+
 
 
 class SharePost(models.Model):

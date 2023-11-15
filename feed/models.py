@@ -45,8 +45,6 @@ class Post(models.Model):
     
 
 
-
-
 class SharePost(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     caption = models.TextField(blank=True, null=True)

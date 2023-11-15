@@ -52,10 +52,17 @@ class SharePostSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class PostUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        models = User
+        fields = ['first_name', 'last_name', 'username', 'role']
+
+
 class PostSerializer(serializers.ModelSerializer):
-    user = serializers.HiddenField(
-        default=serializers.CurrentUserDefault()
-    )
+    # user = serializers.HiddenField(
+    #     default=serializers.CurrentUserDefault()
+    # )
+    user = PostUserSerializer()
     reaction = ReactionSerializer(required=False)
     # Nested serializer for media upload
     media = PostMediaSerializer(required=False)

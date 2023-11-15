@@ -21,11 +21,6 @@ from django.conf import settings
 from reward.models import Reward
 
 
-
-<<<<<<< HEAD
-=======
-
-
 class Create_Post(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
@@ -75,7 +70,6 @@ class Create_Post(APIView):
 
 
 
->>>>>>> ba8b07b (Post Create)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_post(request):

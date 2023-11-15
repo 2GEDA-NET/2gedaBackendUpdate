@@ -39,23 +39,22 @@ class ReplySerializer(serializers.ModelSerializer):
         model = Reply
         fields = '__all__'
 
-
-class SharePostSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+class HashTagSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = SharePost
+        model = HashTags
         fields = '__all__'
 
 
 class PostSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = serializers.HiddenField(
+        default = serializers.CurrentUserDefault()
+    )
     reaction = ReactionSerializer(required=False)
-    # Nested serializer for media upload
-    media = PostMediaSerializer(required=False)
-    comments = CommentSerializer(many=True, required=False)
-    shares_count = serializers.SerializerMethodField()
-
+    media = PostMediaSerializer(required=False)  # Nested serializer for media upload
+    comments = CommentSerializer(many=True, required = False)
+    hashtag = HashTagSerializer(many=True, required=False)
+    
     class Meta:
         model = Post
         fields = '__all__'

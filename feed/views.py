@@ -21,6 +21,61 @@ from django.conf import settings
 from reward.models import Reward
 
 
+
+<<<<<<< HEAD
+=======
+
+
+class Create_Post(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    def post(self, request, format=None):
+        content = request.data["content"]
+        post = Post.objects.create(user=request.user, content=content)
+        try:
+            if "is_business_post" in request.data:
+                post.is_business_post = request.data["is_business_post"]
+            elif "is_personal_post" in request.data:
+                post.is_personal_post = request.data["is_personal_post"]
+            if "hashtag" in request.data:
+                post.hashtag = request.data["hashtag"]
+
+            if "tagged_users" in request.data:
+                for i in request.data["tagged_users"]:
+                    user = User.objects.get(username=i)
+                    Tagged_User.objects.create(post=post, user=user)
+            if request.FILES.getlist("media"):
+                print("media")
+                for file in request.FILES.getlist("media"):
+                    PostMedia.objects.create(post=post, media=file)
+
+            post_id = post.pk
+            post.save()
+            return Response({"response":"ok", "post_id":post_id}, status=200)
+        except KeyError as key_error:
+            return Response({"error": f"KeyError: {str(key_error)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            print(e)
+            return Response({"response":"Something went wrong"}, status=500)
+       
+
+
+
+
+
+
+
+# class PostViewSet(viewsets.ModelViewSet):
+#     permission_classes = (IsAuthenticated,)
+#     authentication_classes = (TokenAuthentication,)
+#     queryset = Post.objects.all()
+#     serializer_class = PostSerializer
+
+
+
+
+>>>>>>> ba8b07b (Post Create)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_post(request):

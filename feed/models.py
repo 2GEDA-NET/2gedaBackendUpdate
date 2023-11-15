@@ -1,10 +1,12 @@
 from django.db import models
 from user.models import *
 from commerce.models import *
+import uuid
 # Create your models here.
 
 
 class PostMedia(models.Model):
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, null=True, blank=True)
     media = models.FileField(upload_to='post_files/', blank=True, null=True)
 
 class CommentMedia(models.Model):
@@ -21,10 +23,18 @@ class PromotionPlan(models.Model):
     def __str__(self):
         return self.name
 
+class HashTags(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    hashtag = models.CharField(max_length=250, blank=True, null=True)
+
+
+class Tagged_User(models.Model):
+    post = models.ForeignKey(
+        'Post', on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    file = models.ForeignKey(PostMedia, on_delete=models.SET_NULL, null=True)
     url = models.URLField(blank=True, null=True)
     content = models.TextField()
     timestamp = models.TimeField(auto_now_add=True)
@@ -32,9 +42,9 @@ class Post(models.Model):
         'Reaction', on_delete=models.SET_NULL, null=True)
     comments = models.ForeignKey(
         'Comment', on_delete=models.SET_NULL, null=True, related_name='post_comments', blank= True)
-    product = models.ForeignKey(
-        Product, on_delete=models.SET_NULL, null=True, blank=True)
-    hashtag = models.CharField(max_length=250, blank=True)
+    # product = models.ForeignKey(
+    #     Product, on_delete=models.SET_NULL, null=True, blank=True)
+    hashtag = models.TextField(null=True, blank=True)
     is_business_post = models.BooleanField(
         default=False, verbose_name='Business Post')
     is_personal_post = models.BooleanField(
@@ -59,7 +69,7 @@ class Comment(models.Model):
     media = models.ForeignKey(CommentMedia, on_delete=models.CASCADE, blank= True, null= True)
     reaction = models.ForeignKey(
         'Reaction', on_delete=models.SET_NULL, null=True)
-    timestamp = models.TimeField()
+    timestamp = models.TimeField(auto_now_add=True)
 
 
 class Reply(models.Model):
@@ -90,7 +100,7 @@ class Repost(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
     post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True)
-    timestamp = models.TimeField()
+    timestamp = models.TimeField(auto_now_add=True)
     reaction = models.ForeignKey(
         'Reaction', on_delete=models.SET_NULL, null=True)
     comments = models.ForeignKey(
@@ -100,7 +110,7 @@ class Repost(models.Model):
 class SavedPost(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True)
-    timestamp = models.TimeField()
+    timestamp = models.TimeField(auto_now_add=True)
 
 
 class PromotedPost(models.Model):

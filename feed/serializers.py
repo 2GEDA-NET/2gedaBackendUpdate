@@ -52,17 +52,10 @@ class SharePostSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class PostUserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = ['work', ]
-
 class PostUserSerializer(serializers.ModelSerializer):
-
-    work = PostUserProfileSerializer()
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'work']
+        fields = ['first_name', 'last_name', 'username', ]
 
 
 class PostSerializer(serializers.ModelSerializer):

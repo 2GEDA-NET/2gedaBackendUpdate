@@ -40,7 +40,7 @@ class ReplySerializer(serializers.ModelSerializer):
 
 
 class HashTagSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = serializers.CharField(source='user.username', read_only=True)
 
     class Meta:
         model = HashTags

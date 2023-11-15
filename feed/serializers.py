@@ -19,7 +19,6 @@ class ReactionSerializer(serializers.ModelSerializer):
         # Handle both serialized representation and instance
         if isinstance(data, Reaction):
             return data
-        
 
         return super().to_internal_value(data)
 
@@ -39,6 +38,7 @@ class ReplySerializer(serializers.ModelSerializer):
         model = Reply
         fields = '__all__'
 
+
 class HashTagSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -46,15 +46,24 @@ class HashTagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class SharePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SharePost
+        fields = '__all__'
+
+
 class PostSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(
-        default = serializers.CurrentUserDefault()
+        default=serializers.CurrentUserDefault()
     )
     reaction = ReactionSerializer(required=False)
-    media = PostMediaSerializer(required=False)  # Nested serializer for media upload
-    comments = CommentSerializer(many=True, required = False)
+    # Nested serializer for media upload
+    media = PostMediaSerializer(required=False)
+    comments = CommentSerializer(many=True, required=False)
     hashtag = HashTagSerializer(many=True, required=False)
-    
+    shares_count = serializers.SerializerMethodField()
+    shares = SharePostSerializer(many=True, read_only=True)  # Add this line
+
     class Meta:
         model = Post
         fields = '__all__'

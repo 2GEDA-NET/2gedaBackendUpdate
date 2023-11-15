@@ -5,6 +5,7 @@ from .models import *
 
 
 class PostMediaSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = PostMedia
         fields = '__all__'
@@ -61,12 +62,17 @@ class PostUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['first_name', 'last_name', 'username', 'work']
 
+class GetPostMediaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PostMedia
+        fields = ('id', 'media')  # Include other fields as needed
+
 
 class PostSerializer(serializers.ModelSerializer):
     user = PostUserSerializer()
     reaction = ReactionSerializer(required=False)
     # Nested serializer for media upload
-    media = PostMediaSerializer(many=True, required=False)
+    media = GetPostMediaSerializer(many=True, read_only=True)
     comments = CommentSerializer(many=True, required=False)
     hashtag = HashTagSerializer(many=True, required=False)
     shares_count = serializers.SerializerMethodField()

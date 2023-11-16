@@ -545,30 +545,30 @@ class UserViewSet(viewsets.ModelViewSet):
 # Sticking APIs
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def stick_user(request, user_id):
+def stick_user(request, username):
     user = request.user.userprofile
     try:
-        target_user = UserProfile.objects.get(pk=user_id)
+        target_user = UserProfile.objects.get(user__username=username)
     except UserProfile.DoesNotExist:
         return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
     if user != target_user:
-        if user.sticking.filter(pk=user_id).exists():
+        if user.sticking.filter(user__username=username).exists():
             user.sticking.remove(target_user)
             # If unsticking, remove the corresponding Participant record
             Participant.objects.filter(
-                user=user.user, sticking_to=target_user).delete()
+                user=request.user, sticking_to=target_user).delete()
             # Send an unstick notification
-            send_notification(target_user.user,
-                              f"You were unsticked by {user.user.username}")
+            send_notification(recipient=target_user.user, sender=request.user,
+                              message=f"You were unsticked by {user.user.username}")
             return Response({"message": f"You unsticked {target_user.user.username}"})
         else:
             user.sticking.add(target_user)
             # If sticking, create a Participant record
             Participant.objects.create(user=user.user, sticking_to=target_user)
             # Send a stick notification
-            send_notification(target_user.user,
-                              f"You were sticked by {user.user.username}")
+            send_notification(recipient=target_user.user, sender=request.user,
+                              message=f"You were sticked by {user.user.username}")
             return Response({"message": f"You sticked {target_user.user.username}"})
 
     return Response({"message": "You cannot stick/unstick yourself"}, status=status.HTTP_400_BAD_REQUEST)
@@ -576,15 +576,15 @@ def stick_user(request, user_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def list_stickers(request, user_id):
+def list_stickers(request):
     try:
-        user_profile = UserProfile.objects.get(pk=user_id)
+        user_profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
         return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    stickers = user_profile.stickers.all()
-    serializer = UserListSerializer(stickers, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    stickers = Participant.objects.filter(user=request.user).values()
+    # serializer = UserListSerializer(stickers, many=True)
+    return Response(list(stickers), status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -980,9 +980,9 @@ class UserSearchAPIView(APIView):
             return Response([], status=status.HTTP_200_OK)
 
 
-def send_notification(user, message):
+def send_notification(recipient, message, sender):
     # Create a new notification
-    notification = Notification(user=user, message=message)
+    notification = Notification.objects.create(recipient=recipient, sender=sender, message=message)
     notification.save()
 
 
@@ -1117,3 +1117,5 @@ class UserInfo(APIView):
     def get(self, request, format=None):
         user = UserProfile.objects.filter(user=request.user).values()
         return Response(list(user), status=200)
+
+

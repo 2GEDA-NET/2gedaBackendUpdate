@@ -202,3 +202,4 @@ class OtherPostSerializer(serializers.ModelSerializer):
         if instance.file and any(instance.file.media.name.endswith(ext) for ext in others_extensions):
             return super().to_representation(instance)
         return None
+    

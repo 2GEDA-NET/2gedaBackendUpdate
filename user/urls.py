@@ -25,7 +25,7 @@ urlpatterns = [
     path('verify-otp/', verify_otp, name='verify_otp'),
     path('resend-otp/', resend_otp, name='resend-otp'),
      path('password-change/', PasswordChangeViewSet.as_view, name='change_password'),
-    path('', UserAPIView.as_view(), name='user_detail'),
+    path('userinfo/', UserAPIView.as_view(), name='user_detail'),
     path('profile/update-status/', UserProfileHasUpdatedProfileView.as_view(), name='user-profile-update-status'),
     path('update-profile/', update_user_profile, name='update_user_profile'),
     path('user-profile/update/', UserProfileViewSet.as_view({'put': 'update'}), name='user-profile-update'),
@@ -44,8 +44,8 @@ urlpatterns = [
 
 
     #     Stick urls
-    path('stick/<int:user_id>/', stick_user, name='stick_user'),
-    path('list-stickers/<int:user_id>/',
+    path('stick/<str:username>/', stick_user, name='stick_user'),
+    path('list-stickers/',
          list_stickers, name='list_stickers'),
     path('list-sticking/<int:user_id>/',
          list_sticking, name='list_sticking'),

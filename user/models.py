@@ -229,7 +229,7 @@ class Device(models.Model):
 
 class Notification(models.Model):
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications_received')
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications_sent')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications_sent', null=True, blank=True)
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 

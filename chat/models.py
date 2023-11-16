@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from django.db.models import Q
 from django.db import models
 from user.models import *
@@ -184,11 +185,17 @@ class ChatMessage(models.Model):
 class Participant(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_active_friends = models.BooleanField(default=True)
-    last_seen = models.TimeField()
+    last_seen = models.TimeField(null=True, blank=True)
     sticking_to = models.ForeignKey('user.UserProfile', on_delete=models.CASCADE, related_name='chats', null=True, blank=True)
 
     def __str__(self):
         return self.user.username
+    
+    def save(self, *args, **kwargs) -> None:
+        if self.user:
+            self.last_seen = self.user.last_seen
+
+        return super().save(*args, **kwargs)
 
 
 class ChatGroup(Group):

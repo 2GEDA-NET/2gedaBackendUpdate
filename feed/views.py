@@ -21,6 +21,9 @@ from django.conf import settings
 from reward.models import Reward
 
 
+
+
+
 class Create_Post(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
@@ -97,6 +100,39 @@ def create_post(request):
             return Response(post_serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def get_all_post(request):
+    if request.method == 'GET':
+
+        posts = PostMedia.objects.all().values()
+        return Response( status=200)
+        # Set the user field to the authenticated user making the request
+
+
+class Get_All(APIView):
+    permission_classes=[IsAuthenticated]
+
+    def get(self, request, format=None):
+        profile = UserProfileImage.objects.filter(user=request.user).first()
+        posts = PostMedia.objects.all().values(
+                                                
+                                               "post__user__username",
+                                               "post__user__first_name",
+                                               "post__user__last_name",
+                                               "post__url", 
+                                               "post__content",
+                                               "post__timestamp",
+                                               "media",
+                                               "post__reaction",
+                                               "post__hashtag",
+                                               "post__is_business_post",
+                                               "post__is_personal_post",
+                                               "post__tagged_users"
+                                               )
+
+        return Response(list(posts), status=200)
 
 
 @api_view(['GET'])
@@ -313,6 +349,7 @@ class PostMediaViewSet(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
     queryset = PostMedia.objects.all()
     serializer_class = PostMediaSerializer
+
 
 
 class ReactionViewSet(viewsets.ModelViewSet):

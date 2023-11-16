@@ -6,12 +6,15 @@ from django.core.exceptions import ValidationError
 from django.core.files import File
 from datetime import timedelta
 from pydub import AudioSegment
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from storages.backends.s3boto3 import S3Boto3Storage
 
+
 class StereoAccount(models.Model):
-    profile = models.ForeignKey(UserProfile,on_delete=models.CASCADE)
-    stereo_username = models.CharField(max_length= 250)
-    stereo_password = models.CharField(max_length= 250)
+    profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    stereo_username = models.CharField(max_length=250)
+    stereo_password = models.CharField(max_length=250)
     is_artist = models.BooleanField(default=False)
     is_listener = models.BooleanField(default=True)
     artist_name = models.CharField(max_length=250, blank=True, null=True)
@@ -25,10 +28,12 @@ class DownloadRecord(models.Model):
     song = models.ForeignKey('Song', on_delete=models.CASCADE)
     downloaded_at = models.DateTimeField(auto_now_add=True)
 
+
 class UserSongPreference(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     song = models.ForeignKey('Song', on_delete=models.CASCADE)
-    is_like = models.BooleanField(default=True)  # True for like, False for dislike
+    # True for like, False for dislike
+    is_like = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -38,9 +43,11 @@ class UserSongPreference(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=255)
 
+
 class Artist(models.Model):
     name = models.CharField(max_length=255)
     about = models.TextField()
+
 
 class Album(models.Model):
     title = models.CharField(max_length=255)
@@ -48,21 +55,26 @@ class Album(models.Model):
     release_date = models.DateField()
     is_top_album = models.BooleanField(default=False, blank=True, null=True)
 
+
 class Song(models.Model):
     title = models.CharField(max_length=255)
-    cover_image = models.ImageField(upload_to='cover-images/', default='default-audio.png')
-    album = models.ForeignKey(Album, on_delete=models.CASCADE, blank=True, null= True)
+    cover_image = models.ImageField(
+        upload_to='cover-images/', default='default-audio.png')
+    album = models.ForeignKey(
+        Album, on_delete=models.CASCADE, blank=True, null=True)
     audio_file = models.FileField(upload_to='songs/', storage=S3Boto3Storage())
-    duration = models.DurationField(verbose_name=_('Duration'), blank=True, null=True)
-    genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, blank=True)
-    is_quick_pick = models.BooleanField(default=False, verbose_name='Quick Picks')
-    is_top_track = models.BooleanField(default=False, verbose_name='Top Tracks')
+    duration = models.DurationField(
+        verbose_name=_('Duration'), blank=True, null=True)
+    genre = models.ForeignKey(
+        Genre, on_delete=models.SET_NULL, null=True, blank=True)
+    is_quick_pick = models.BooleanField(
+        default=False, verbose_name='Quick Picks')
+    is_top_track = models.BooleanField(
+        default=False, verbose_name='Top Tracks')
     is_big_hit = models.BooleanField(default=False, verbose_name='Big Hit')
     uploaded_at = models.DateField(auto_now_add=True)
     download_count = models.PositiveIntegerField(default=0)
     stream_count = models.PositiveIntegerField(default=0)
-
-
 
     def calculate_audio_duration(self):
         try:
@@ -73,18 +85,27 @@ class Song(models.Model):
             # Handle exceptions (e.g., if the file is not a valid audio file)
             return None
 
-    def save(self, *args, **kwargs):
-        # Calculate and set the audio duration before saving the model
-        self.duration = self.calculate_audio_duration()
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     # Calculate and set the audio duration before saving the model
+    #     self.duration = self.calculate_audio_duration()
+    #     super().save(*args, **kwargs)
+
+
+@receiver(pre_save, sender=Song)
+def set_song_duration(sender, instance, *args, **kwargs):
+    # Calculate and set the audio duration before saving the model
+    instance.duration = instance.calculate_audio_duration()
+
 
 class MusicProfile(models.Model):
     user = models.ForeignKey(StereoAccount, on_delete=models.CASCADE)
-    favorite_genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, blank=True)
-    playlists = models.ManyToManyField('Playlist', related_name='users', blank=True)
-    listening_history = models.ManyToManyField(Song, related_name='listeners', blank=True)
+    favorite_genre = models.ForeignKey(
+        Genre, on_delete=models.SET_NULL, null=True, blank=True)
+    playlists = models.ManyToManyField(
+        'Playlist', related_name='users', blank=True)
+    listening_history = models.ManyToManyField(
+        Song, related_name='listeners', blank=True)
     playlist_count = models.PositiveIntegerField(default=0)
-
 
     def increment_playlist_count(self):
         self.playlist_count += 1
@@ -99,6 +120,7 @@ class Playlist(models.Model):
     name = models.CharField(max_length=255)
     user = models.ForeignKey(MusicProfile, on_delete=models.CASCADE)
     songs = models.ManyToManyField(Song, related_name='playlists', blank=True)
+
 
 class Chart(models.Model):
     song = models.ForeignKey(Song, on_delete=models.CASCADE)

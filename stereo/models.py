@@ -76,8 +76,7 @@ class Song(models.Model):
     def save(self, *args, **kwargs):
         # Calculate and set the audio duration before saving the model
         self.duration = self.calculate_audio_duration()
-        super(Song, self).save(*args, **kwargs)
-
+        super().save(*args, **kwargs)
 
 class MusicProfile(models.Model):
     user = models.ForeignKey(StereoAccount, on_delete=models.CASCADE)

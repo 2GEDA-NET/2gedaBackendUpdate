@@ -8,6 +8,7 @@ from datetime import timedelta
 from pydub import AudioSegment
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+import logging
 from storages.backends.s3boto3 import S3Boto3Storage
 
 
@@ -82,7 +83,8 @@ class Song(models.Model):
             duration_seconds = audio.duration_seconds
             return timedelta(seconds=duration_seconds)
         except Exception as e:
-            # Handle exceptions (e.g., if the file is not a valid audio file)
+            # Log the exception to help with debugging
+            logging.exception("Error calculating audio duration: %s", str(e))
             return None
 
     # def save(self, *args, **kwargs):

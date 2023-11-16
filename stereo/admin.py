@@ -10,7 +10,7 @@ class GenreAdmin(ImportExportModelAdmin):
 
 @admin.register(Song)
 class SongAdmin(ImportExportModelAdmin):
-    list_display = ('title', 'album', 'audio_file', 'genre')
+    list_display = ('title', 'album', 'artist', 'audio_file', 'genre')
 
 @admin.register(MusicProfile)
 class MusicProfileAdmin(ImportExportModelAdmin):
@@ -38,3 +38,7 @@ class StereoAccountAdmin(ImportExportModelAdmin):
 @admin.register(Artist)
 class ArtistAdmin(ImportExportModelAdmin):
     list_display = ('name', 'about',)
+
+@admin.register(Album)
+class AlbumAdmin(ImportExportModelAdmin):
+    list_display = ('title', 'artist', 'release_date')

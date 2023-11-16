@@ -63,8 +63,7 @@ class Song(models.Model):
         upload_to='cover-images/', default='default-audio.png')
     album = models.ForeignKey(
         Album, on_delete=models.CASCADE, blank=True, null=True)
-    artist = models.ForeignKey(
-        Artist, on_delete=models.CASCADE, blank=True, null=True, related_name='Song Artist')
+    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, blank=True, null=True, related_name='song_artist')
     audio_file = models.FileField(upload_to='songs/', storage=S3Boto3Storage())
     duration = models.DurationField(
         verbose_name=_('Duration'), blank=True, null=True)

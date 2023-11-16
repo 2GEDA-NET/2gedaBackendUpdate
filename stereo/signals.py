@@ -10,7 +10,9 @@ from datetime import timedelta
 @receiver(post_save, sender=Song)
 def set_song_duration(sender, instance, **kwargs):
     try:
-        audio = AudioSegment.from_file(instance.audio_file.path)
+        # Open the file using Django storage's open method
+        with instance.audio_file.open('rb') as audio_file:
+            audio = AudioSegment.from_file(audio_file)
         duration_seconds = audio.duration_seconds
         instance.duration = timedelta(seconds=duration_seconds)
     except Exception as e:

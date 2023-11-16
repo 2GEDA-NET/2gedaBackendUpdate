@@ -87,17 +87,6 @@ class Song(models.Model):
             logging.exception("Error calculating audio duration: %s", str(e))
             return None
 
-    # def save(self, *args, **kwargs):
-    #     # Calculate and set the audio duration before saving the model
-    #     self.duration = self.calculate_audio_duration()
-    #     super().save(*args, **kwargs)
-
-
-@receiver(pre_save, sender=Song)
-def set_song_duration(sender, instance, *args, **kwargs):
-    # Calculate and set the audio duration before saving the model
-    instance.duration = instance.calculate_audio_duration()
-
 
 class MusicProfile(models.Model):
     user = models.ForeignKey(StereoAccount, on_delete=models.CASCADE)

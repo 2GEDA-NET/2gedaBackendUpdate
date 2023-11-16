@@ -2,7 +2,7 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django_s3_storage.storage import S3Boto3Storage
+from storages.backends.s3boto3 import S3Boto3Storage
 from pydub import AudioSegment
 from .models import Song
 from datetime import timedelta

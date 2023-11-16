@@ -21,12 +21,10 @@ from django.conf import settings
 from reward.models import Reward
 
 
-
-
-
 class Create_Post(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
+
     def post(self, request, format=None):
         content = request.data["content"]
         post = Post.objects.create(user=request.user, content=content)
@@ -49,19 +47,13 @@ class Create_Post(APIView):
 
             post_id = post.pk
             post.save()
-            return Response({"response":"ok", "post_id":post_id}, status=200)
+            return Response({"response": "ok", "post_id": post_id}, status=200)
         except KeyError as key_error:
             return Response({"error": f"KeyError: {str(key_error)}"}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             print(e)
-            return Response({"response":"Something went wrong"}, status=500)
-       
-
-
-
-
-
+            return Response({"response": "Something went wrong"}, status=500)
 
 
 # class PostViewSet(viewsets.ModelViewSet):
@@ -69,8 +61,6 @@ class Create_Post(APIView):
 #     authentication_classes = (TokenAuthentication,)
 #     queryset = Post.objects.all()
 #     serializer_class = PostSerializer
-
-
 
 
 @api_view(['POST'])
@@ -101,36 +91,47 @@ def create_post(request):
 
         return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def get_all_post(request):
     if request.method == 'GET':
 
         posts = PostMedia.objects.all().values()
-        return Response( status=200)
+        return Response(status=200)
         # Set the user field to the authenticated user making the request
 
 
+class Get_All2(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        profile = UserProfileImage.objects.filter(user=request.user).first()
+        posts = PostMedia.objects.filter(post__user=request.user)
+        serializer = PostMediaSerializer_OAJ(posts, many=True)
+
+        return Response(serializer.data, status=200)
+
 class Get_All(APIView):
-    permission_classes=[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
         profile = UserProfileImage.objects.filter(user=request.user).first()
         posts = PostMedia.objects.all().values(
-                                                
-                                               "post__user__username",
-                                               "post__user__first_name",
-                                               "post__user__last_name",
-                                               "post__url", 
-                                               "post__content",
-                                               "post__timestamp",
-                                               "media",
-                                               "post__reaction",
-                                               "post__hashtag",
-                                               "post__is_business_post",
-                                               "post__is_personal_post",
-                                               "post__tagged_users"
-                                               )
+
+            "post__user__username",
+            "post__user__first_name",
+            "post__user__last_name",
+            "post__url",
+            "post__content",
+            "post__timestamp",
+            "media",
+            "post__reaction",
+            "post__hashtag",
+            "post__is_business_post",
+            "post__is_personal_post",
+            "post__tagged_users"
+        )
 
         return Response(list(posts), status=200)
 
@@ -349,7 +350,6 @@ class PostMediaViewSet(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
     queryset = PostMedia.objects.all()
     serializer_class = PostMediaSerializer
-
 
 
 class ReactionViewSet(viewsets.ModelViewSet):

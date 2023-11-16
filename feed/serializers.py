@@ -3,7 +3,15 @@ from rest_framework import serializers
 from user.serializers import UserSerializer
 from .models import *
 
+class PostMediaSerializer_OAJ(serializers.ModelSerializer):
+    user_profile_image_url = serializers.SerializerMethodField()
 
+    class Meta:
+        model = PostMedia
+        fields = '__all__'
+
+    def get_user_profile_image_url(self, obj):
+        return obj.post.user.profileimage.image.url if obj.post.user.profileimage else None
 class PostMediaSerializer(serializers.ModelSerializer):
 
     class Meta:

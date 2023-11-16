@@ -76,6 +76,8 @@ class GetPostMediaSerializer(serializers.ModelSerializer):
         fields = ('id', 'media')  # Include other fields as needed
 
 
+
+
 class PostSerializer(serializers.Serializer):
     user = PostUserSerializer()
     reaction = ReactionSerializer(required=False)
@@ -101,6 +103,13 @@ class PostSerializer(serializers.Serializer):
             PostMedia.objects.create(post=post, **media_data)
 
         return post
+
+class NewPostMediaSerializer(serializers.ModelSerializer):
+    post =  PostSerializer()
+
+    class Meta:
+        model = PostMedia
+        fields = ["post","media" ]
 
 
 class RepostSerializer(serializers.ModelSerializer):

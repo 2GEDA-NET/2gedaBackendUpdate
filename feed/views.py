@@ -27,6 +27,9 @@ class Create_Post(APIView):
 
     def post(self, request, format=None):
         content = request.data["content"]
+        user_profile = UserProfile.objects.get(user=request.user)
+       
+
         post = Post.objects.create(user=request.user, content=content)
         try:
             if "is_business_post" in request.data:
@@ -36,15 +39,19 @@ class Create_Post(APIView):
             if "hashtag" in request.data:
                 post.hashtag = request.data["hashtag"]
 
-            if "tagged_users" in request.data:
-                for i in request.data["tagged_users"]:
-                    user = User.objects.get(username=i)
-                    Tagged_User.objects.create(post=post, user=user)
+            # if "tagged_users" in request.data:
+            #     for i in request.data["tagged_users"]:
+            #         user = User.objects.filter(username=i).first()
+            #         Tagged_User.objects.create(post=post, user=user)
             if request.FILES.getlist("media"):
                 print("media")
                 for file in request.FILES.getlist("media"):
-                    PostMedia.objects.create(post=post, media=file)
-
+                    # try:
+                    user_profile = UserProfile.objects.get(user=request.user)
+                    PostMedia.objects.create(post=post, media=file,user_profile=user_profile,user=request.user )
+                    print("done")
+                    # except:
+                        # pass
             post_id = post.pk
             post.save()
             return Response({"response": "ok", "post_id": post_id}, status=200)
@@ -53,7 +60,13 @@ class Create_Post(APIView):
 
         except Exception as e:
             print(e)
-            return Response({"response": "Something went wrong"}, status=500)
+            return Response({"response":"Something went wrong"}, status=500)
+       
+
+
+
+
+
 
 
 # class PostViewSet(viewsets.ModelViewSet):
@@ -102,34 +115,34 @@ def get_all_post(request):
         # Set the user field to the authenticated user making the request
 
 
-
 class Get_All(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
+        some_post = Post.objects.all()
         profile = UserProfileImage.objects.filter(user=request.user).first()
         posts = PostMedia.objects.all().values(
-
-            "post__user__username",
-            "post__user__first_name",
-            "post__user__last_name",
-            "post__url",
-            "post__content",
-            "post__timestamp",
-            "media",
-            "post__reaction",
-            "post__hashtag",
-            "post__is_business_post",
-            "post__is_personal_post",
-            "post__tagged_users"
-        )
+                                                
+                                               "post__user__username",
+                                               "post__user__first_name",
+                                               "post__user__last_name",
+                                               "post__url", 
+                                               "post__content",
+                                               "post__timestamp",
+                                               "media",
+                                               "post__reaction",
+                                               "post__hashtag",
+                                               "post__is_business_post",
+                                               "post__is_personal_post",
+                                               "post__tagged_users"
+                                               )
 
         return Response(list(posts), status=200)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def post_feed(request):
+def post_feed(request):                                                       
     # Retrieve the UserProfile associated with the current user
     user_profile = request.user.userprofile
 
@@ -157,14 +170,18 @@ def post_feed(request):
 def retrieve_post(request, post_id):
     try:
         # Retrieve the post by its ID
-        post = Post.objects.get(pk=post_id)
-
+        post = PostMedia.objects.filter(post__id=post_id)
+        # print(post.post.pk)
+        # content = Post.objects.filter(pk=post.id)
         # Serialize the post
-        post_serializer = PostSerializer(post, context={'request': request})
+        return Response({'detail': post.values(
 
-        return Response(post_serializer.data, status=status.HTTP_200_OK)
+        )}, status=status.HTTP_200_OK)
+        # post_serializer = NewPostMediaSerializer(post, context={'request': request})
 
-    except Post.DoesNotExist:
+        # return Response(post_serializer.data, status=status.HTTP_200_OK)
+
+    except Exception as e:
         return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 

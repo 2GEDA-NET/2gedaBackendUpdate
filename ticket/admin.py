@@ -3,9 +3,11 @@ from import_export.admin import ImportExportModelAdmin
 from .models import *
 
 # Register your models here.
+
 @admin.register(EventCategory)
-class EventCategory(ImportExportModelAdmin):
+class Post(ImportExportModelAdmin):
     list_display = ('name', 'image')
+
 
 @admin.register(Event)
 class EventAdmin(ImportExportModelAdmin):

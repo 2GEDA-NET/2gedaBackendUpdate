@@ -4,9 +4,11 @@ from .models import *
 
 # Register your models here.
 
+
+
 @admin.register(PostMedia)
 class PostMedia(ImportExportModelAdmin):
-    list_display = ('media',)
+    list_display = ('media', 'post', 'media', 'time_stamp', 'user', 'user_profile')
 
 @admin.register(CommentMedia)
 class CommentMediaAdmin(ImportExportModelAdmin):

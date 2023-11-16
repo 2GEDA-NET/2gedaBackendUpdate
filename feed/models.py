@@ -2,16 +2,27 @@ from django.db import models
 from user.models import *
 from commerce.models import *
 import uuid
+from django.utils import timezone
 # Create your models here.
 
 
 class PostMedia(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, null=True, blank=True)
     post = models.ForeignKey('Post', on_delete=models.CASCADE, null=True, blank=True)
     media = models.FileField(upload_to='post_files/', blank=True, null=True)
+    time_stamp = models.DateTimeField(default=timezone.now)
+    shares = models.IntegerField(default=0)
+    comment = models.IntegerField(default=0)
+    likes = models.IntegerField(default=0)
+    love = models.IntegerField(default=0)
+    dislike = models.IntegerField(default=0)
+    other_reactions = models.IntegerField(default=0)
+    
+
 
 class CommentMedia(models.Model):
     media = models.FileField(upload_to='comment_files/', blank=True, null=True)
-
 
 
 class PromotionPlan(models.Model):

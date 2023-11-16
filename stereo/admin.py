@@ -30,3 +30,11 @@ class PlaylistAdmin(ImportExportModelAdmin):
         return obj.songs.count()
     
     get_song_count.short_description = 'Number of Songs'
+
+@admin.register(StereoAccount)
+class StereoAccountAdmin(ImportExportModelAdmin):
+    list_display = ('stereo_username', 'stereo_password', 'is_artist')
+
+@admin.register(Artist)
+class ArtistAdmin(ImportExportModelAdmin):
+    list_display = ('name', 'about',)

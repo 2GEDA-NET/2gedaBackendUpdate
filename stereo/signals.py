@@ -1,4 +1,4 @@
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -7,7 +7,7 @@ from pydub import AudioSegment
 from .models import Song
 from datetime import timedelta
 
-@receiver(pre_save, sender=Song)
+@receiver(post_save, sender=Song)
 def set_song_duration(sender, instance, **kwargs):
     try:
         audio = AudioSegment.from_file(instance.audio_file.path)

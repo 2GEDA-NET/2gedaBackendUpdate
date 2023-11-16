@@ -102,15 +102,6 @@ def get_all_post(request):
         # Set the user field to the authenticated user making the request
 
 
-class Get_All2(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, format=None):
-        profile = UserProfileImage.objects.filter(user=request.user).first()
-        posts = PostMedia.objects.filter(post__user=request.user)
-        serializer = PostMediaSerializer_OAJ(posts, many=True)
-
-        return Response(serializer.data, status=200)
 
 class Get_All(APIView):
     permission_classes = [IsAuthenticated]

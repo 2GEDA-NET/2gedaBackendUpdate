@@ -27,6 +27,7 @@ urlpatterns = [
     path("chat/", include('chat.urls')),
     path("business/", include('business.urls')),
     path("poll/", include('poll.urls')),
+    path("stereo/", include('stereo.urls')),
     path("reward/", include(reward_url)),
     path("", include(utils_url))
 ]

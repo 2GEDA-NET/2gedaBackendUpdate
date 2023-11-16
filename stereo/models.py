@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from datetime import timedelta
-from pydub import AudioSegment
+from moviepy.editor import AudioFileClip
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 import logging
@@ -80,12 +80,12 @@ class Song(models.Model):
 
     def calculate_audio_duration(self):
         try:
-            audio = AudioSegment.from_file(self.audio_file.path)
-            duration_seconds = audio.duration_seconds
-            return timedelta(seconds=duration_seconds)
+            with AudioFileClip(self.audio_file.path) as audio_clip:
+                duration_seconds = audio_clip.duration
+                return timedelta(seconds=duration_seconds)
         except Exception as e:
             # Log the exception to help with debugging
-            logging.exception("Error calculating audio duration: %s", str(e))
+            print(f"Error calculating audio duration: {e}")
             return None
 
 

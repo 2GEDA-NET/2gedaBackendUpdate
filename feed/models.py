@@ -6,6 +6,13 @@ from django.utils import timezone
 # Create your models here.
 
 
+class MediaPost(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, null=True, blank=True)
+    media = models.FileField(upload_to='post_files/', blank=True, null=True)
+
+
+
 class PostMedia(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, null=True, blank=True)
@@ -18,11 +25,15 @@ class PostMedia(models.Model):
     love = models.IntegerField(default=0)
     dislike = models.IntegerField(default=0)
     other_reactions = models.IntegerField(default=0)
+    each_media = models.ManyToManyField(MediaPost)
     
 
 
 class CommentMedia(models.Model):
+    post = models.ForeignKey(
+        'Post', on_delete=models.CASCADE, null=True)
     media = models.FileField(upload_to='comment_files/', blank=True, null=True)
+    parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
 
 
 class PromotionPlan(models.Model):
@@ -74,13 +85,16 @@ class SharePost(models.Model):
 
 
 class Comment(models.Model):
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
     content = models.TextField()
-    media = models.ForeignKey(CommentMedia, on_delete=models.CASCADE, blank= True, null= True)
+    media = models.ManyToManyField(CommentMedia)
     reaction = models.ForeignKey(
         'Reaction', on_delete=models.SET_NULL, null=True)
     timestamp = models.TimeField(auto_now_add=True)
+    parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
+
 
 
 class Reply(models.Model):
@@ -89,6 +103,7 @@ class Reply(models.Model):
     content = models.TextField()
     reaction = models.ForeignKey(
         'Reaction', on_delete=models.SET_NULL, null=True)
+    
 
 
 class Reaction(models.Model):

@@ -43,15 +43,20 @@ class Create_Post(APIView):
             #     for i in request.data["tagged_users"]:
             #         user = User.objects.filter(username=i).first()
             #         Tagged_User.objects.create(post=post, user=user)
+            media_file_list = []
             if request.FILES.getlist("media"):
                 print("media")
                 for file in request.FILES.getlist("media"):
-                    # try:
-                    user_profile = UserProfile.objects.get(user=request.user)
-                    PostMedia.objects.create(post=post, media=file,user_profile=user_profile,user=request.user )
-                    print("done")
-                    # except:
-                        # pass
+                    each_media = MediaPost.objects.create(user=request.user, post=post,media=file )
+                    media_file_list.append(each_media)
+
+            user_profile = UserProfile.objects.get(user=request.user)
+            post_media = PostMedia(post=post,user_profile=user_profile,user=request.user )
+            post_media.save()
+
+            post_media.each_media.add(*media_file_list)
+            post_media.save()
+                
             post_id = post.pk
             post.save()
             return Response({"response": "ok", "post_id": post_id}, status=200)
@@ -121,8 +126,11 @@ class Get_All(APIView):
     def get(self, request, format=None):
         some_post = Post.objects.all()
         profile = UserProfileImage.objects.filter(user=request.user).first()
+        
+        
         posts = PostMedia.objects.all().values(
-                                                
+                                                "id",
+                                                "post__id",
                                                "post__user__username",
                                                "post__user__first_name",
                                                "post__user__last_name",
@@ -134,8 +142,28 @@ class Get_All(APIView):
                                                "post__hashtag",
                                                "post__is_business_post",
                                                "post__is_personal_post",
-                                               "post__tagged_users"
+                                               "post__tagged_users",
+                                               "each_media__media"
                                                )
+        for value in posts:
+            media = value["each_media__media"]
+            try:
+                all_media = MediaPost.objects.filter(media=media)
+                all_media_list = []
+                for each_media in all_media:
+                    all_media_list.append(each_media.media.url)
+
+                value["media"] = all_media_list
+            except:
+                pass
+
+            
+
+        # try:
+        # media_list = [{"file": media.media.url} for media in posts.get("media")]
+        # posts["media"] = media_list
+        # except:
+        #         pass
 
         return Response(list(posts), status=200)
 
@@ -308,30 +336,50 @@ def admin_delete_post(request, post_id):
 @permission_classes([IsAuthenticated])
 def create_comment(request, post_id):
     try:
-        # Retrieve the post by its ID
+        content = request.data["content"]
         post = Post.objects.get(pk=post_id)
+        comment = Comment(user=request.user, post=post, content=content)
 
-        # Create a new comment associated with the post and the current user
-        comment_data = {
-            # Replace 'text' with the field name for your comment content
-            'text': request.data.get('text'),
-            'post': post,
-            'user': request.user,
-        }
+        comment.save()
 
-        comment_serializer = CommentSerializer(data=comment_data)
-        if comment_serializer.is_valid():
-            comment_serializer.save()
-            try:
-                Reward.objects.create(user=request.user, medium="comments")
-            except:
-                pass
-            return Response(comment_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        comment_media_list = []
+        if request.FILES.getlist("media"):
+            for file in request.FILES.getlist("media"):
+                try:
+                    comment_media = CommentMedia.objects.create(post=post, media=file)
+                    comment_media_list.append(comment_media)
+                except:
+                    pass
 
-    except Post.DoesNotExist:
-        return Response({'detail': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+        comment.media.add(*comment_media_list)
+        
+        # Save the comment after adding media
+        comment.save()
+
+        # Retrieve values for the created comment
+        comment_values = Comment.objects.filter(pk=comment.pk).values("id", "user_id", "post_id", "content", "timestamp", "parent_id")
+
+        comment_media_list = CommentMedia.objects.filter(comment=comment)
+        
+
+        # Add the media list to the response data
+        comment_data = comment_values[0]  # Assuming there is only one Comment instance
+        try:
+            media_list = [{"file": media.media.url} for media in comment_media_list]
+            comment_data["media"] = media_list
+        except:
+            pass
+
+        try:
+            Reward.objects.create(user=request.user, medium="comments")
+        except:
+            pass
+
+        return Response([comment_data], status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])

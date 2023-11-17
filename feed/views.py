@@ -129,7 +129,8 @@ class Get_All(APIView):
         
         
         posts = PostMedia.objects.all().values(
-                                                
+                                                "id",
+                                                "post__id",
                                                "post__user__username",
                                                "post__user__first_name",
                                                "post__user__last_name",
@@ -147,8 +148,12 @@ class Get_All(APIView):
         for value in posts:
             media = value["each_media__media"]
             try:
-                the_media = MediaPost.objects.filter(media=media).first()
-                value["media"] = the_media.media.url
+                all_media = MediaPost.objects.filter(media=media)
+                all_media_list = []
+                for each_media in all_media:
+                    all_media_list.append(each_media.media.url)
+
+                value["media"] = all_media_list
             except:
                 pass
 

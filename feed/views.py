@@ -43,14 +43,20 @@ class Create_Post(APIView):
             #     for i in request.data["tagged_users"]:
             #         user = User.objects.filter(username=i).first()
             #         Tagged_User.objects.create(post=post, user=user)
+            media_file_list = []
             if request.FILES.getlist("media"):
                 print("media")
                 for file in request.FILES.getlist("media"):
-                    try:
-                        user_profile = UserProfile.objects.get(user=request.user)
-                        PostMedia.objects.create(post=post, media=file,user_profile=user_profile,user=request.user )
-                    except:
-                        pass
+                    each_media = MediaPost.objects.create(user=request.user, post=post,media=file )
+                    media_file_list.append(each_media)
+
+            user_profile = UserProfile.objects.get(user=request.user)
+            post_media = PostMedia(post=post,user_profile=user_profile,user=request.user )
+            post_media.save()
+
+            post_media.each_media.add(*media_file_list)
+            post_media.save()
+                
             post_id = post.pk
             post.save()
             return Response({"response": "ok", "post_id": post_id}, status=200)
@@ -120,6 +126,8 @@ class Get_All(APIView):
     def get(self, request, format=None):
         some_post = Post.objects.all()
         profile = UserProfileImage.objects.filter(user=request.user).first()
+        
+        
         posts = PostMedia.objects.all().values(
                                                 
                                                "post__user__username",
@@ -133,8 +141,24 @@ class Get_All(APIView):
                                                "post__hashtag",
                                                "post__is_business_post",
                                                "post__is_personal_post",
-                                               "post__tagged_users"
+                                               "post__tagged_users",
+                                               "each_media__media"
                                                )
+        for value in posts:
+            media = value["each_media__media"]
+            try:
+                the_media = MediaPost.objects.filter(media=media).first()
+                value["media"] = the_media.media.url
+            except:
+                pass
+
+            
+
+        # try:
+        # media_list = [{"file": media.media.url} for media in posts.get("media")]
+        # posts["media"] = media_list
+        # except:
+        #         pass
 
         return Response(list(posts), status=200)
 

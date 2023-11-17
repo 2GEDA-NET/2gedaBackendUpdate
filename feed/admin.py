@@ -5,6 +5,10 @@ from .models import *
 # Register your models here.
 
 
+@admin.register(MediaPost)
+class MediaPost(ImportExportModelAdmin):
+    list_display = ('media', 'post')
+
 
 @admin.register(PostMedia)
 class PostMedia(ImportExportModelAdmin):

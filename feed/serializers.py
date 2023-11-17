@@ -37,7 +37,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ["content", "media"]
+        fields = "__all__"
 
 
 class ReplySerializer(serializers.ModelSerializer):

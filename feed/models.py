@@ -6,6 +6,13 @@ from django.utils import timezone
 # Create your models here.
 
 
+class MediaPost(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, null=True, blank=True)
+    media = models.FileField(upload_to='post_files/', blank=True, null=True)
+
+
+
 class PostMedia(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, null=True, blank=True)
@@ -18,6 +25,7 @@ class PostMedia(models.Model):
     love = models.IntegerField(default=0)
     dislike = models.IntegerField(default=0)
     other_reactions = models.IntegerField(default=0)
+    each_media = models.ManyToManyField(MediaPost)
     
 
 

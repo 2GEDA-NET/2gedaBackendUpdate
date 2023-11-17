@@ -60,7 +60,7 @@ class Album(models.Model):
 class Song(models.Model):
     title = models.CharField(max_length=255)
     cover_image = models.ImageField(
-        upload_to='cover-images/', default='default-audio.png')
+        upload_to='cover-images/', default='cover-images/default_audio.png')
     album = models.ForeignKey(
         Album, on_delete=models.CASCADE, blank=True, null=True)
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE, blank=True, null=True, related_name='song_artist')

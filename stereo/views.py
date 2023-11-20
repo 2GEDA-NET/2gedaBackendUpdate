@@ -112,6 +112,10 @@ class TopAlbumsAPIView(generics.ListAPIView):
     queryset = Album.objects.filter(is_top_album=True)  # Query to get "Top Albums"
     serializer_class = AlbumSerializer
 
+class TopSongsAPIView(generics.ListAPIView):
+    queryset = Song.objects.filter(is_top_track=True)  # Query to get "Top Albums"
+    serializer_class = AlbumSerializer
+
 
 class BigHitAPIView(generics.ListAPIView):
     queryset = Song.objects.filter(is_big_hit=True)  # Query to get "Top Albums"

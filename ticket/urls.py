@@ -2,6 +2,14 @@ from django.urls import path
 from django.conf.urls import include
 from rest_framework.routers import DefaultRouter
 from . import views
+from .views import (
+    EventsView,
+    EventsDetailView,
+    EventsDestroView,
+    EventsCategoryView,
+    EventsCategoryDetailView
+
+)
 
 # Create a router for viewsets
 router = DefaultRouter()
@@ -19,6 +27,15 @@ urlpatterns = [
     path('api/', include(router.urls)),
     
     # Define custom URLs for API views
+    path('events/', EventsView.as_view()),
+    path('event/<int:pk>/', EventsDetailView.as_view()),
+    path('event/delete/<int:pk>/', EventsDestroView.as_view()),
+
+    #Views for EventsCategory
+    path('event-category/',EventsCategoryView.as_view()),
+    path('event-category/<int:pk>/', EventsCategoryDetailView.as_view()),
+
+    #Tickets
     path('buy-ticket/', views.buy_ticket, name='buy-ticket'),
     path('request-event-promotion/', views.request_event_promotion, name='request-event-promotion'),
     path('manage-event-promotion-requests/', views.manage_event_promotion_requests, name='manage-event-promotion-requests'),
@@ -31,4 +48,6 @@ urlpatterns = [
     path('upcoming-events/', views.UpcomingEventsAPIView.as_view(), name='upcoming-events'),
     path('create-withdrawal-request/', views.CreateWithdrawalRequestView.as_view(), name='create-withdrawal-request'),
     path('approve-withdrawal-request/<int:pk>/', views.ApproveWithdrawalRequestAPIView.as_view(), name='approve-withdrawal-request'),
+
+    
 ]

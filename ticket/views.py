@@ -15,6 +15,8 @@ from django.utils import timezone
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from reward.models import Reward
+from rest_framework import generics
+from rest_framework.views import APIView
 
 class EventCategoryViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
@@ -376,3 +378,69 @@ class ApproveWithdrawalRequestAPIView(UpdateAPIView):
             withdrawal_request.status = 'Failed'
             withdrawal_request.save()
             return Response({'detail': 'Withdrawal request rejected'}, status=status.HTTP_200_OK)
+
+
+
+class EventsView(generics.ListCreateAPIView):
+    serializer_class = EventSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Event.objects.all()
+
+
+    def perform_create(self, serializer:EventSerializer):
+        try:
+            events_category_name = self.request.data["events_category_name"]
+            events_category = None
+            if "events_category_image" in self.request.data:
+                events_category = EventCategory.objects.create(
+                    name =events_category_name,
+                    image = self.request.FILES["events_category_image"]
+                )
+            else:
+                events_category = EventCategory.objects.create(name=events_category_name)
+            
+            serializer.validated_data["category"] = events_category
+            #Handling tickets
+            category = self.request.data.get_list("ticket_category")
+            price = self.request.data["ticket_price"]
+            quantity = self.request.data["ticket_quantity"]
+            ticket_instance = Ticket.objects.create(
+                category=category,
+                price=price,
+                quantity=quantity
+            )
+            serializer.validated_data["ticket"] = ticket_instance
+
+            return super().perform_create(serializer)
+        except:
+            pass
+
+
+class EventsDetailView(generics.RetrieveUpdateAPIView):
+    serializer_class = EventSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Event.objects.all()
+
+
+class EventsDestroView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request,pk,format=None):
+        event = Event.objects.get(pk=pk)
+        if event.user == request.user:
+            event.delete()
+            return Response({"response":"Successfully delete"}, status=200)
+
+        return Response({"response":"You cant perform this action"}, status=200)
+    
+
+class EventsCategoryView(generics.ListCreateAPIView):
+    permission_classes=[IsAuthenticated]
+    queryset= EventCategory.objects.all()
+    serializer_class = EventCategorySerializer
+
+
+class EventsCategoryDetailView(generics.RetrieveDestroyAPIView):
+    permission_classes=[IsAuthenticated]
+    queryset= EventCategory.objects.all()
+    serializer_class = EventCategorySerializer

@@ -1,10 +1,43 @@
 from django.db import models
 from user.models import *
 
+
+TICKET_CATEGORIES = (
+    ('VIP', 'VIP'),
+    ('Stock', 'Stock'),
+    ('Regular', 'Regular'),
+   
+)
+
+TICKET_TYPE = (
+    ('FREE TICKET', 'FREE TICKET'),
+    ('PAID TICKET', 'PAID TICKET'),
+)
+
 # Create your models here.
 class EventCategory(models.Model):
     name = models.CharField(max_length=250)
     image = models.ImageField(upload_to='event-category-images/', blank=True, null=True)
+
+
+class Get_Ticket(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=256)
+    last_name = models.CharField(max_length=256)
+    email = models.CharField(max_length=256, null=True, blank=True)
+    quantity = models.IntegerField(default=0)
+    address = models.CharField(max_length=256)
+    ticket_type = models.CharField(default="FREE TICKET", choices=TICKET_TYPE, max_length=50)
+    
+
+
+
+class Ticket(models.Model):
+    category = models.CharField(max_length=250, choices=TICKET_CATEGORIES, null=True, blank=True)
+    price = models.IntegerField(default=0)
+    quantity = models.IntegerField(default=0)
+    is_sold = models.BooleanField(default=False, verbose_name='Ticket Sold')
+    ticket_sales = models.ManyToManyField(Get_Ticket)
 
 
 class Event(models.Model):
@@ -20,24 +53,13 @@ class Event(models.Model):
     url = models.URLField(max_length=250, blank=True, null=True)
     is_popular = models.BooleanField(default=False, verbose_name='Popular')
     is_promoted = models.BooleanField(default=False, verbose_name='Promoted')
-    ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE)
+    ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE , related_name="old_ticket")
+    each_ticket = models.ManyToManyField(Ticket)
 
 
-TICKET_CATEGORIES = (
-    ('VIP', 'VIP'),
-    ('Stock', 'Stock'),
-)
 
-TICKET_TYPE = (
-    ('FREE TICKET', 'FREE TICKET'),
-    ('PAID TICKET', 'PAID TICKET'),
-)
 
-class Ticket(models.Model):
-    category = models.CharField(max_length=250, choices=TICKET_CATEGORIES)
-    price = models.IntegerField()
-    quantity = models.IntegerField()
-    is_sold = models.BooleanField(default=False, verbose_name='Ticket Sold')
+
 
 class Bank(models.Model):
     name = models.CharField(max_length=250)

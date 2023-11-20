@@ -136,6 +136,8 @@ class Get_All(APIView):
                                                "post__user__last_name",
                                                "post__url", 
                                                "post__content",
+                                               "comment",
+                                               "shares",
                                                "post__timestamp",
                                                "media",
                                                "post__reaction",
@@ -143,7 +145,8 @@ class Get_All(APIView):
                                                "post__is_business_post",
                                                "post__is_personal_post",
                                                "post__tagged_users",
-                                               "each_media__media"
+                                               "each_media__media",
+
                                                )
         for value in posts:
             media = value["each_media__media"]

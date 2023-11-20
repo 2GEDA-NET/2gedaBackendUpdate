@@ -73,3 +73,25 @@ class StreamCountSerializer(serializers.Serializer):
 
 class PlaylistCountSerializer(serializers.Serializer):
     playlist_count = serializers.IntegerField()
+
+
+
+class albumSerializer(serializers.ModelSerializer):
+    class Meta:
+            model = Album
+            fields = "__all__"
+
+
+class artistSerializer(serializers.ModelSerializer):
+    class Meta:
+            model = Artist
+            fields = "__all__"
+
+
+class DemoSerializer(serializers.ModelSerializer):
+    album = albumSerializer(many=True)
+    artist = artistSerializer()
+
+    class Meta:
+        model = Song
+        fields = "__all__"

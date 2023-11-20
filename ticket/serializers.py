@@ -1,17 +1,62 @@
 from rest_framework import serializers
 from .models import *
+from typing import Any
 
 class EventCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = EventCategory
         fields = '__all__'
 
+
+class AttendeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        fields = ["category","price","quantity","is_sold"]
+
+
 class EventSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+    attendees = AttendeeSerializer(many=True, required=False)
+    category = EventCategorySerializer(required=False)
+    ticket = TicketSerializer(required=False)
+    url = serializers.CharField(required=False)
+    platform = serializers.CharField(required=False)
+    desc = serializers.CharField(required=False)
+    location = serializers.CharField(required=False)
     class Meta:
         model = Event
-        fields = '__all__'
+        fields = ["id","user","attendees","image","title","desc","platform","category","date","ticket","location","url"]
     
+    def validate(self, attrs):
+        error = {}
+        if self.context["request"].method in ["POST"] and attrs.get("desc") is None:
+            error['error'] = "desc field is required"
+            raise serializers.ValidationError(error)
+        if self.context["request"].method in ["POST"] and attrs.get("title") is None:
+            error['error'] = "desc field is required"
+            raise serializers.ValidationError(error)
+        if self.context["request"].method in ["POST"] and attrs.get("platform") is None:
+            error['error'] = "platform field is required"
+            raise serializers.ValidationError(error)
+        if self.context["request"].method in ["POST"] and attrs.get("location") is None:
+            error['error'] = "location field is required"
+            raise serializers.ValidationError(error)
+        return super().validate(attrs)
+    
+    def create(self, validated_data):
+        return super().create(validated_data)
+
+
 class UserEventSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Event
         fields = ['images', 'title', 'desc', 'url', 'platform']
@@ -23,10 +68,6 @@ class EventListSerializer(serializers.ModelSerializer):
         fields = [ 'title', 'desc', 'location', 'date', 'url']
 
 
-class TicketSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Ticket
-        fields = '__all__'
 
 class BankSerializer(serializers.ModelSerializer):
     class Meta:

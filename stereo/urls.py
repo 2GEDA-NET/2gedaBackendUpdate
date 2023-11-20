@@ -31,6 +31,8 @@ urlpatterns = [
     path('user_downloads/', UserDownloadsList.as_view(), name='user_downloads_list'),
     path('playlist-count/', PlaylistCountView.as_view(), name='playlist-count'),
 
+    path('newsong/', Demo.as_view(),),
+
 
 
 ]

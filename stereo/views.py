@@ -17,6 +17,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from .filters import *
 from reward.models import Reward
+from rest_framework import generics
 
 
 class SongSearchView(generics.ListAPIView):
@@ -247,3 +248,13 @@ class StreamCountViewset(viewsets.ReadOnlyModelViewSet):
         stream_counts = {song.title: song.stream_count for song in self.queryset}
 
         return Response(stream_counts)
+    
+
+
+
+
+class Demo(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Song.objects.all()
+    serializer_class = DemoSerializer
+    

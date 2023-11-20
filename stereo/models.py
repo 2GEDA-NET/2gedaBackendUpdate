@@ -49,13 +49,19 @@ class Artist(models.Model):
     name = models.CharField(max_length=255)
     about = models.TextField()
 
+    
+    def __str__(self):
+        return str(self.name) or ''
+
 
 class Album(models.Model):
     title = models.CharField(max_length=255)
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
     release_date = models.DateField()
     is_top_album = models.BooleanField(default=False, blank=True, null=True)
-
+    
+    def __str__(self):
+        return str(self.title) or ''
 
 class Song(models.Model):
     title = models.CharField(max_length=255)
@@ -88,6 +94,8 @@ class Song(models.Model):
             print(f"Error calculating audio duration: {e}")
             return None
 
+    def __str__(self):
+        return str(self.title) or ''
 
 class MusicProfile(models.Model):
     user = models.ForeignKey(StereoAccount, on_delete=models.CASCADE)
@@ -112,7 +120,9 @@ class Playlist(models.Model):
     name = models.CharField(max_length=255)
     user = models.ForeignKey(MusicProfile, on_delete=models.CASCADE)
     songs = models.ManyToManyField(Song, related_name='playlists', blank=True)
-
+    
+    def __str__(self):
+        return str(self.name) or ''
 
 class Chart(models.Model):
     song = models.ForeignKey(Song, on_delete=models.CASCADE)

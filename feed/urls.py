@@ -22,7 +22,7 @@ router.register(r'promote-posts', PromotePostViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path("create_post/", Create_Post.as_view()),
+    path("create_post/", CreatePostView.as_view()),
     path('create-post/', create_post, name='post_create'),
     path('sticking-post-feed/', post_feed, name='post_feed'),
     path('all-post/', Get_All.as_view()),

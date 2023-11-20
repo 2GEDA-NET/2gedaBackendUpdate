@@ -12,11 +12,13 @@ class PostMediaSerializer_OAJ(serializers.ModelSerializer):
 
     def get_user_profile_image_url(self, obj):
         return obj.post.user.profileimage.image.url if obj.post.user.profileimage else None
+
+
 class PostMediaSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = PostMedia
-        fields = '__all__'
+        model = MediaPost
+        fields = ["user", "media"]
 
 
 class ReactionSerializer(serializers.ModelSerializer):
@@ -32,13 +34,6 @@ class ReactionSerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    reaction = ReactionSerializer()
-
-    class Meta:
-        model = Comment
-        fields = "__all__"
-
 
 class ReplySerializer(serializers.ModelSerializer):
     reaction = ReactionSerializer()
@@ -46,6 +41,14 @@ class ReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = Reply
         fields = '__all__'
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    reaction = ReactionSerializer()
+    responses = ReplySerializer()
+    class Meta:
+        model = Comment
+        fields = "__all__"
 
 
 class HashTagSerializer(serializers.ModelSerializer):
@@ -219,4 +222,27 @@ class OtherPostSerializer(serializers.ModelSerializer):
         if instance.file and any(instance.file.media.name.endswith(ext) for ext in others_extensions):
             return super().to_representation(instance)
         return None
-    
+
+
+
+
+class CreatePostSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(
+        default = serializers.CurrentUserDefault()
+    )
+    comment_text = CommentSerializer(many=True, required=False)
+    each_media = PostMediaSerializer(many=True, required=False)
+    hashtags = HashTagSerializer(many=True, required=False)
+    content =  serializers.CharField(required=False)
+    class Meta:
+        model = PostMedia
+        fields = "__all__"
+
+    def validate(self, attrs):
+        error = {}
+        if attrs.get("content") == None and attrs.get("media") == None:
+            error["error"] = "You have to post a media or text"
+
+            raise serializers.ValidationError(error)
+
+        return super().validate(attrs)

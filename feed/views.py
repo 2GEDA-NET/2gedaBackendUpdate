@@ -19,6 +19,7 @@ from rest_framework.decorators import *
 from paystackapi.transaction import Transaction
 from django.conf import settings
 from reward.models import Reward
+from rest_framework import generics
 
 
 class Create_Post(APIView):
@@ -137,7 +138,11 @@ class Get_All(APIView):
                                                "post__url", 
                                                "post__content",
                                                "comment",
+                                               "comment_text__content",
+                                               "comment_text",
                                                "shares",
+                                               "user_profile__cover_image",
+                                               "user_profile",
                                                "post__timestamp",
                                                "media",
                                                "post__reaction",
@@ -150,6 +155,7 @@ class Get_All(APIView):
                                                )
         for value in posts:
             media = value["each_media__media"]
+            comments = value["comment_text"]
             try:
                 all_media = MediaPost.objects.filter(media=media)
                 all_media_list = []
@@ -159,14 +165,11 @@ class Get_All(APIView):
                 value["media"] = all_media_list
             except:
                 pass
-
             
 
-        # try:
-        # media_list = [{"file": media.media.url} for media in posts.get("media")]
-        # posts["media"] = media_list
-        # except:
-        #         pass
+                
+
+
 
         return Response(list(posts), status=200)
 
@@ -340,8 +343,8 @@ def admin_delete_post(request, post_id):
 def create_comment(request, post_id):
     try:
         content = request.data["content"]
-        post = Post.objects.get(pk=post_id)
-        comment = Comment(user=request.user, post=post, content=content)
+        post = PostMedia.objects.get(pk=post_id)
+        comment = Comment(user=request.user, content=content)
 
         comment.save()
 
@@ -358,7 +361,8 @@ def create_comment(request, post_id):
         
         # Save the comment after adding media
         comment.save()
-
+        post.comment_text.add(comment)
+        post.save()
         # Retrieve values for the created comment
         comment_values = Comment.objects.filter(pk=comment.pk).values("id", "user_id", "post_id", "content", "timestamp", "parent_id")
 
@@ -449,7 +453,7 @@ def view_replies(request, post_id, comment_id):
 def create_reply(request, post_id, comment_id):
     try:
         # Retrieve the comment by its ID within the specified post
-        comment = Comment.objects.get(pk=comment_id, post__pk=post_id)
+        comment = Post.objects.get(pk=post_id)
 
         # Create a new reply associated with the comment and the current user
         reply_data = {
@@ -825,3 +829,64 @@ class UserPostsView(ListAPIView):
         # Filter posts by the authenticated user
         user = self.request.user
         return Post.objects.filter(user=user)
+
+
+
+class CreatePostView(generics.CreateAPIView):
+    serializer_class = CreatePostSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = PostMedia.objects.all()
+
+    def perform_create(self, serializer):
+
+            # serializer.validated_data.pop('comment_text', None)
+            # serializer.validated_data.pop('each_media', None)
+            # serializer.validated_data.pop('hashtags', None)
+            # serializer.validated_data.pop('tagged_users_post', None)
+
+            instance = serializer.save()
+            
+            if "media" in self.request.data:
+                media_list = []
+                medias = self.request.FILES.getlist("media")
+                for each_media in medias:
+                    media = MediaPost.objects.create(user=self.request.user, media=each_media)
+                    media_list.append(media)
+                
+                instance.each_media.add(*media_list)
+
+
+            if "hashtags" in self.request.data:
+                hashtags_list = []
+                hashtags = self.request.data.getlist("hashtags")
+                for hashtag in hashtags:
+                    hashtag = HashTagsPost.objects.create(user=self.request.user, hash_tags=hashtag)
+                    hashtags_list.append(hashtag)
+
+                instance.hashtags.add(*hashtags_list)
+
+            if "tagged_users" in self.request.data:
+                tagged_users_list = []
+                tagged_users = self.request.data.getlist("tagged_users")
+                if str(tagged_users).startswith("@"):
+                    for tagged_user in tagged_users:
+                    
+                            username = str(tagged_user)[1:]
+                            user = User.objects.get(username=username)
+                            tagged_users_list.append(user)
+
+                    instance.tagged_users_post.add(*tagged_users_list)
+
+                else:
+                    pass
+                
+                      
+
+
+
+
+            return super().perform_create(serializer)
+
+
+
+  

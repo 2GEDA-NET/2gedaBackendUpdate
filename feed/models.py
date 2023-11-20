@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from django.db import models
 from user.models import *
 from commerce.models import *
@@ -9,7 +10,13 @@ from django.utils import timezone
 class MediaPost(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     post = models.ForeignKey('Post', on_delete=models.CASCADE, null=True, blank=True)
-    media = models.FileField(upload_to='post_files/', blank=True, null=True)
+    media  = models.FileField(upload_to='post_files/', blank=True, null=True)
+
+
+class HashTagsPost(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, null=True, blank=True)
+    hash_tags = models.CharField(max_length=256, null=True, blank=True)
 
 
 
@@ -19,14 +26,33 @@ class PostMedia(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE, null=True, blank=True)
     media = models.FileField(upload_to='post_files/', blank=True, null=True)
     time_stamp = models.DateTimeField(default=timezone.now)
+    content = models.CharField(max_length=250, null=True, blank=False)
     shares = models.IntegerField(default=0)
+    comment_text = models.ManyToManyField("Comment")
     comment = models.IntegerField(default=0)
     likes = models.IntegerField(default=0)
     love = models.IntegerField(default=0)
     dislike = models.IntegerField(default=0)
     other_reactions = models.IntegerField(default=0)
     each_media = models.ManyToManyField(MediaPost)
+    hashtags =  models.ManyToManyField(HashTagsPost)
+    is_business_post = models.BooleanField(
+        default=False, verbose_name='Business Post')
+    is_personal_post = models.BooleanField(
+        default=True, verbose_name='Personal Post')
+    tagged_users_post = models.ManyToManyField(
+        User, related_name="users_tag",blank=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.prev_comment_count = self.comment
     
+    
+    def save(self, *args, **kwargs) -> None:
+
+        return super().save(*args, **kwargs)
+    
+
 
 
 class CommentMedia(models.Model):
@@ -51,9 +77,8 @@ class HashTags(models.Model):
 
 
 class Tagged_User(models.Model):
-    post = models.ForeignKey(
-        'Post', on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -85,16 +110,19 @@ class SharePost(models.Model):
 
 
 class Comment(models.Model):
-
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
     content = models.TextField()
+    responses = models.ManyToManyField("Reply", related_name="commnts_to_reply")
     media = models.ManyToManyField(CommentMedia)
     reaction = models.ForeignKey(
         'Reaction', on_delete=models.SET_NULL, null=True)
     timestamp = models.TimeField(auto_now_add=True)
     parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
 
+
+
+        
 
 
 class Reply(models.Model):

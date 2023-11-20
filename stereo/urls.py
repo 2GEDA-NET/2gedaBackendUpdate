@@ -20,6 +20,7 @@ urlpatterns = [
     path('quick-pick-songs/', QuickPickSongsAPIView.as_view(), name='quick_pick_songs_api'),
     path('top-albums/', TopAlbumsAPIView.as_view(), name='top_albums_api'),
     path('top-songs/', TopSongsAPIView.as_view(), name='top_songs_api'),
+    path('big-hits/', BigHitAPIView.as_view(), name='top_songs_api'),
     path('download-song/<int:song_id>/', download_song, name='download_song'),
     path('songs-by-album/<str:album_name>/', SongsByAlbumAPIView.as_view(), name='songs_by_album_api'),
     path('songs-by-genre/<str:genre_name>/', SongsByGenreAPIView.as_view(), name='songs_by_genre_api'),

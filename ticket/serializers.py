@@ -1,6 +1,11 @@
 from rest_framework import serializers
 from .models import *
 from typing import Any
+import json
+import requests
+from django.conf import settings
+
+config = settings.PAYSTACK_SECRET_KEY
 
 class EventCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,7 +22,7 @@ class AttendeeSerializer(serializers.ModelSerializer):
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        fields = ["category","price","quantity","is_sold"]
+        fields = ["id","category","price","quantity","is_sold"]
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -112,3 +117,59 @@ class TicketPurchaseSerializer(serializers.ModelSerializer):
         # Override the create method to handle the creation of the TicketPurchase instance
         ticket_purchase = TicketPurchase.objects.create(**validated_data)
         return ticket_purchase
+
+
+class PaystackPaymentSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(
+        default = serializers.CurrentUserDefault()
+    )
+    ticket = TicketSerializer(required=False)
+    url = serializers.CharField(required=False) 
+    is_initiated = serializers.BooleanField(required=False) 
+    class Meta:
+        model = Ticket_Payment
+        fields = "__all__"
+
+    def validate(self, attrs):
+        user = attrs.get("user")
+        ticket = attrs.get("ticket")
+        error = {}
+
+        return super().validate(attrs)
+    
+    def create(self, validated_data):
+      
+        ticket = validated_data['ticket']
+        amount = ticket.price
+        user = validated_data["user"]
+        email = user.email
+
+        headers = {
+            'Authorization': f'Bearer {config}',
+            'Content-Type': 'application/json',
+        }
+
+        ab = {"amount": amount, "email": email}
+        data = json.dumps(ab)
+        response = requests.post(
+            'https://api.paystack.co/transaction/initialize', headers=headers, data=data)
+        print(response.text)
+        loaddata = json.loads(response.text)
+        url = loaddata["data"]["authorization_url"]
+        validated_data['url'] = url
+        validated_data['is_initiated'] = True
+        return super().create(validated_data)
+
+
+
+class WithdrawSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(
+        default = serializers.CurrentUserDefault()
+    )
+    details = PayOutInfoSerializer(required=False)    
+
+    class Meta:
+        model = Withdraw
+        fields = "__all__"
+
+    

@@ -12,7 +12,7 @@ class MediaPost(ImportExportModelAdmin):
 
 @admin.register(PostMedia)
 class PostMedia(ImportExportModelAdmin):
-    list_display = ('media', 'post', 'media', 'time_stamp', 'user', 'user_profile')
+    list_display = ('post','content','love','dislike', 'time_stamp', 'user', 'user_profile', 'likes')
 
 @admin.register(CommentMedia)
 class CommentMediaAdmin(ImportExportModelAdmin):

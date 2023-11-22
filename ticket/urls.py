@@ -7,7 +7,13 @@ from .views import (
     EventsDetailView,
     EventsDestroView,
     EventsCategoryView,
-    EventsCategoryDetailView
+    EventsCategoryDetailView,
+    PaymentOnlineApi,
+    Ticket_List,
+    Ticket_Detail_View,
+    Paystack_Verification,
+    PayOnlineDone,
+    WithdrawDetailView
 
 )
 
@@ -36,7 +42,16 @@ urlpatterns = [
     path('event-category/<int:pk>/', EventsCategoryDetailView.as_view()),
 
     #Tickets
-    path('buy-ticket/', views.buy_ticket, name='buy-ticket'),
+    path('buy-ticket/', PaymentOnlineApi.as_view(), name='buy-ticket'),
+
+    path('create/', PaymentOnlineApi.as_view(), name='buy-ticket'),
+    path('List/', Ticket_List.as_view(), name='buy-ticket'),
+
+    path('detail/<int:pk>/', Ticket_Detail_View.as_view()),
+
+    path('hguh-877892/call-back', PayOnlineDone.as_view()),
+
+    path('verify-payments/', Paystack_Verification.as_view()),
     path('request-event-promotion/', views.request_event_promotion, name='request-event-promotion'),
     path('manage-event-promotion-requests/', views.manage_event_promotion_requests, name='manage-event-promotion-requests'),
     path('delete-event/<int:event_id>/', views.delete_event, name='delete-event'),
@@ -46,8 +61,9 @@ urlpatterns = [
     path('past-events/', views.PastEventsAPIView.as_view(), name='past-events'),
     path('active-events/', views.ActiveEventsAPIView.as_view(), name='active-events'),
     path('upcoming-events/', views.UpcomingEventsAPIView.as_view(), name='upcoming-events'),
-    path('create-withdrawal-request/', views.CreateWithdrawalRequestView.as_view(), name='create-withdrawal-request'),
+    path('create-withdrawal-request/', WithdrawDetailView.as_view(), name='create-withdrawal-request'),
     path('approve-withdrawal-request/<int:pk>/', views.ApproveWithdrawalRequestAPIView.as_view(), name='approve-withdrawal-request'),
+    
 
     
 ]

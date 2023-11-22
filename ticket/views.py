@@ -17,6 +17,12 @@ from rest_framework.views import APIView
 from reward.models import Reward
 from rest_framework import generics
 from rest_framework.views import APIView
+from django.conf import settings
+import hashlib
+import hmac
+from django.conf import settings
+from user.models import User  as CustomUser
+
 
 class EventCategoryViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
@@ -69,6 +75,20 @@ class WithdrawViewSet(viewsets.ModelViewSet):
     queryset = Withdraw.objects.all()
     serializer_class = WithdrawSerializer
 
+
+class PaymentOnlineApi(generics.CreateAPIView):   
+    permission_classes = (IsAuthenticated,)
+    serializer_class = PaystackPaymentSerializer
+    queryset = Ticket_Payment.objects.all()
+
+    def perform_create(self, serializer):
+        ticket_id = self.request.data["ticket_id"]
+        ticket = Ticket.objects.get(pk=ticket_id)
+        print(ticket_id)
+
+        serializer.validated_data["ticket"] = ticket
+
+        return super().perform_create(serializer)
 
 
 @api_view(['POST'])
@@ -416,6 +436,18 @@ class EventsView(generics.ListCreateAPIView):
             pass
 
 
+class Ticket_List(generics.ListAPIView):
+    serializer_class = TicketSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Ticket.objects.all()
+
+
+class Ticket_Detail_View(generics.RetrieveAPIView):
+    serializer_class = TicketSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Ticket.objects.all()
+
+
 class EventsDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = EventSerializer
     permission_classes = [IsAuthenticated]
@@ -444,3 +476,242 @@ class EventsCategoryDetailView(generics.RetrieveDestroyAPIView):
     permission_classes=[IsAuthenticated]
     queryset= EventCategory.objects.all()
     serializer_class = EventCategorySerializer
+
+
+PAYSTACK_SK = settings.PAYSTACK_SECRET_KEY
+base_url = "https://api.paystack.co/"
+
+def verify_payment( ref, *args, **kwargs):
+        path = f'transaction/verify/{ref}'
+        headers = {
+            "Authorization": f"Bearer {PAYSTACK_SK}",
+            "Content-Type": "application/json",
+        }
+        url = base_url + path
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            response_data = response.json()
+            return response_data['status'], response_data['data']
+
+        response_data = response.json()
+
+        return response_data['status'], response_data['message']
+
+
+class Paystack_Verification(APIView):
+
+    def post(self, request, format=None):
+        transaction_ref = request.data["transaction_ref"]
+
+        result = verify_payment(ref=transaction_ref)
+
+        response = {
+            "status": result[0],
+            "message": result[1]
+        }
+
+        return Response(response, status=200)
+
+
+# class PayOnlineDone(APIView):
+#     authentication_classes = []
+#     permission_classes = []
+#     def get(self, request, format=None):
+#         print("cool")
+#         a = f'{settings.PAYSTACK_SECRET_KEY}'
+#         secret = bytes(a, encoding="ascii")
+#         payload = request.body
+#         sign = hmac.new(secret, payload, hashlib.sha512).hexdigest()
+#         code = request.META.get('HTTP_X_PAYSTACK_SIGNATURE')
+#         print("cool")
+#         bodydata = json.loads(payload)
+#         # ref = bodydata['data']['reference']
+#         ref = request.GET.get("reference")
+
+#         forwarded_for = u'{}'.format(request.META.get('HTTP_X_FORWARDED_FOR'))
+     
+#         whitelist = ["52.31.139.75", "52.49.173.169", "52.214.14.220"]
+#         if forwarded_for is not None:
+#             print("cool")
+#             if code == sign:
+               
+#                 response = verify_payment(ref=ref)
+#                 print("cool")
+#                 ab = json.loads(response.text)
+#                 print("cool")
+#                 if (response.status_code == 200 and ab['status'] == True) and (ab["message"] == "Verification successful" and ab["data"]["status"] == "success"):
+#                     user_email = ab['data']["customer"]['email']
+#                     amount = ab['data']['amount']
+#                     user =  User.objects.all(email=user_email)
+#                     if Ticket_Payment.objects.filter(user=user).latest().DoesNotExist():
+#                         Ticket_Issues.objects.create(
+#                             user=user,
+#                             description="Payment Initiation was False",
+#                             )
+                        
+#                     elif Ticket_Payment.objects.filter(user=user).latest():
+#                         payment_initiated = Ticket_Payment.objects.filter(user=user).latest()
+
+#                         if payment_initiated.is_completed == False:
+#                             # if payment_initiated.amount == amount:
+
+#                             event = Event.objects.filter(ticket__pk=payment_initiated.ticket.pk)
+#                             event = event.values(
+#                                     "desc",
+#                                     "platform",
+#                                     "category",
+#                                     "location",
+#                                     "url",
+#                                     "ticket",
+#                                     "event_key",
+#                                     "ticket__ticket_key",
+#                                     "ticket__category",
+#                                     "ticket__price",
+#                                     "ticket__quantity",
+#                                     "ticket__ticket_key"
+#                             )
+#                             return Response(list(event), status=200)
+                        
+#                         Ticket_Issues.objects.create(
+#                             user=user,
+#                             description="Payment Initiation was False",
+#                             )
+
+#                         return Response({'response':'Our payment gateway return Payment tansaction failed status {}'.format(ab["message"])}, status=200)      
+
+#                 else:
+#                     Ticket_Issues.objects.create(
+#                         description="Transaction Failed",
+#                         )
+
+#                     return Response({'response':'Our payment gateway return Payment tansaction failed status {}'.format(ab["message"])}, status=200)
+
+    
+#         return Response({"response" : "Permission denied."}, status=400)
+
+
+class PayOnlineDone(APIView):
+    authentication_classes = []
+    permission_classes = []
+    def get(self, request, format=None):
+
+        ref = request.GET.get("reference")
+
+        path = f'transaction/verify/{ref}'
+        headers = {
+            "Authorization": f"Bearer {PAYSTACK_SK}",
+            "Content-Type": "application/json",
+        }
+        url = base_url + path
+        response = requests.get(url, headers=headers)
+        print("cool")
+        ab = json.loads(response.text)
+        message =  ab["message"]
+        if (response.status_code == 200 and ab['status'] == True) and (ab["message"] == "Verification successful" and ab["data"]["status"] == "success"):
+            user_email = ab['data']["customer"]['email']
+            print(user_email)
+            amount = ab['data']['amount']
+            user =  CustomUser.objects.get(email=user_email)
+            if Ticket_Payment.objects.filter(user=user) is None:
+                Ticket_Issues.objects.create(
+                    user=user,
+                    description="Payment Initiation was False",
+                    )
+                
+            elif Ticket_Payment.objects.filter(user=user).latest() is not None:
+                payment_initiated = Ticket_Payment.objects.filter(user=user).latest()
+
+                if payment_initiated.is_completed == False:
+                    # if payment_initiated.amount == amount:
+
+                    event = Event.objects.get(ticket__pk=payment_initiated.ticket.pk)
+                    Ticket_Sales_Ticket.objects.create(
+                        user=user,
+                        desc= event.desc,
+                        platform=event.platform,
+                        category=event.category,
+                        location=event.location,
+                        url=event.url,
+                        event_key = event.event_key,
+                        ticket_key = event.ticket.ticket_key,
+                        ticket_category = event.ticket.category,
+                        ticket_price = event.ticket.price,
+                        ticket_quantity = event.ticket.price,
+                        
+                    )
+              
+
+                    return Response({"response":"success"}, status=200)
+                
+                Ticket_Issues.objects.create(
+                    user=user,
+                    description="Payment Initiation was False",
+                    )
+
+                return Response({'response':'Our payment gateway return Payment tansaction failed status {}'.format(ab["message"])}, status=200)      
+
+            else:
+                Ticket_Issues.objects.create(
+                    description="Transaction Failed",
+                    )
+
+                return Response({'response':'Our payment gateway return Payment tansaction failed status {}'.format(ab["message"])}, status=200)
+
+    
+        return Response({"response" : "Permission denied."}, status=400)
+
+
+
+class Ticket_Delivery(APIView):
+    permission_classes=[IsAuthenticated]
+    
+    def get(self, request, format=None):
+        user_ticket = Ticket_Sales_Ticket.objects.filter(user=request.user).values()
+        return Response(list(user_ticket), status=200)
+    
+
+
+#  l https://api.paystack.co/transferrecipient
+# -H "Authorization: Bearer YOUR_SECRET_KEY"
+# -H "Content-Type: application/json"
+# -d '{ "type": "nuban", 
+#       "name": "John Doe", 
+#       "account_number": "0001234567", 
+#       "bank_code": "058", 
+#       "currency": "NGN"
+#     }'
+# -X POST
+
+   
+
+class WithdrawDetailView(generics.CreateAPIView):
+    permission_classes=[IsAuthenticated]
+
+    def post(self, request, format=None):
+        user = request.user
+        amount = request.data["amount"]
+        bank_name = request.data["bank_name"]
+        account_name  = request.data["account_name"]
+        account_number = request.data["account_number"]
+        account_type = request.data["account_type"]
+        
+        payout_instance = PayOutInfo.objects.create(
+            user=user,
+            bank_name =bank_name,
+            account_name = account_name,
+            account_number = account_number,
+            account_type = account_type,
+            
+        )
+        
+        withdraw = Withdraw.objects.create(
+            details=payout_instance,
+            amount= amount,
+            is_pending = True
+        )
+
+        withdraw = Withdraw.objects.filter(pk=withdraw.pk).values()
+        return Response(list(withdraw), status=200)
+
+        

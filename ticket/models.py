@@ -1,5 +1,14 @@
+from collections.abc import Iterable
 from django.db import models
 from user.models import *
+from django.utils import timezone
+import secrets
+from django.db import transaction
+import uuid
+from django.conf import settings
+
+
+User = settings.AUTH_USER_MODEL
 
 
 TICKET_CATEGORIES = (
@@ -38,6 +47,14 @@ class Ticket(models.Model):
     quantity = models.IntegerField(default=0)
     is_sold = models.BooleanField(default=False, verbose_name='Ticket Sold')
     ticket_sales = models.ManyToManyField(Get_Ticket)
+    ticket_key = models.UUIDField(default=uuid.uuid4())
+
+
+class Ticket_Issues(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    description = models.CharField(max_length=256)
+    error_key = models.UUIDField(default=uuid.uuid4())
+
 
 
 class Event(models.Model):
@@ -55,9 +72,17 @@ class Event(models.Model):
     is_promoted = models.BooleanField(default=False, verbose_name='Promoted')
     ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE , related_name="old_ticket")
     each_ticket = models.ManyToManyField(Ticket)
+    event_key = models.CharField(max_length=256, null=True)
 
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            generated_uuid = str(uuid.uuid4())
 
+            random_string = generated_uuid[:10].upper()
 
+            self.event_key = random_string
+
+        super().save(*args, **kwargs)
 
 
 
@@ -71,18 +96,95 @@ ACCOUNT_TYPE = (
 )
 
 class PayOutInfo(models.Model):
+    user =  models.ForeignKey(User, on_delete=models.CASCADE)
+    bank_name = models.CharField(max_length=256, null=True, blank=True)
+    account_name = models.CharField(max_length=256, null=True, blank=True)
+    account_number = models.CharField(max_length=256, null=True, blank=True)
+    account_type = models.CharField(max_length=256, null=True, blank=True)
+
+
+class UserWallet(models.Model):
+    user = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
+    currency = models.CharField(max_length=50, default='NGN')
+    balance =  models.FloatField(default=0)
+    prev_balance = models.FloatField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+    last_fund = models.DateTimeField(null=True, blank=True)
+    
+
+    def __str__(self):
+        return self.user.__str__()
+
+    @classmethod
+    def withdraw(cls, id, amount):
+        with transaction.atomic():
+            account = (cls.objects.select_for_update().get(id=id))
+            print(account)
+            balance_before = account.balance
+            if account.balance < amount or amount < 0:
+                return False
+            account.balance -= amount
+            account.save()
+
+    @classmethod
+    def deposit(cls, id, amount):
+        with transaction.atomic():
+            account = (cls.objects.select_for_update().get(id=id))
+            print(account)
+            account.prev_balance = account.balance
+            if amount < 0:
+                return False
+            account.balance += amount
+            account.user.account_balance = account.balance
+            account.save()
+
+
+class Event_Transaction_History(models.Model):
+    user = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
+    currency = models.CharField(max_length=50, default='NGN')
+    balance =  models.FloatField(default=0)
+    prev_balance = models.FloatField(default=0)
+    ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
+
+
+
+class Ticket_Payment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    bank_name = models.ForeignKey(Bank, on_delete=models.CASCADE)
-    account_name = models.CharField(max_length=250, blank=True, null=True)
-    account_number = models.BigIntegerField()
-    account_type = models.CharField(max_length= 250, choices=ACCOUNT_TYPE)
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+    amount = models.FloatField()
+    time_stamp = models.DateTimeField(default=timezone.now)
+    url = models.CharField(max_length=1000, null=True, blank=True)
+    is_initiated = models.BooleanField(default=False)
+    is_completed = models.BooleanField(default=False)
+    payment_id = models.UUIDField(default=uuid.uuid4())
+
+    class Meta:
+        get_latest_by = 'time_stamp'
+
 
 class Withdraw(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     details = models.ForeignKey(PayOutInfo, on_delete=models.CASCADE)
     amount = models.BigIntegerField()
     is_successful = models.BooleanField(default=False, verbose_name='SUCCESSFUL')
     is_pending = models.BooleanField(default=False, verbose_name='PENDING')
     is_failed = models.BooleanField(default=False, verbose_name='FAILED')
+    time_stamp = models.DateTimeField(default=timezone.now)
+    class Meta:
+        get_latest_by = 'time_stamp'
+
+    # def save(self, *args, **kwargs) -> None:
+
+    #     if Withdraw.objects.filter(user=self.user) is not None:
+    #         user = Withdraw.objects.filter(user=self.user).latest() 
+    #         if user.is_pending == False:
+    #             pass
+    #         else:
+    #             return super().save(*args, **kwargs)
+
+    #     else:
+    #         return super().save(*args, **kwargs)
 
 
 class WithdrawalHistory(models.Model):
@@ -114,7 +216,6 @@ class WithdrawalRequest(models.Model):
         return f"Withdrawal Request by {self.user.username}"
 
 
-
 class TicketPurchase(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)  # Assuming you have an Event model
@@ -137,3 +238,34 @@ class EventPromotionRequest(models.Model):
 
     def __str__(self):
         return f"Promotion Request for '{self.event.title}' by {self.user.username}"
+ 
+
+class Ticket_Sales_Ticket(models.Model):
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    desc = models.CharField(max_length=256, null=True)
+    platform = models.CharField(max_length=256, null=True)
+    category = models.CharField(max_length=256, null=True)
+    location = models.CharField(max_length=256, null=True)
+    url = models.CharField(max_length=256, null=True)
+    ticket = models.CharField(max_length=256, null=True)
+    event_key = models.CharField(max_length=256, null=True)
+    ticket_key = models.CharField(max_length=256, null=True)
+    ticket_category = models.CharField(max_length=256, null=True)
+    ticket_price = models.CharField(max_length=256, null=True)
+    ticket_quantity = models.CharField(max_length=256, null=True)
+    ticket_ticket_key = models.CharField(max_length=256, null=True)
+    event_key = models.CharField(max_length=256, null=True)
+
+    def save(self, *args, **kwargs) -> None:
+        if self.event_key:
+            event = Event.objects.get(event_key=self.event_key)
+            event.attendees.add(self.user)
+            event.save()
+            user_wallet = None
+            if not UserWallet.objects.get(user=event.user).DoesNotExist():
+                user_wallet = UserWallet.objects.get(user=event.user)
+            else:
+                user_wallet = UserWallet.objects.create(user=event.user)
+            user_wallet.deposit(amount=event.ticket.price)
+        return super().save(*args, **kwargs)
+    

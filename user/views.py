@@ -290,7 +290,6 @@ class LoginAPI(APIView):
             # Authentication failed; return an error response
             return Response({'error': 'Invalid login credentials'}, status=401)
 
-        
 
 
 @api_view(['POST'])

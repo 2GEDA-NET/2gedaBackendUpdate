@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser, User
@@ -6,6 +7,8 @@ from django.conf import settings
 from .managers import UserManager
 from location_field.models.plain import PlainLocationField
 from storages.backends.s3boto3 import S3Boto3Storage
+from ticket.models import UserWallet
+
 
 
 
@@ -29,6 +32,7 @@ class User(AbstractUser):
     otp = models.CharField(max_length=5, blank=True)
     otp_verified = models.BooleanField(default=False)
     secret_key = models.CharField(max_length=64)
+    account_balance = models.IntegerField(default=0)
 
     class Meta:
         swappable = 'AUTH_USER_MODEL'
@@ -97,6 +101,11 @@ class UserProfile(models.Model):
     favorite_categories = models.ManyToManyField('BusinessCategory', related_name='users_with_favorite', blank=True)
     searched_polls = models.ManyToManyField('poll.Poll', related_name='users_searched', blank=True)
     has_updated_profile = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs) -> None:
+        UserWallet.objects.create(user=self.user)
+
+        return super().save(*args, **kwargs)
 
 
 

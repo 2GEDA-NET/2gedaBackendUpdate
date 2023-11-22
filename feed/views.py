@@ -832,61 +832,63 @@ class UserPostsView(ListAPIView):
 
 
 
-class CreatePostView(generics.CreateAPIView):
+class CreatePostView(generics.ListCreateAPIView):
     serializer_class = CreatePostSerializer
     permission_classes = [IsAuthenticated]
     queryset = PostMedia.objects.all()
 
     def perform_create(self, serializer):
 
-            # serializer.validated_data.pop('comment_text', None)
-            # serializer.validated_data.pop('each_media', None)
-            # serializer.validated_data.pop('hashtags', None)
-            # serializer.validated_data.pop('tagged_users_post', None)
-
-            instance = serializer.save()
+        instance = serializer.save()
+        
+        if "media" in self.request.data:
+            media_list = []
+            medias = self.request.FILES.getlist("media")
+            for each_media in medias:
+                print(each_media)
+                media = MediaPost.objects.create(user=self.request.user, media=each_media)
+                media_list.append(media)
             
-            if "media" in self.request.data:
-                media_list = []
-                medias = self.request.FILES.getlist("media")
-                for each_media in medias:
-                    media = MediaPost.objects.create(user=self.request.user, media=each_media)
-                    media_list.append(media)
+            instance.each_media.add(*media_list)
+
+
+        if "hashtags" in self.request.data:
+            hashtags_list = []
+            hashtags = self.request.data.getlist("hashtags")
+            for hashtag in hashtags:
+                print(hashtags)
+                hashtag = HashTagsPost.objects.create(user=self.request.user, hash_tags=hashtag)
+                hashtags_list.append(hashtag)
+
+            instance.hashtags.add(*hashtags_list)
+
+        if "tagged_users" in self.request.data:
+            tagged_users_list = []
+            tagged_users = self.request.data.getlist("tagged_users")
+            if str(tagged_users).startswith("@"):
+                for tagged_user in tagged_users:
                 
-                instance.each_media.add(*media_list)
+                        username = str(tagged_user)[1:]
+                        user = User.objects.get(username=username)
+                        tagged_users_list.append(user)
 
+                instance.tagged_users_post.add(*tagged_users_list)
 
-            if "hashtags" in self.request.data:
-                hashtags_list = []
-                hashtags = self.request.data.getlist("hashtags")
-                for hashtag in hashtags:
-                    hashtag = HashTagsPost.objects.create(user=self.request.user, hash_tags=hashtag)
-                    hashtags_list.append(hashtag)
+            else:
+                pass
 
-                instance.hashtags.add(*hashtags_list)
-
-            if "tagged_users" in self.request.data:
-                tagged_users_list = []
-                tagged_users = self.request.data.getlist("tagged_users")
-                if str(tagged_users).startswith("@"):
-                    for tagged_user in tagged_users:
+        instance.save()
+            
                     
-                            username = str(tagged_user)[1:]
-                            user = User.objects.get(username=username)
-                            tagged_users_list.append(user)
-
-                    instance.tagged_users_post.add(*tagged_users_list)
-
-                else:
-                    pass
-                
-                      
 
 
 
 
-            return super().perform_create(serializer)
+        return super().perform_create(serializer)
 
 
-
+class CreatePostDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CreatePostSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = PostMedia.objects.all()
   

@@ -44,8 +44,8 @@ class ReplySerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    reaction = ReactionSerializer()
-    responses = ReplySerializer()
+    reaction = ReactionSerializer(many=True)
+    responses = ReplySerializer(many=True)
     class Meta:
         model = Comment
         fields = "__all__"
@@ -222,7 +222,6 @@ class OtherPostSerializer(serializers.ModelSerializer):
         if instance.file and any(instance.file.media.name.endswith(ext) for ext in others_extensions):
             return super().to_representation(instance)
         return None
-
 
 
 

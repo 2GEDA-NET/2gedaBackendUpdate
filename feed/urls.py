@@ -23,6 +23,7 @@ router.register(r'promote-posts', PromotePostViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path("create_post/", CreatePostView.as_view()),
+    path('post_detail/<int:pk>/', CreatePostDetailView.as_view()),
     path('create-post/', create_post, name='post_create'),
     path('sticking-post-feed/', post_feed, name='post_feed'),
     path('all-post/', Get_All.as_view()),
@@ -42,6 +43,7 @@ urlpatterns = [
     path('toggle-reaction/<str:object_type>/<int:object_id>/', toggle_reaction, name='toggle-reaction'),
 
     path('post-search/', PostSearchAPIView.as_view(), name='post-search'),
+    
     
     path('paystack-callback/', PaystackCallbackView.as_view(), name='paystack-callback'),
 

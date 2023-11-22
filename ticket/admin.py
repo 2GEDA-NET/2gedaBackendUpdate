@@ -9,6 +9,20 @@ class Post(ImportExportModelAdmin):
     list_display = ('name', 'image')
 
 
+@admin.register(Ticket_Sales_Ticket)
+class Ticket_Sales_TicketAdmin(ImportExportModelAdmin):
+    list_display = (
+            "desc",
+        "platform",
+        "category",
+        "location",
+        "url",
+        "ticket",
+        "event_key",
+        "ticket_key",
+    )
+
+
 @admin.register(Event)
 class EventAdmin(ImportExportModelAdmin):
     list_display = ('user', 'get_attendees_count', 'title', 'desc', 'platform', 'category', 'location', 'ticket')

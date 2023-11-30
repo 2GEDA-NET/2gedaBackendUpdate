@@ -12,6 +12,10 @@ import requests
 import io
 from .Customstorage import CustomS3Boto3Storage, CustomS3BotoVideoStorage
 from rest_framework.decorators import permission_classes, api_view
+from rest_framework import generics
+from .models import Geopraphical_Location
+from .serializer import *
+
 # Create your views here.
 
 
@@ -127,3 +131,18 @@ def Add_Watermark_video(request, filepath):
 
     # response['Content-Disposition'] = f'attachment; filename="{your_file}"'
     return response
+
+
+class GeographyAPIView(generics.ListCreateAPIView):
+    permission_classes=[IsAuthenticated]
+    queryset= Geopraphical_Location.objects.all()
+    serializer_class = GeographySerializer
+
+
+
+class UserGeographyView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self, request, format=None):
+        user_geo = Geopraphical_Location.objects.filter(user= request.user).values()
+
+        return Response(list(user_geo), status=200)

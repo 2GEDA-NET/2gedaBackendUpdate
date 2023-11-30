@@ -2,6 +2,7 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
+    path('register/<uuid:pk>/', RegisterVoter.as_view()),
     path('options/', OptionListCreateView.as_view(), name='option-list-create'),
     path('options/<int:pk>/', OptionDetailView.as_view(), name='option-detail'),
     path('votes/', VoteListCreateView.as_view(), name='vote-list-create'),
@@ -25,6 +26,7 @@ urlpatterns = [
     path('cast-vote/', cast_votes, name='cast-vote'),
     path('polls-with-vote-count/', PollsWithVoteCountView.as_view(), name='polls-with-vote-count'),
     path('polls/results/<int:poll_id>/', PollResultsView.as_view(), name='poll-results'),
+    path('payment/', PollsPaymentView.as_view()),
 
 
 ]

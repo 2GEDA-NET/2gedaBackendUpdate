@@ -80,7 +80,8 @@ INSTALLED_APPS = [
     'user_id',
     'reward',
     'utils',
-    'storages'
+    'storages',
+    'payments'
    
 ]
 #csfr

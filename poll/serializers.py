@@ -1,23 +1,50 @@
 from rest_framework import serializers
 from .models import *
+import requests
+import json
 
 class OptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Option
         fields = '__all__'
 
-class VoteSerializer(serializers.ModelSerializer):
+
+class OptionListSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Vote
+        model = Option_List
         fields = '__all__'
 
-class PollSerializer(serializers.ModelSerializer):
-    count_views = serializers.SerializerMethodField()
 
+class VoteSerializer(serializers.ModelSerializer):
+    cost = serializers.IntegerField(required=False)
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+    class Meta:
+        model = Voting
+        fields = '__all__'
+
+
+class PollMediaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PollMedia
+        fields = "__all__"
+
+
+
+class PollSerializer(serializers.ModelSerializer):
+    # count_views = serializers.SerializerMethodField()
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+    media = PollMediaSerializer(required=False)
+    options_list =  OptionListSerializer(required=False, many=True) 
+    options =  OptionSerializer(required=False, many=True, read_only=True) 
 
     class Meta:
         model = Poll
-        fields = '__all__'
+        fields = "__all__"
     
     def get_count_views(self, obj):
         return obj.count_views()
@@ -86,3 +113,53 @@ class PollResultsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Poll
         fields = ['id', 'question', 'options', 'type', 'created_at', 'is_active', 'is_ended', 'vote_count']
+
+
+config = settings.PAYSTACK_SECRET_KEY
+
+class PaystackPaymentSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(
+        default = serializers.CurrentUserDefault()
+    )
+    poll = PollSerializer(required=False)
+    url = serializers.CharField(required=False)
+    amount = serializers.IntegerField()
+  
+    class Meta:
+        model = Instatiate_Payment
+        fields = "__all__"
+
+    
+    def validate(self, attrs: dict):
+        error = {}
+        amount = attrs.get("amount")
+        user = attrs.get("user")
+        print(user.account_balance)
+        if amount > user.account_balance:
+            error["error"] = "Insufficient Balance"
+            raise serializers.ValidationError(error)
+    
+    def create(self, validated_data):
+ 
+        amount = validated_data["amount"]
+        user = validated_data["user"]
+        email = user.email
+
+        headers = {
+            'Authorization': f'Bearer {config}',
+            'Content-Type': 'application/json',
+        }
+
+        ab = {"amount": amount, "email": email}
+        data = json.dumps(ab)
+        response = requests.post(
+            'https://api.paystack.co/transaction/initialize', headers=headers, data=data)
+        print(response.text)
+        loaddata = json.loads(response.text)
+        url = loaddata["data"]["authorization_url"]
+        validated_data['url'] = url
+        validated_data['is_instantiated'] = True
+
+
+        return super().create(validated_data)
+

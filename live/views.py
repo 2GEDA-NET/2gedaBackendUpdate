@@ -54,3 +54,5 @@ class VideoSessionDetailView(generics.RetrieveAPIView):
     authentication_classes = (TokenAuthentication,)
     queryset = VideoSession.objects.all()
     serializer_class = VideoSessionSerializer
+
+

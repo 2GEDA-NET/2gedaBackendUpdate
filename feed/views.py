@@ -879,11 +879,6 @@ class CreatePostView(generics.ListCreateAPIView):
 
         instance.save()
             
-                    
-
-
-
-
         return super().perform_create(serializer)
 
 

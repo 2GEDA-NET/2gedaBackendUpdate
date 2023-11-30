@@ -35,11 +35,59 @@ class OptionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Option.objects.all()
     serializer_class = OptionSerializer
 
+
 class VoteListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (TokenAuthentication,)
-    queryset = Vote.objects.all()
+    queryset = Voting.objects.all()
     serializer_class = VoteSerializer
+
+    def perform_create(self, serializer):
+        vote_id  = self.request.data["post_id"]
+        user = self.request.user
+        content = self.request.data["content"]
+        polls = Poll.objects.filter(vote_id=vote_id).first()
+        
+        if Voting.objects.filter(user=user, vote_id=vote_id).exists():
+            vote = Voting.objects.filter(user=user, vote_id=vote_id).first()
+            print(vote)
+            if  polls.is_editable == True:
+                try:
+                    poll_content = polls.options_list.filter(votee=user).first()
+                    poll_content.all_vote = int(poll_content.all_vote) - 1
+                    poll_content.save()
+                except:
+                    pass
+
+                try:
+                    poll_content = polls.options_list.filter(content=content).first()
+                    poll_content.all_vote = int(poll_content.all_vote) + 1
+                    poll_content.votee.add(user)
+                    poll_content.save()     
+                except:
+                    pass
+
+        poll_content = polls.options_list.filter(content=content).first()
+        poll_content.all_vote = int(poll_content.all_vote) + 1
+        poll_content.votee.add(user)
+        poll_content.save()
+        serializer.validated_data["poll"] = polls
+        serializer.validated_data["vote_id"] = vote_id
+        serializer.validated_data["have_Voted"] = True
+
+        return super().perform_create(serializer)
+
+
+class RegisterVoter(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+
+    def get(self, request, pk, format=None):
+        poll = Poll.objects.get(pk=pk)
+        Vote.objects.create(user=request.user, poll=poll)
+
+        return Response(status=200)
+
 
 class VoteDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
@@ -47,11 +95,42 @@ class VoteDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Vote.objects.all()
     serializer_class = VoteSerializer
 
+
 class PollListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (TokenAuthentication,)
     queryset = Poll.objects.all()
     serializer_class = PollSerializer
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        option_list = []
+        content_list = self.request.data.getlist("content")
+        if "media" in self.request.FILES:
+            image_list = self.request.FILES.getlist("media")
+            print(image_list)
+            print(option_list)
+            for content, image in zip(content_list, image_list ):
+                print(content)
+                # print(image)
+                option = Option_List.objects.create(content=content, option_image=image)
+                option_list.append(option)
+
+            instance.options_list.add(*option_list)
+
+            serializer = instance
+        
+        else:
+            for content in content_list:
+                option = Option_List.objects.create(content=content)
+                option_list.append(option)
+
+            instance.options_list.add(*option_list)
+            serializer = instance
+
+
+        return super().perform_create(serializer)
+
 
 class PollDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
@@ -93,7 +172,8 @@ class ClosePollView(APIView):
         poll.save()
 
         return Response({'message': 'Poll closed successfully.'}, status=status.HTTP_200_OK)
-    
+
+
 class PrivatePollsView(generics.ListAPIView):
     serializer_class = PollSerializer
 
@@ -393,3 +473,17 @@ class PollResultsView(generics.RetrieveAPIView):
                 raise PermissionDenied("You do not have permission to view this poll's results.")
         except Poll.DoesNotExist:
             raise Http404("Poll not found.")
+
+
+class PollsPaymentView(generics.ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+    queryset = Instatiate_Payment.objects.all()
+    serializer_class = PaystackPaymentSerializer
+
+    def perform_create(self, serializer):
+        poll_id = self.request.data["poll_id"]
+        poll = Poll.objects.filter(vote_id=poll_id).first()
+        serializer.validated_data["polls"] = poll
+        
+        return super().perform_create(serializer)

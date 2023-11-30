@@ -104,7 +104,7 @@ class PayOutInfo(models.Model):
 
 
 class UserWallet(models.Model):
-    user = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     currency = models.CharField(max_length=50, default='NGN')
     balance =  models.FloatField(default=0)
     prev_balance = models.FloatField(default=0)

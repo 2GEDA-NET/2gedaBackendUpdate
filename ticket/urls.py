@@ -13,8 +13,8 @@ from .views import (
     Ticket_Detail_View,
     Paystack_Verification,
     PayOnlineDone,
-    WithdrawDetailView
-
+    WithdrawDetailView,
+    GetPaymentView
 )
 
 # Create a router for viewsets
@@ -42,7 +42,10 @@ urlpatterns = [
     path('event-category/<int:pk>/', EventsCategoryDetailView.as_view()),
 
     #Tickets
-    path('buy-ticket/', PaymentOnlineApi.as_view(), name='buy-ticket'),
+    path('buy-ticket', PaymentOnlineApi.as_view(), name='buy-ticket'),
+
+    
+    path('get-ticket', GetPaymentView.as_view(), name='get-ticket'),
 
     path('create/', PaymentOnlineApi.as_view(), name='buy-ticket'),
     path('List/', Ticket_List.as_view(), name='buy-ticket'),

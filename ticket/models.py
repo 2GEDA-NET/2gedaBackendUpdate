@@ -74,6 +74,8 @@ class Event(models.Model):
     each_ticket = models.ManyToManyField(Ticket)
     event_key = models.CharField(max_length=256, null=True)
 
+
+
     def save(self, *args, **kwargs):
         if not self.pk:
             generated_uuid = str(uuid.uuid4())

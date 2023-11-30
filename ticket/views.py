@@ -84,11 +84,37 @@ class PaymentOnlineApi(generics.CreateAPIView):
     def perform_create(self, serializer):
         ticket_id = self.request.data["ticket_id"]
         ticket = Ticket.objects.get(pk=ticket_id)
-        print(ticket_id)
-
         serializer.validated_data["ticket"] = ticket
-
         return super().perform_create(serializer)
+
+
+
+class GetPaymentView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request,format=None):
+        event = request.GET.get("event")
+        amount = request.GET.get("amount")
+        event = Event.objects.get(event_key=event)
+        ticket = event.ticket
+
+        headers = {
+            'Authorization': f'Bearer {config}',
+            'Content-Type': 'application/json',
+        }
+
+        ab = {"amount": amount, "email": request.user.email}
+        data = json.dumps(ab)
+        response = requests.post(
+            'https://api.paystack.co/transaction/initialize', headers=headers, data=data)
+        print(response.text)
+        loaddata = json.loads(response.text)
+        url = loaddata["data"]["authorization_url"]
+
+        payment = Ticket_Payment.objects.create(ticket=ticket, user=request.user, amount=amount, is_initiated=True, url=url)
+        response = PaystackPaymentSerializer(payment)
+        return Response(response.data, status=200)
+
 
 
 @api_view(['POST'])
@@ -407,33 +433,36 @@ class EventsView(generics.ListCreateAPIView):
     queryset = Event.objects.all()
 
 
-    def perform_create(self, serializer:EventSerializer):
-        try:
-            events_category_name = self.request.data["events_category_name"]
-            events_category = None
-            if "events_category_image" in self.request.data:
-                events_category = EventCategory.objects.create(
-                    name =events_category_name,
-                    image = self.request.FILES["events_category_image"]
-                )
-            else:
-                events_category = EventCategory.objects.create(name=events_category_name)
-            
-            serializer.validated_data["category"] = events_category
-            #Handling tickets
-            category = self.request.data.get_list("ticket_category")
-            price = self.request.data["ticket_price"]
-            quantity = self.request.data["ticket_quantity"]
-            ticket_instance = Ticket.objects.create(
-                category=category,
-                price=price,
-                quantity=quantity
+    def perform_create(self, serializer):
+        # try:
+        events_category_name = self.request.data["events_category_name"]
+        events_category = None
+        if "events_category_image" in self.request.data:
+            events_category = EventCategory.objects.create(
+                name =events_category_name,
+                image = self.request.FILES["events_category_image"]
             )
-            serializer.validated_data["ticket"] = ticket_instance
+        else:
+            events_category = EventCategory.objects.create(name=events_category_name)
+        
+        serializer.validated_data["category"] = events_category
+        #Handling tickets
+        category = self.request.data.getlist("ticket_category")
+        price = self.request.data["ticket_price"]
+        quantity = self.request.data["ticket_quantity"]
+        ticket_instance = Ticket.objects.create(
+            category=category,
+            price=price,
+            quantity=quantity
+        )
+        serializer.validated_data["ticket"] = ticket_instance
 
-            return super().perform_create(serializer)
-        except:
-            pass
+        instance = serializer
+
+
+        return super().perform_create(instance)
+        # except:
+        #     pass
 
 
 class Ticket_List(generics.ListAPIView):

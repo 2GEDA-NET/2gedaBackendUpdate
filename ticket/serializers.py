@@ -36,9 +36,11 @@ class EventSerializer(serializers.ModelSerializer):
     platform = serializers.CharField(required=False)
     desc = serializers.CharField(required=False)
     location = serializers.CharField(required=False)
+    each_ticket = TicketSerializer(required=False, many=True)
+
     class Meta:
         model = Event
-        fields = ["id","user","attendees","image","title","desc","platform","category","date","ticket","location","url"]
+        fields = "__all__"
     
     def validate(self, attrs):
         error = {}
@@ -56,8 +58,17 @@ class EventSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(error)
         return super().validate(attrs)
     
-    def create(self, validated_data):
-        return super().create(validated_data)
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        event_key = instance.event_key
+        price = instance.ticket.price
+        share = {
+            "url" : f'https://www.2geda.net/ticket/get-ticket?event={event_key}&amount={price}'
+        } 
+        representation["share"] = share
+        return representation
+    
+
 
 
 class UserEventSerializer(serializers.ModelSerializer):
@@ -126,6 +137,7 @@ class PaystackPaymentSerializer(serializers.ModelSerializer):
     ticket = TicketSerializer(required=False)
     url = serializers.CharField(required=False) 
     is_initiated = serializers.BooleanField(required=False) 
+
     class Meta:
         model = Ticket_Payment
         fields = "__all__"

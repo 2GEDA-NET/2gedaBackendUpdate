@@ -2,6 +2,9 @@ from rest_framework import serializers
 
 from user.serializers import UserSerializer
 from .models import *
+from django.utils.timesince import timesince
+from datetime import datetime
+
 
 class PostMediaSerializer_OAJ(serializers.ModelSerializer):
     user_profile_image_url = serializers.SerializerMethodField()
@@ -12,6 +15,7 @@ class PostMediaSerializer_OAJ(serializers.ModelSerializer):
 
     def get_user_profile_image_url(self, obj):
         return obj.post.user.profileimage.image.url if obj.post.user.profileimage else None
+    
 
 
 class PostMediaSerializer(serializers.ModelSerializer):
@@ -245,3 +249,22 @@ class CreatePostSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(error)
 
         return super().validate(attrs)
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        print(representation)
+        
+        time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+        time_instance = representation.get('time_stamp')
+        
+        time_object = datetime.strptime(time_instance, time_format)
+        
+        time_difference = datetime.now() - time_object
+        
+        time_since = timesince(time_object)
+        
+        data = {
+            "time_since": time_since
+        }
+        representation.update(data)
+        return representation

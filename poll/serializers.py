@@ -135,9 +135,25 @@ class PaystackPaymentSerializer(serializers.ModelSerializer):
         amount = attrs.get("amount")
         user = attrs.get("user")
         print(user.account_balance)
+
+        headers = {
+            'Authorization': f'Bearer {config}',
+            'Content-Type': 'application/json',
+        }
+
+        ab = {"amount": amount, "email": user.email}
+        data = json.dumps(ab)
+        response = requests.post(
+            'https://api.paystack.co/transaction/initialize', headers=headers, data=data)
+        print(response.text)
+        loaddata = json.loads(response.text)
+        url = loaddata["data"]["authorization_url"] 
+
         if amount > user.account_balance:
             error["error"] = "Insufficient Balance"
+            error["fund_account"] = url
             raise serializers.ValidationError(error)
+    
     
     def create(self, validated_data):
  

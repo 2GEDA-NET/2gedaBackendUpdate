@@ -28,5 +28,4 @@ urlpatterns = [
     path('polls/results/<int:poll_id>/', PollResultsView.as_view(), name='poll-results'),
     path('payment/', PollsPaymentView.as_view()),
 
-
 ]

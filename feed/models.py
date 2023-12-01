@@ -42,6 +42,7 @@ class PostMedia(models.Model):
         default=True, verbose_name='Personal Post')
     tagged_users_post = models.ManyToManyField(
         User, related_name="users_tag",blank=True)
+    time_since = models.CharField(max_length=256, null=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

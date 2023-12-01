@@ -55,7 +55,7 @@ class HashTagSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source='user.username', read_only=True)
 
     class Meta:
-        model = HashTags
+        model = HashTagsPost
         fields = '__all__'
 
 

@@ -856,30 +856,37 @@ class CreatePostView(generics.ListCreateAPIView):
             hashtags_list = []
             hashtags = self.request.data.getlist("hashtags")
             for hashtag in hashtags:
-                print(hashtags)
-                hashtag = HashTagsPost.objects.create(user=self.request.user, hash_tags=hashtag)
-                hashtags_list.append(hashtag)
+                if str(hashtag).startswith("@"):
+                    username = str(hashtag)[1:]
+                    user = User.objects.filter(username=username).first()
+                    hashtag = HashTagsPost.objects.create(user=user, hash_tags=hashtag)
+                    hashtags_list.append(hashtag)
 
             instance.hashtags.add(*hashtags_list)
 
-        if "tagged_users" in self.request.data:
+
+        if "hashtags" in self.request.data:
             tagged_users_list = []
-            tagged_users = self.request.data.getlist("tagged_users")
-            if str(tagged_users).startswith("@"):
-                for tagged_user in tagged_users:
+            tagged_users = self.request.data.getlist("hashtags")
+            
+            for tagged_user in tagged_users:
+                        
+                if str(tagged_user).startswith("@"):
                 
                         username = str(tagged_user)[1:]
                         user = User.objects.get(username=username)
                         tagged_users_list.append(user)
 
+                else:
+                    pass
+
                 instance.tagged_users_post.add(*tagged_users_list)
 
-            else:
-                pass
+            
 
         instance.save()
             
-        return super().perform_create(serializer)
+        return super().perform_create(instance)
 
 
 class CreatePostDetailView(generics.RetrieveUpdateDestroyAPIView):

@@ -116,6 +116,7 @@ class Poll(models.Model):
     time_stamp = models.DateTimeField(default=timezone.now)
     
     
+    
 
     def count_views(self):
         return PollView.objects.filter(poll=self).count()

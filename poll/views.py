@@ -99,7 +99,7 @@ class VoteDetailView(generics.RetrieveUpdateDestroyAPIView):
 class PollListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (TokenAuthentication,)
-    queryset = Poll.objects.all()[:30]
+    queryset = Poll.objects.all().order_by('-created_at')[:30]
     serializer_class = PollSerializer
 
     def perform_create(self, serializer):

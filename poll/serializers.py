@@ -61,7 +61,6 @@ class PollSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         username = representation.get("username")
-        print(f'the user {username}')
         user_profile = UserProfile.objects.filter(user__username=username).first()
         #time
         time_format = "%Y-%m-%dT%H:%M:%S.%fZ"

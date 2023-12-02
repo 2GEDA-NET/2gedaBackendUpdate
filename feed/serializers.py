@@ -252,8 +252,7 @@ class CreatePostSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        print(representation)
-        
+
         time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
         time_instance = representation.get('time_stamp')
         

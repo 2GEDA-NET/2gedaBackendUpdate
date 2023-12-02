@@ -99,13 +99,16 @@ class VoteDetailView(generics.RetrieveUpdateDestroyAPIView):
 class PollListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (TokenAuthentication,)
-    queryset = Poll.objects.all()
+    queryset = Poll.objects.all()[:30]
     serializer_class = PollSerializer
 
     def perform_create(self, serializer):
         instance = serializer.save()
         option_list = []
         content_list = self.request.data.getlist("content")
+        user_profile = UserProfile.objects.get(user=self.request.user)
+        instance.user_profile = user_profile
+        instance.username = self.request.user.username
         if "media" in self.request.FILES:
             image_list = self.request.FILES.getlist("media")
             print(image_list)

@@ -831,11 +831,10 @@ class UserPostsView(ListAPIView):
         return Post.objects.filter(user=user)
 
 
-
 class CreatePostView(generics.ListCreateAPIView):
     serializer_class = CreatePostSerializer
     permission_classes = [IsAuthenticated]
-    queryset = PostMedia.objects.all()
+    queryset = PostMedia.objects.filter()[:10]
 
     def perform_create(self, serializer):
 

@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import *
 import requests
 import json
+from user.serializers import UserSerializer
+
 
 class OptionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -54,6 +56,41 @@ class PollSerializer(serializers.ModelSerializer):
         # Ensure that the user who creates the poll is the request user
         validated_data['user'] = self.context['request'].user
         return super(PollSerializer, self).create(validated_data)
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        username = representation.get("username")
+        print(f'the user {username}')
+        user_profile = UserProfile.objects.filter(user__username=username).first()
+        try:
+           
+
+            data = {
+                "profile_image": user_profile.media.profile_image
+            }
+       
+            representation.update(data)
+
+        except:
+            data = {
+                "profile_image": ""
+            }
+       
+            representation.update(data)
+
+        return representation
+
+
+    
+        
+
+
+
+  
+        
+
+    
+    
 
 
 class SuggestedPollSerializer(serializers.ModelSerializer):
@@ -154,7 +191,7 @@ class PaystackPaymentSerializer(serializers.ModelSerializer):
             error["fund_account"] = url
             raise serializers.ValidationError(error)
     
-    
+
     def create(self, validated_data):
  
         amount = validated_data["amount"]

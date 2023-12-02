@@ -6,6 +6,11 @@ import uuid
 from django.utils import timezone
 # Create your models here.
 
+POST_CHOICES = (
+    ("public", "public"),
+    ("private", "private")
+)
+
 
 class MediaPost(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -34,6 +39,8 @@ class PostMedia(models.Model):
     love = models.IntegerField(default=0)
     dislike = models.IntegerField(default=0)
     other_reactions = models.IntegerField(default=0)
+    is_paid = models.BooleanField(default=False)
+    post_type =  models.CharField(choices=POST_CHOICES, default="public")
     each_media = models.ManyToManyField(MediaPost)
     hashtags =  models.ManyToManyField(HashTagsPost)
     is_business_post = models.BooleanField(

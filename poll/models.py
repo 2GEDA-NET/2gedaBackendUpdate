@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from user.models import *
 from django.utils import timezone
 import uuid
+from user.models import UserProfile
 
 class Payment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -103,7 +104,9 @@ class Poll(models.Model):
         default=uuid.uuid4, editable=False
     )
     is_editable = models.BooleanField(default=False)
-
+    user_profile = models.ForeignKey(UserProfile, related_name="user_profile_polls", on_delete=models.CASCADE, null=True)
+    username = models.CharField(max_length=250, null=True)
+    
 
     def count_views(self):
         return PollView.objects.filter(poll=self).count()

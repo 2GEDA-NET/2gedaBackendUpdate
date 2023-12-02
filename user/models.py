@@ -37,8 +37,8 @@ class User(AbstractUser):
     class Meta:
         swappable = 'AUTH_USER_MODEL'
 
-    def __str__(self):
-        return str(self.username) or ''
+    # def __str__(self):
+    #     return str(self.username) or ''
 
 
 GENDER_CHOICES = (
@@ -114,6 +114,9 @@ class UserProfile(models.Model):
 
     def sticking_count(self):
         return UserProfile.objects.filter(stickers=self.user).count()
+    
+    def profile_image(self):
+        return self.media.profile_image
     
     # @property
     # def date_of_birth(self):

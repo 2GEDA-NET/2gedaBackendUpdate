@@ -106,6 +106,8 @@ class Poll(models.Model):
     is_editable = models.BooleanField(default=False)
     user_profile = models.ForeignKey(UserProfile, related_name="user_profile_polls", on_delete=models.CASCADE, null=True)
     username = models.CharField(max_length=250, null=True)
+    time_stamp = models.DateTimeField(default=timezone.now)
+    
     
 
     def count_views(self):

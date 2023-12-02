@@ -3,7 +3,8 @@ from .models import *
 import requests
 import json
 from user.serializers import UserSerializer
-
+from django.utils.timesince import timesince
+from datetime import datetime as date_timer
 
 class OptionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -62,18 +63,27 @@ class PollSerializer(serializers.ModelSerializer):
         username = representation.get("username")
         print(f'the user {username}')
         user_profile = UserProfile.objects.filter(user__username=username).first()
+        #time
+        time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+        time_instance = representation.get('time_stamp')
+        
+        time_object = date_timer.strptime(time_instance, time_format)
+        
+        time_since = timesince(time_object)
         try:
            
 
             data = {
-                "profile_image": user_profile.media.profile_image
+                "profile_image": user_profile.media.profile_image,
+                "time_since": time_since
             }
        
             representation.update(data)
 
         except:
             data = {
-                "profile_image": ""
+                "profile_image": "",
+                "time_since": time_since
             }
        
             representation.update(data)
@@ -83,14 +93,6 @@ class PollSerializer(serializers.ModelSerializer):
 
     
         
-
-
-
-  
-        
-
-    
-    
 
 
 class SuggestedPollSerializer(serializers.ModelSerializer):

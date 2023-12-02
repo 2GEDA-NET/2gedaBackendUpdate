@@ -64,10 +64,16 @@ class Voting(models.Model):
 
 
 # Define the choices for the 'type' field
-POLL_TYPE = (
+POLL_PRIVACY = (
     ('Private', 'Private'),
     ('Public', 'Public'),
 )
+
+POLL_TYPE = (
+    ('Free', 'Free'),
+    ('Paid', 'Paid'),
+)
+
 
 # Define the choices for the 'duration' field
 POLL_DURATION_CHOICES = [
@@ -88,7 +94,8 @@ class Poll(models.Model):
     # Use the 'duration' field with choices
     duration = models.CharField(max_length=250, choices=POLL_DURATION_CHOICES)
     
-    type = models.CharField(max_length=250, choices=POLL_TYPE)
+    type = models.CharField(max_length=250, choices=POLL_TYPE, default="Free")
+    privacy = models.CharField(max_length=250, choices=POLL_PRIVACY, default="Public")
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True, verbose_name='Active')
     is_ended = models.BooleanField(default=False, verbose_name='Ended')

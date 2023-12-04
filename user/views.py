@@ -1114,9 +1114,73 @@ class Acct_Sync(APIView):
 class UserInfo(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, format=None):
-        user_profile = UserProfile.objects.filter(user=request.user).values()
-        user = User.objects.filter(username=request.user.username).values()
-        user_image = UserProfileImage.objects.filter(user=request.user).values()
+        user_profile = UserProfile.objects.filter(user=request.user).values(
+            "work",
+            "date_of_birth",
+            "gender",
+            "custom_gender",
+            "religion",
+            "media_id",
+            "cover_image_id",
+            "address_id",
+            "is_flagged",
+            "has_updated_profile"
+        )
+        user = User.objects.filter(username=request.user.username).values(
+                "last_login",
+                "username",
+                "first_name",
+                "last_name",
+                "date_joined",
+                "email",
+                "is_business",
+                "is_personal",
+                "phone_number",
+                "is_verified",
+                "last_seen",
+                "otp_verified",
+                "account_balance"
+        )
+        user_image = UserProfileImage.objects.filter(user=request.user).values(
+            "profile_image"
+        )
+        return Response([{"user_profile" : user_profile}, {"user": user}, {"user_image": user_image}], status=200)
+    
+
+class UserInfoById(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, pk, format=None):
+        user_profile = UserProfile.objects.filter(user__pk=pk).values(
+            "work",
+            "date_of_birth",
+            "gender",
+            "custom_gender",
+            "religion",
+            "media_id",
+            "cover_image_id",
+            "address_id",
+            "is_flagged",
+            "has_updated_profile"
+        )
+
+        user = User.objects.filter(pk=pk).values(
+                "last_login",
+                "username",
+                "first_name",
+                "last_name",
+                "date_joined",
+                "email",
+                "is_business",
+                "is_personal",
+                "phone_number",
+                "is_verified",
+                "last_seen",
+                "otp_verified",
+                "account_balance"
+        )
+        user_image = UserProfileImage.objects.filter(user__pk=pk).values(
+            "profile_image"
+        )
 
         return Response([{"user_profile" : user_profile}, {"user": user}, {"user_image": user_image}], status=200)
 

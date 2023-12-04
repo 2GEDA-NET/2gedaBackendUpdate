@@ -115,6 +115,7 @@ urlpatterns = [
     path('suggestions/', Acct_Sync.as_view()),
     path('users-list/', UserInfo.as_view()),
     path('users-list/<int:pk>/', UserInfoById.as_view()),
+    path('users/all/', AllUsersView.as_view()),
 
 ]
 

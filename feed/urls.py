@@ -25,6 +25,12 @@ urlpatterns = [
     path("create_post/", CreatePostView.as_view()),
     path('post_detail/<int:pk>/', CreatePostDetailView.as_view()),
     path('create-post/', create_post, name='post_create'),
+    path('create-comment/', CreateCommentView.as_view()),
+    path('get-comment/<int:post_id>/', GetPostComment.as_view()),
+
+
+
+
     path('sticking-post-feed/', post_feed, name='post_feed'),
     path('all-post/', Get_All.as_view()),
     path('feed-post/', Get_All.as_view()),

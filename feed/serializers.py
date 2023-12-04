@@ -26,6 +26,9 @@ class PostMediaSerializer(serializers.ModelSerializer):
 
 
 class ReactionSerializer(serializers.ModelSerializer):
+    user = UserSerializer(
+        default = serializers.CurrentUserDefault()
+    )
     class Meta:
         model = Reaction
         fields = '__all__'
@@ -41,18 +44,51 @@ class ReactionSerializer(serializers.ModelSerializer):
 
 class ReplySerializer(serializers.ModelSerializer):
     reaction = ReactionSerializer()
+    user = UserSerializer(
+        default = serializers.CurrentUserDefault()
+    )
 
     class Meta:
         model = Reply
         fields = '__all__'
 
 
+class CommentMediaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CommentMedia
+        fields = "__all__"        
+
+
+
 class CommentSerializer(serializers.ModelSerializer):
-    reaction = ReactionSerializer(many=True)
-    responses = ReplySerializer(many=True)
+    user = UserSerializer(
+        default = serializers.CurrentUserDefault()
+    )
+    reaction = ReactionSerializer(many=True, required=False)
+    responses = ReplySerializer(many=True, required=False)
+    media = CommentMediaSerializer(many=True, required=False)
+    reaction_count = serializers.SerializerMethodField()
+    responses_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Comment
         fields = "__all__"
+
+    def get_reaction_count(self, obj):
+        if obj.reaction is not None:
+            return obj.reaction.count()
+        return None
+    
+    def get_responses_count(self, obj):
+        if obj.responses is not None:
+            return obj.responses.count()
+        return None
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        return representation
 
 
 class HashTagSerializer(serializers.ModelSerializer):
@@ -267,3 +303,4 @@ class CreatePostSerializer(serializers.ModelSerializer):
         }
         representation.update(data)
         return representation
+    

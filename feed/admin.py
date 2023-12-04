@@ -33,7 +33,7 @@ class SharePostAdmin(ImportExportModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(ImportExportModelAdmin):
-    list_display = ('user', 'post', 'content', 'reaction', 'timestamp')
+    list_display = ('user', 'post', 'content', 'timestamp')
 
 @admin.register(Reply)
 class ReplyAdmin(ImportExportModelAdmin):

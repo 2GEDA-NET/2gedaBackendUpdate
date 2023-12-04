@@ -64,6 +64,7 @@ class PostMedia(models.Model):
 
 
 class CommentMedia(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     post = models.ForeignKey(
         'Post', on_delete=models.CASCADE, null=True)
     media = models.FileField(upload_to='comment_files/', blank=True, null=True)
@@ -119,12 +120,12 @@ class SharePost(models.Model):
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
+    post = models.ForeignKey(PostMedia, on_delete=models.CASCADE, null=True, related_name="post_media_fields")
     content = models.TextField()
     responses = models.ManyToManyField("Reply", related_name="commnts_to_reply")
     media = models.ManyToManyField(CommentMedia)
-    reaction = models.ForeignKey(
-        'Reaction', on_delete=models.SET_NULL, null=True)
+    reaction = models.ManyToManyField(
+        'Reaction', related_name="comment_rection")
     timestamp = models.TimeField(auto_now_add=True)
     parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
 
@@ -153,7 +154,7 @@ class Reaction(models.Model):
         ('wow', 'Wow'),
         ('others', 'Others'),
     ]
-
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     reaction_type = models.CharField(
         max_length=20, choices=REACTION_CHOICES, verbose_name='Reaction')
 

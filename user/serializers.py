@@ -165,21 +165,15 @@ class BusinessAccountSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     stickers = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     sticking = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    stickers_count = serializers.SerializerMethodField()
-    sticking_count = serializers.SerializerMethodField()
-    address = CurrentCityAddressSerializer()
+
+    user = UserSerializer(required=False)
 
 
     class Meta:
         model = UserProfile
-        fields = ('work', 'date_of_birth', 'gender', 'custom_gender', 'address', 'stickers', 'sticking', 'stickers_count', 'sticking_count')
+        fields = ('user','work', 'date_of_birth', 'gender', 'custom_gender',  'stickers', 'sticking')
 
         
-    def get_stickers_count(self, obj):
-        return obj.sticker_count()
-
-    def get_sticking_count(self, obj):
-        return obj.sticking_count()
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer()

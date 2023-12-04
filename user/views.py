@@ -1185,3 +1185,36 @@ class UserInfoById(APIView):
         return Response([{"user_profile" : user_profile}, {"user": user}, {"user_image": user_image}], status=200)
 
 
+class AllUsersView(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+    
+    def get(self, request, format=None):
+        user_profile = UserProfile.objects.all().values(
+            "work",
+            "date_of_birth",
+            "gender",
+            "custom_gender",
+            "religion",
+            "media_id",
+            "cover_image_id",
+            "address_id",
+            "is_flagged",
+            "has_updated_profile",
+            "user__last_login",
+            "user__username",
+            "user__first_name",
+            "user__last_name",
+            "user__date_joined",
+            "user__email",
+            "user__is_business",
+            "user__is_personal",
+            "user__phone_number",
+            "user__is_verified",
+            "user__last_seen",
+            "user__otp_verified",
+            "user__account_balance"
+
+        ) 
+
+        return Response(list(user_profile), status=200)

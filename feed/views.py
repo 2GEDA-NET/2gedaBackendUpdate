@@ -20,6 +20,7 @@ from paystackapi.transaction import Transaction
 from django.conf import settings
 from reward.models import Reward
 from rest_framework import generics
+from django.db.models import Count
 
 
 class Create_Post(APIView):
@@ -893,3 +894,52 @@ class CreatePostDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = PostMedia.objects.all()
   
+
+
+
+class CreateCommentView(generics.ListCreateAPIView):
+
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Comment.objects.all().prefetch_related('responses','reaction').select_related('user','post').annotate(responses_count=Count("responses"), reaction_count=Count("reaction"))
+
+    def perform_create(self, serializer):
+        serializer_instance = serializer.save()
+        post_id = self.request.data["post_id"]
+        post = PostMedia.objects.get(pk=post_id)
+        
+
+        if "media" in self.request.data:
+            media_list = []
+            medias = self.request.FILES.getlist("media")
+            for each_media in medias:
+                print(each_media)
+                media = CommentMedia.objects.create(user=self.request.user, media=each_media)
+                media_list.append(media)
+            
+            serializer_instance.media.add(*media_list)
+        
+        serializer_instance.post = post  
+        return super().perform_create(serializer_instance)
+
+
+class GetPostComment(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, post_id, format=None):
+        comment = Comment.objects.filter(post__id=post_id).prefetch_related('responses','reaction'
+            ).select_related('user','post'
+                ).annotate(responses_count=Count("responses"), reaction_count=Count("reaction")).values()
+        
+        return Response(list(comment), status=200)
+        
+
+
+class CommentReactionView(generics.ListCreateAPIView):
+    serializer_class = ReactionSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = PostMedia.objects.all()
+
+    def perform_create(self, serializer):
+        
+        return super().perform_create(serializer)

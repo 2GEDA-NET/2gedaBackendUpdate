@@ -1114,7 +1114,10 @@ class Acct_Sync(APIView):
 class UserInfo(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, format=None):
-        user = UserProfile.objects.filter(user=request.user).values()
-        return Response(list(user), status=200)
+        user_profile = UserProfile.objects.filter(user=request.user).values()
+        user = User.objects.filter(username=request.user.username).values()
+        user_image = UserProfileImage.objects.filter(user=request.user).values()
+
+        return Response([{"user_profile" : user_profile}, {"user": user}, {"user_image": user_image}], status=200)
 
 

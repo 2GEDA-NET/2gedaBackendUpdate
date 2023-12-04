@@ -77,6 +77,7 @@ POLL_TYPE = (
 
 # Define the choices for the 'duration' field
 POLL_DURATION_CHOICES = [
+    ('22 hours', '22 Hours'),
     ('24 hours', '24 Hours'),
     ('3 days', '3 Days'),
     ('7 days', '7 Days'),
@@ -114,9 +115,9 @@ class Poll(models.Model):
     user_profile = models.ForeignKey(UserProfile, related_name="user_profile_polls", on_delete=models.CASCADE, null=True)
     username = models.CharField(max_length=250, null=True)
     time_stamp = models.DateTimeField(default=timezone.now)
-    
-    
-    
+    time_duration = models.DurationField(null=True)
+
+
 
     def count_views(self):
         return PollView.objects.filter(poll=self).count()

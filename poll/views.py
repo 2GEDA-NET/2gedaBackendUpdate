@@ -19,6 +19,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from paystackapi.paystack import Paystack
 from .models import Payment
+from datetime import timedelta
 
 paystack = Paystack(secret_key=settings.PAYSTACK_SECRET_KEY)
 
@@ -96,6 +97,7 @@ class VoteDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = VoteSerializer
 
 
+
 class PollListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (TokenAuthentication,)
@@ -106,6 +108,8 @@ class PollListCreateView(generics.ListCreateAPIView):
         instance = serializer.save()
         option_list = []
         content_list = self.request.data.getlist("content")
+        duration = self.request.data["duration"]
+  
         user_profile = UserProfile.objects.get(user=self.request.user)
         instance.user_profile = user_profile
         instance.username = self.request.user.username

@@ -35,6 +35,111 @@ class PollMediaSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+def validate_duration(duration:str, created_at):
+    provided_datetime_str = str(created_at)
+    provided_datetime = date_timer.strptime(provided_datetime_str.replace("Z", "+0000"), "%Y-%m-%dT%H:%M:%S.%f%z")
+
+    if duration.endswith("hours") and len(duration)==8:
+        
+        number = duration[:2]
+
+        number =  int(number)
+        new_datetime = provided_datetime + timedelta(hours=number)
+        time_difference = new_datetime - provided_datetime
+
+        if time_difference.total_seconds() > 86400:
+            total_seconds = time_difference.days
+            duration_time = timedelta(days=total_seconds)
+            return f'{duration_time} days'
+        
+        elif time_difference.total_seconds() > 3600:
+            total_seconds = time_difference.total_seconds()
+            total_hours = total_seconds / 3600
+            
+            return f'{total_hours} hours'
+        
+
+        elif time_difference.total_seconds() < 3600:
+            total_minute = time_difference.min
+            
+            return f'{total_hours} minutes'
+    
+
+    elif duration.endswith("hours") and len(duration)==7:
+        number = duration[:1]
+
+        number =  int(number)
+        new_datetime = provided_datetime + timedelta(hours=number)
+        time_difference = new_datetime - provided_datetime
+
+        if time_difference.total_seconds() > 86400:
+            total_seconds = time_difference.days
+            duration_time = timedelta(days=total_seconds)
+            return f'{duration_time} days'
+        
+        elif time_difference.total_seconds() > 3600:
+            total_seconds = time_difference.total_seconds()
+            total_hours = total_seconds / 3600
+            
+            return f'{total_hours} hours'
+        
+
+        elif time_difference.total_seconds() < 3600:
+            total_minute = time_difference.min
+            
+            return f'{total_hours} minutes'
+    
+    
+    elif duration.endswith("days") and len(duration)==6:
+        number = duration[:1]
+        number =  int(number)
+        new_datetime = provided_datetime + timedelta(days=number)
+        time_difference = new_datetime - provided_datetime
+
+        if time_difference.total_seconds() > 86400:
+            total_seconds = time_difference.days
+            duration_time = timedelta(days=total_seconds)
+            return f'{duration_time} days'
+        
+        elif time_difference.total_seconds() > 3600:
+            total_seconds = time_difference.total_seconds()
+            total_hours = total_seconds / 3600
+            
+            return f'{total_hours} hours'
+        
+
+        elif time_difference.total_seconds() < 3600:
+            total_minute = time_difference.min
+            
+            return f'{total_hours} minutes'
+
+
+    elif duration.endswith("days") and len(duration)==7:
+        number = duration[:1]
+        number =  int(number)
+        new_datetime = provided_datetime + timedelta(days=number)
+        time_difference = new_datetime - provided_datetime
+
+        if time_difference.total_seconds() > 86400:
+            total_seconds = time_difference.days
+            duration_time = timedelta(days=total_seconds)
+            return f'{duration_time} '
+        
+        elif time_difference.total_seconds() > 3600:
+            total_seconds = time_difference.total_seconds()
+            total_hours = total_seconds / 3600
+            
+            return f'{total_hours} hours'
+        
+
+        elif time_difference.total_seconds() < 3600:
+            total_minute = time_difference.min
+            
+            return f'{total_minute} minutes'
+    
+
+
+
 
 class PollSerializer(serializers.ModelSerializer):
     # count_views = serializers.SerializerMethodField()
@@ -44,7 +149,7 @@ class PollSerializer(serializers.ModelSerializer):
     media = PollMediaSerializer(required=False)
     options_list =  OptionListSerializer(required=False, many=True) 
     options =  OptionSerializer(required=False, many=True, read_only=True) 
-
+    time_duration = serializers.DurationField(required=False)
     class Meta:
         model = Poll
         fields = "__all__"
@@ -61,6 +166,11 @@ class PollSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         username = representation.get("username")
+        time_duration = representation.get("duration")
+        time_created = representation.get("created_at")
+
+        duration = validate_duration(time_duration, time_created)
+
         user_profile = UserProfile.objects.filter(user__username=username).first()
         #time
         time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -70,11 +180,11 @@ class PollSerializer(serializers.ModelSerializer):
         
         time_since = timesince(time_object)
         try:
-           
 
             data = {
                 "profile_image": user_profile.media.profile_image,
-                "time_since": time_since
+                "time_since": time_since,
+                "remaining_time": duration
             }
        
             representation.update(data)
@@ -82,7 +192,8 @@ class PollSerializer(serializers.ModelSerializer):
         except:
             data = {
                 "profile_image": "",
-                "time_since": time_since
+                "time_since": time_since,
+                "remaining_time": duration
             }
        
             representation.update(data)

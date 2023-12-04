@@ -834,7 +834,7 @@ class UserPostsView(ListAPIView):
 class CreatePostView(generics.ListCreateAPIView):
     serializer_class = CreatePostSerializer
     permission_classes = [IsAuthenticated]
-    queryset = PostMedia.objects.filter()[:10]
+    queryset = PostMedia.objects.select_related('user_profile', 'post', 'user').prefetch_related('hashtags','each_media','comment_text').filter()[:10]
 
     def perform_create(self, serializer):
 

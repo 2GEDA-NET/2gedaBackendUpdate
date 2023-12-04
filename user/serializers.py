@@ -7,11 +7,12 @@ from django.utils.translation import gettext as _
 from django.contrib.auth.hashers import check_password
 from typing import Any
 
+
 class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ["id","email","is_business","is_personal","is_admin","username","phone_number","is_verified","last_seen"]
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):

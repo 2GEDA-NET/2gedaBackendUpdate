@@ -230,7 +230,7 @@ class OtherPostSerializer(serializers.ModelSerializer):
 
 
 class CreatePostSerializer(serializers.ModelSerializer):
-    user = serializers.HiddenField(
+    user = UserSerializer(
         default = serializers.CurrentUserDefault()
     )
     comment_text = CommentSerializer(many=True, required=False)
@@ -252,7 +252,7 @@ class CreatePostSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-
+        user = representation.get("user")
         time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
         time_instance = representation.get('time_stamp')
         

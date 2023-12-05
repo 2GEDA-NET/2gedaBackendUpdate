@@ -111,10 +111,12 @@ def create_user(request):
         email = data.get('email')
         phone_number = data.get('phone_number')
 
+        print(f'{email} {phone_number}')
+
         # Debugging statement: Print the email and phone number
         print(f"Email: {email}, Phone Number: {phone_number}")
 
-        if not email and not phone_number:
+        if email == None and phone_number == None:
             return Response({'error': 'Either email or phone number must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = UserRegistrationSerializer(

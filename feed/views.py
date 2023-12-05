@@ -832,10 +832,19 @@ class UserPostsView(ListAPIView):
         return Post.objects.filter(user=user)
 
 
-class CreatePostView(generics.ListCreateAPIView):
+class RetrievePostView(generics.RetrieveAPIView):
     serializer_class = CreatePostSerializer
     permission_classes = [IsAuthenticated]
     queryset = PostMedia.objects.select_related('user_profile', 'post', 'user').prefetch_related('hashtags','each_media','comment_text').filter()[:10]
+
+
+
+class CreatePostView(generics.ListCreateAPIView):
+    serializer_class = CreatePostSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = PostMedia.objects.select_related('user_profile', 'post', 'user'
+        ).prefetch_related('hashtags','each_media','comment_text'
+            ).all()
 
     def perform_create(self, serializer):
 
@@ -892,7 +901,7 @@ class CreatePostView(generics.ListCreateAPIView):
 class CreatePostDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CreatePostSerializer
     permission_classes = [IsAuthenticated]
-    queryset = PostMedia.objects.all()
+    queryset = PostMedia.objects.annotate(a_comment_count=Count("comment_text"))
   
 
 
@@ -917,7 +926,8 @@ class CreateCommentView(generics.ListCreateAPIView):
                 media = CommentMedia.objects.create(user=self.request.user, media=each_media)
                 media_list.append(media)
             
-            serializer_instance.media.add(*media_list)
+            post.comment_text.add(serializer_instance)
+            post.save()
         
         serializer_instance.post = post  
         return super().perform_create(serializer_instance)
@@ -942,4 +952,19 @@ class CommentReactionView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         
+
         return super().perform_create(serializer)
+    
+
+class  CommentReactionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        post_id = request.data["post_id"]
+        reaction = request.data["reaction_type"]
+        reaction_intance = Reaction.objects.create(user=request.user, reaction_type=reaction)
+        comment = Comment.objects.filter(post__pk=post_id)
+        comment.reaction.add(reaction_intance)
+        comment.save()
+
+        

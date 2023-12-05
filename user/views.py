@@ -252,7 +252,10 @@ def login_view(request):
 
         if not username or not password:
             return JsonResponse({'error': 'Both username and password are required.'}, status=400)
-
+        
+        if not User.objects.filter(username=username).exists():
+             return JsonResponse({'error': 'user does not exist'}, status=400)
+        
         user = authenticate(request, username=username, password=password)
 
         if user is not None:

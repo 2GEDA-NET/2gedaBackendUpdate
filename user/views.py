@@ -44,11 +44,13 @@ import logging
 from google.oauth2 import service_account
 from reward.models import Reward
 from .models import UserCoverImage, UserProfileImage
-import geoip2.database
 from django.contrib.gis.geoip2 import GeoIP2
 from django.conf import settings
 import os
 import json
+import csv
+
+
 
 
 country_json_path = os.path.join(settings.BASE_DIR, 'countries.json')
@@ -111,39 +113,87 @@ def get_csrf_token(request):
 
 
 def get_client_ip(request):
-    g = GeoIP2()
+    address = None
     remote_addr = request.META.get('HTTP_X_FORWARDED_FOR')
     if remote_addr:
         address = remote_addr.split(',')[-1].strip()
     else:
         address = request.META.get('REMOTE_ADDR')
-    country = g.country_code(address)
+    ip = address
+    return ip
 
 
-def get_country(request):
-    print(country_json_path)
-    remote_addr = request.META.get('HTTP_X_FORWARDED_FOR')
-    if remote_addr:
-        address = remote_addr.split(',')[-1].strip()
-    else:
-        address = request.META.get('REMOTE_ADDR')
-    g = GeoIP2()
-    country = g.country_code(address)
+def get_country(ip_address):
 
-    with open('static/countries.json', encoding="utf8") as f:
-        data = json.load(f)
-        for keyval in data:
-            if country == keyval['isoAlpha2']:
-                code = keyval['currency']['code']
-                symbol = keyval['currency']['symbol']
-    return [code, symbol]
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_file_path = os.path.join(current_dir, 'worldcities.csv')
+
+    data = []
+
+    with open(csv_file_path, newline='', encoding='utf-8') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        for row in csv_reader:
+            data.append(row)
+
+    print(data)
+    for entry in data:
+        if entry['lat'] == ip_address:
+            return {
+                'city': entry['city'],
+                'country': entry['country'],
+                'latitude': entry['lat'],
+                'longitude': entry['lng'],
+            }
+        
+        return None
+
+# import requests 
+# from django.core.management.base import BaseCommand 
+
+# class Command(BaseCommand):
+
+#     def handle(self, *args, **kwargs):
+#         current_dir = os.path.dirname(os.path.abspath(__file__))
+#         csv_file_path = os.path.join(current_dir, 'worldcities.csv')
+
+#         data = []
+
+#         with open(csv_file_path, newline='', encoding='utf-8') as csv_file:
+#             csv_reader = csv.DictReader(csv_file)
+#             for row in csv_reader:
+#                 data.append(row)
+
+#         print(data)
+
+#         for entry in data:
+#             UserGeoInformation.objects.create()
+
+#   city: 'Tokyo',
+#   city_ascii: 'Tokyo',
+#   lat: '35.6897',
+#   lng: '139.6922',
+#   country: 'Japan',
+#   iso2: 'JP',
+#   iso3: 'JPN',
+#   admin_name: 'Tōkyō',
+#   capital: 'primary',
+#   population: '37732000',
+#   id: '1392685764',
+
+
+ 
+        
+
 
 
 class TryGeo(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        country = get_country(request)
+        ip = get_client_ip(request)
+        print(ip)
+        country = get_country(ip)
+        print(country)
         return Response({"response": country}, status=200)
 
 

@@ -116,6 +116,7 @@ MIDDLEWARE = [
    
 ]
 
+GEOIP_PATH = os.path.join(BASE_DIR, 'geoip')
 
 # ASGI_APPLICATION = 'TogedaBackend.routing.application'
 

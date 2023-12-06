@@ -263,3 +263,15 @@ class BlockedUser(models.Model):
         unique_together = ('blocker', 'blocked_user')
 
 
+class UserGeoInformation(models.Model):
+    city =  models.CharField(max_length=250, null=True)
+    city_ascii =  models.CharField(max_length=250, null=True)
+    lat = models.CharField(max_length=250, null=True)
+    lng = models.CharField(max_length=250, null=True)
+    country = models.CharField(max_length=250, null=True)
+    iso2 = models.CharField(max_length=250, null=True)
+    iso3 = models.CharField(max_length=250, null=True)
+    admin_name = models.CharField(max_length=250, null=True)
+    capital = models.CharField(max_length=250, null=True)
+    population = models.CharField(max_length=250, null=True)
+    mid = models.CharField(max_length=250, null=True)

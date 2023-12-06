@@ -44,7 +44,14 @@ import logging
 from google.oauth2 import service_account
 from reward.models import Reward
 from .models import UserCoverImage, UserProfileImage
+import geoip2.database
+from django.contrib.gis.geoip2 import GeoIP2
+from django.conf import settings
+import os
+import json
 
+
+country_json_path = os.path.join(settings.BASE_DIR, 'countries.json')
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -100,6 +107,44 @@ def get_auth_token(request):
 def get_csrf_token(request):
     token = csrf.get_token(request)
     return JsonResponse({'csrfToken': token})
+
+
+
+def get_client_ip(request):
+    g = GeoIP2()
+    remote_addr = request.META.get('HTTP_X_FORWARDED_FOR')
+    if remote_addr:
+        address = remote_addr.split(',')[-1].strip()
+    else:
+        address = request.META.get('REMOTE_ADDR')
+    country = g.country_code(address)
+
+
+def get_country(request):
+    print(country_json_path)
+    remote_addr = request.META.get('HTTP_X_FORWARDED_FOR')
+    if remote_addr:
+        address = remote_addr.split(',')[-1].strip()
+    else:
+        address = request.META.get('REMOTE_ADDR')
+    g = GeoIP2()
+    country = g.country_code(address)
+
+    with open('static/countries.json', encoding="utf8") as f:
+        data = json.load(f)
+        for keyval in data:
+            if country == keyval['isoAlpha2']:
+                code = keyval['currency']['code']
+                symbol = keyval['currency']['symbol']
+    return [code, symbol]
+
+
+class TryGeo(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        country = get_country(request)
+        return Response({"response": country}, status=200)
 
 
 @api_view(['POST'])
@@ -170,10 +215,15 @@ def create_user(request):
 
                 response_data = serializer.data
                 response_data['token'] = token_key
+
+                ip = get_country(request)
+
                 return Response(response_data, status=status.HTTP_201_CREATED)
             except IntegrityError as e:
                 print(e)  # Add this line to print the IntegrityError message
                 return Response({'error': 'Account details already exist.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -703,6 +753,22 @@ class UserProfileMobile(APIView):
         return Response({'message': 'Profile updated successfully'})
 
 
+    work = models.CharField(max_length=255, blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True,)
+    gender = models.CharField(
+        max_length=15, choices=GENDER_CHOICES, blank=True, null=True)
+    custom_gender = models.CharField(max_length=250, blank=True, null=True)
+    religion = models.CharField(
+        max_length=20, choices=RELIGION_CHOICES, verbose_name='Religion')
+    media = models.ForeignKey(UserProfileImage, on_delete=models.CASCADE, blank=True, null=True, related_name='user_media')
+    cover_image = models.ForeignKey(UserCoverImage, on_delete=models.CASCADE, blank=True, null=True, related_name='user_cover_image')
+    address = models.ForeignKey('Address', on_delete=models.CASCADE, null=True, related_name='user_address')
+    stickers = models.ManyToManyField('self', related_name='sticking', symmetrical=False)
+    is_flagged = models.BooleanField(default=False, verbose_name='Flagged')
+    favorite_categories = models.ManyToManyField('BusinessCategory', related_name='users_with_favorite', blank=True)
+    searched_polls = models.ManyToManyField('poll.Poll', related_name='users_searched', blank=True)
+    has_updated_profile = models.BooleanField(default=False)
+
 
 
 
@@ -717,38 +783,45 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         user_profile = self.get_object()
-
-        print("Received Data:")
-        print(self.request.data)
+        print(user_profile)
 
         # Update the first name and last name fields
         user = self.request.data.get("user")
-        # user_profile.user.first_name = user.first_name
-            
-        # user_profile.user.last_name = user.last_name
+    
+        if "first_name" in self.request.data:
+            first_name = self.request.data.get('first_name')
+            user_profile.user.first_name = first_name
 
-        date_of_birth = self.request.data.get('date_of_birth')
-        user_profile.work = self.request.data.get('work')
-        user_profile.gender = self.request.data.get('identity')
-        user_profile.religion = self.request.data.get('religion')
-        user_profile.custom_gender = self.request.data.get('custom_gender')
-        # profile_image_data = self.request.FILES('profile_image')
-        # cover_image_data = self.request.data.get('cover_image')
-        
-        
-        # Initialize profile_image with a default value
-        profile_image = None
-        cover_image = None
+        if "last_name" in self.request.data:
+            last_name = self.request.data.get('last_name')
+            user_profile.user.last_name = last_name
+     
+        if "work" in self.request.data:
+            work = self.request.data.get('work')
+            user_profile.work = work
 
-        # cover_image_data = self.request.FILES['cover_image']
+        if "gender" in self.request.data:
+            if self.request.data["gender"] == 1 or self.request.data["gender"] == "Male":
+                user_profile.gender = 'Male'
+            elif self.request.data["gender"] == 2 or self.request.data["gender"] == "Female":
+                user_profile.gender = 'Female'
+            else:
+                self.request.data["gender"] = 'Rather not say'  
 
-        # profile_image_data = self.request.FILES['profile_image']
+        if "custom_gender" in self.request.data:
+            custom_gender = self.request.data.get('custom_gender')
+            user_profile.custom_gender = custom_gender    
+                 
+        if "religion" in self.request.data:
+            religion = self.request.data.get('religion')
+            if self.request.data.get('religion') == 1 or self.request.data.get('religion') == 'Christainity':
+                user_profile.religion = 'Christainity'
+            elif self.request.data.get('religion') == 2  or self.request.data.get('religion')== 'Muslim':
+                user_profile.religion = 'Muslim'
+            else:
+                user_profile.religion = 'Indigenous'        
 
-        # cover_image = UserCoverImage.objects.create(user=self.request.user, cover_image=cover_image_data)
 
-        # profile_image = UserProfileImage.objects.create(user=self.request.user, profile_image=profile_image_data)
-
-        # Check if 'cover_image' and 'profile_image' are present in the request
         if 'cover_image' in self.request.FILES:
             cover_image_data = self.request.FILES.get('cover_image')
             cover_image = UserCoverImage.objects.create(user=self.request.user, cover_image=cover_image_data)
@@ -759,44 +832,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             profile_image = UserProfileImage.objects.create(user=self.request.user, profile_image=profile_image_data)
             user_profile.media = profile_image
 
-        if user_profile.gender == 1 or user_profile.gender == "Male":
-            user_profile.gender = 'Male'
-        elif user_profile.gender == 2 or user_profile.gender == "Female":
-            user_profile.gender = 'Female'
-        else:
-            user_profile.gender = 'Rather not say'
-
-        if user_profile.religion == 1 or user_profile.religion == 'Christainity':
-            user_profile.religion = 'Christainity'
-        elif user_profile.religion == 2  or user_profile.religion == 'Muslim':
-            user_profile.religion = 'Muslim'
-        else:
-            user_profile.religion = 'Indigenous'
-        
-
-        if profile_image:
-            # Assuming the field name in the serializer is 'profile_image'
-            # You may need to adjust this based on your serializer
-            user_profile.media = profile_image
-            # Save the uploaded profile image
-
-        if cover_image:
-            # Assuming the field name in the serializer is 'cover_image'
-            # You may need to adjust this based on your serializer
-            user_profile.cover_image = cover_image
-            # Save the uploaded cover image
-
-        # Print the data for debugging
-        print("Received Data:")
-        print(f"first_name: {user_profile.user.first_name}")
-        print(f"last_name: {user_profile.user.last_name}")
-        print(f"work: {user_profile.work}")
-        print(f"gender: {user_profile.gender}")
-        print(f"custom_gender: {user_profile.custom_gender}")
-        print(f"custom_gender: {user_profile.religion}")
-        print(f"date_of_birth: {date_of_birth}")
-        print(f"profile_image: {user_profile.media}")
-        print(f"cover_image: {user_profile.cover_image}")
+        date_of_birth = self.request.data.get('date_of_birth')
 
         # Check if date_of_birth is not empty before parsing it
         if date_of_birth:
@@ -808,12 +844,15 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             except ValueError:
                 return Response({'error': 'Invalid date format. Please use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
         user_profile.has_updated_profile = True
-        # Save the user_profile object
+
         user_profile.save()
         user_profile.user.save()
+        
+       
+        # user_profile.user.save()
         print("Profile Saved")
 
-        return Response({'message': 'Profile updated successfully'})
+
 
 
 # Business APIs

@@ -959,12 +959,54 @@ class CommentReactionView(generics.ListCreateAPIView):
 class  CommentReactionView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
+    def post(self, request, format=None):
         post_id = request.data["post_id"]
         reaction = request.data["reaction_type"]
         reaction_intance = Reaction.objects.create(user=request.user, reaction_type=reaction)
-        comment = Comment.objects.filter(post__pk=post_id)
+        comment = Comment.objects.get(pk=post_id)
         comment.reaction.add(reaction_intance)
-        comment.save()
 
-        
+        comment = Comment.objects.get(pk=post_id)
+        serializer = CommentSerializer(comment)
+        post = Comment.objects.filter(pk=post_id).values()
+        return Response(serializer.data, status=200)
+
+
+class ReplyReactionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        try:
+            comment_id = request.data["comment_id"]
+            content = request.data["content"]
+
+            # Fetch the comment object
+            comment = Comment.objects.get(pk=comment_id)
+
+            media_list = []
+            reply = Reply.objects.create(user=request.user, content=content)
+
+            if "media" in request.data:
+                for each_media in request.FILES.getlist("media"):
+                    reply_media = ReplyMedia.objects.create(user=request.user, media=each_media)
+                    media_list.append(reply_media)
+
+                # Check if media_list is not empty before adding
+                if media_list:
+                    reply.media.add(*media_list)
+
+            # Add the reply to the comment's responses
+            comment.responses.add(reply)
+
+            # Fetch the comment again (to get the updated responses)
+            comment = Comment.objects.get(pk=comment_id)
+            serializer = CommentSerializer(comment)
+
+            return Response(serializer.data, status=200)
+
+        except Comment.DoesNotExist:
+            return Response({"error": "Comment not found"}, status=404)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+

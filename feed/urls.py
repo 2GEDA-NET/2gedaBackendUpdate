@@ -28,7 +28,8 @@ urlpatterns = [
     path('create-comment/', CreateCommentView.as_view()),
     path('get-comment/<int:post_id>/', GetPostComment.as_view()),
 
-
+    path('react/', CommentReactionView.as_view()),
+    path('reply-response/', ReplyReactionView.as_view()),
 
 
     path('sticking-post-feed/', post_feed, name='post_feed'),

@@ -182,6 +182,7 @@ class BusinessAccount(models.Model):
 
 
 class Address(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     country = models.CharField(max_length=255, null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
     current_city = models.CharField(max_length=100, null=True, blank=True)

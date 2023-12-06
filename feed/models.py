@@ -70,6 +70,11 @@ class CommentMedia(models.Model):
     media = models.FileField(upload_to='comment_files/', blank=True, null=True)
     parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
 
+class ReplyMedia(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    media = models.FileField(upload_to='comment_files/', blank=True, null=True)
+   
+
 
 class PromotionPlan(models.Model):
     name = models.CharField(max_length=255)
@@ -140,6 +145,8 @@ class Reply(models.Model):
     content = models.TextField()
     reaction = models.ForeignKey(
         'Reaction', on_delete=models.SET_NULL, null=True)
+    
+    media = models.ManyToManyField(ReplyMedia)
     
 
 

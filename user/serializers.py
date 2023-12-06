@@ -8,11 +8,16 @@ from django.contrib.auth.hashers import check_password
 from typing import Any
 
 
+
+
+
 class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
         fields = ["id","email","is_business","is_personal","is_admin","username","phone_number","is_verified","last_seen"]
+
+
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -325,16 +330,14 @@ class UserProfileSerializer2(serializers.ModelSerializer):
     user = serializers.HiddenField(
         default=serializers.CurrentUserDefault()
     )
-    date_of_birth = serializers.DateField(format='%Y-%m-%d')
-    # user = UserSerializer2()
-    # profile_image = ProfileMediaSerializer()
+    date_of_birth = serializers.DateField(format='%Y-%m-%d', required=False)
+    religion = serializers.CharField(required=False)
+
 
     class Meta:
         model = UserProfile
         fields = ['user', 'work', 'date_of_birth', 'gender', 'custom_gender', 'religion']
-
-
-
+    
 
 class Acct_Sync_Serializer(serializers.ModelSerializer):
 

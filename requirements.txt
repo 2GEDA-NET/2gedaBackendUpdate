@@ -42,6 +42,7 @@ face-recognition-models==0.3.0
 fido2==1.0.0
 filelock==3.12.4
 frozenlist==1.4.0
+geoip2==4.8.0
 google-auth==2.23.3
 gunicorn==21.2.0
 idna==3.4
@@ -50,6 +51,7 @@ imageio-ffmpeg==0.4.9
 jmespath==1.0.1
 joblib==1.3.2
 MarkupPy==1.14
+maxminddb==2.5.1
 moviepy==1.0.3
 multidict==6.0.4
 numpy==1.26.0

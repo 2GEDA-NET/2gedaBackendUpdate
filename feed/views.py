@@ -844,7 +844,10 @@ class CreatePostView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = PostMedia.objects.select_related('user_profile', 'post', 'user'
         ).prefetch_related('hashtags','each_media','comment_text'
-            ).all()
+            ).all().order_by('-time_stamp')[:20]
+    
+    def get_queryset(self):
+        return super().get_queryset()
 
     def perform_create(self, serializer):
 

@@ -49,6 +49,7 @@ from django.conf import settings
 import os
 import json
 import csv
+# from geopy.geocoders import Nominatim
 
 
 
@@ -123,7 +124,7 @@ def get_client_ip(request):
     return ip
 
 
-def get_country(ip_address):
+def get_country(latitude):
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
     csv_file_path = os.path.join(current_dir, 'worldcities.csv')
@@ -137,7 +138,7 @@ def get_country(ip_address):
 
     print(data)
     for entry in data:
-        if entry['lat'] == ip_address:
+        if str(6.4) in entry['lat']:
             return {
                 'city': entry['city'],
                 'country': entry['country'],
@@ -147,54 +148,29 @@ def get_country(ip_address):
         
         return None
 
-# import requests 
-# from django.core.management.base import BaseCommand 
 
-# class Command(BaseCommand):
-
-#     def handle(self, *args, **kwargs):
-#         current_dir = os.path.dirname(os.path.abspath(__file__))
-#         csv_file_path = os.path.join(current_dir, 'worldcities.csv')
-
-#         data = []
-
-#         with open(csv_file_path, newline='', encoding='utf-8') as csv_file:
-#             csv_reader = csv.DictReader(csv_file)
-#             for row in csv_reader:
-#                 data.append(row)
-
-#         print(data)
-
-#         for entry in data:
-#             UserGeoInformation.objects.create()
-
-#   city: 'Tokyo',
-#   city_ascii: 'Tokyo',
-#   lat: '35.6897',
-#   lng: '139.6922',
-#   country: 'Japan',
-#   iso2: 'JP',
-#   iso3: 'JPN',
-#   admin_name: 'Tōkyō',
-#   capital: 'primary',
-#   population: '37732000',
-#   id: '1392685764',
-
-
- 
         
 
 
 
-class TryGeo(APIView):
-    permission_classes = [IsAuthenticated]
+# class TryGeo(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
-        ip = get_client_ip(request)
-        print(ip)
-        country = get_country(ip)
-        print(country)
-        return Response({"response": country}, status=200)
+#     def get(self, request, format=None):
+#         ip = get_client_ip(request)
+#         print(ip)
+        
+#         geolocator = Nominatim(user_agent="my_geocoder")
+#         location = geolocator.geocode(ip)
+
+#         if location:
+#             latitude, longitude = location.latitude, location.longitude
+#             latitude = round(latitude, 1)
+#             data = get_country(latitude)
+#             return JsonResponse({'latitude': data, 'longitude': longitude})
+#         else:
+#             return JsonResponse({'error': 'Unable to determine location'})
+
 
 
 @api_view(['POST'])

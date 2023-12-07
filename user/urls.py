@@ -17,7 +17,7 @@ router.register(r'password-change', PasswordChangeViewSet,
 urlpatterns = [
     path('api/', include(router.urls)),
 
-    path('test/', TryGeo.as_view()),
+#     path('test/', TryGeo.as_view()),
 
     #     Authentication urls
     path('register/', create_user, name='user_register'),

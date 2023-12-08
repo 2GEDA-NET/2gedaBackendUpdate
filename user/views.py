@@ -136,9 +136,12 @@ def get_country(latitude):
         for row in csv_reader:
             data.append(row)
 
-    print(data)
+
+    print(latitude)
     for entry in data:
-        if str(6.4) in entry['lat']:
+       
+
+        if str(latitude) in entry['lat']:
             return {
                 'city': entry['city'],
                 'country': entry['country'],
@@ -146,7 +149,7 @@ def get_country(latitude):
                 'longitude': entry['lng'],
             }
         
-        return None
+    return None
 
 
         
@@ -158,14 +161,13 @@ def get_country(latitude):
 
 #     def get(self, request, format=None):
 #         ip = get_client_ip(request)
-#         print(ip)
         
 #         geolocator = Nominatim(user_agent="my_geocoder")
 #         location = geolocator.geocode(ip)
 
 #         if location:
 #             latitude, longitude = location.latitude, location.longitude
-#             latitude = round(latitude, 1)
+#             latitude = round(latitude, 2)
 #             data = get_country(latitude)
 #             return JsonResponse({'latitude': data, 'longitude': longitude})
 #         else:

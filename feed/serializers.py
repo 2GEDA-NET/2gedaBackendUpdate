@@ -273,6 +273,10 @@ class CreatePostSerializer(serializers.ModelSerializer):
     each_media = PostMediaSerializer(many=True, required=False)
     hashtags = HashTagSerializer(many=True, required=False)
     content =  serializers.CharField(required=False)
+    Reaction = ReactionSerializer(many=True, required=False)
+    post_reaction_count = serializers.SerializerMethodField()
+    post_comment_count = serializers.SerializerMethodField()
+    
     class Meta:
         model = PostMedia
         fields = "__all__"
@@ -283,9 +287,24 @@ class CreatePostSerializer(serializers.ModelSerializer):
             error["error"] = "You have to post a media or text"
 
             raise serializers.ValidationError(error)
-
         return super().validate(attrs)
     
+    
+    def get_post_reaction_count(self, obj):
+        if obj.comment_text.exists() and  obj.Reaction.exists():
+            return sum(comment.reaction.count() for comment in obj.comment_text.all()) + obj.Reaction.count()
+                
+        elif obj.Reaction is not None :
+            return (obj.Reaction.count())
+        
+        return None
+    
+    def get_post_comment_count(self, obj):
+        if obj.comment_text.exists():
+            return sum(reply.responses.count() for reply in obj.comment_text.all()) + obj.comment_text.count()
+        return None
+
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         user = representation.get("user")

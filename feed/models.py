@@ -34,6 +34,7 @@ class PostMedia(models.Model):
     content = models.CharField(max_length=250, null=True, blank=False)
     shares = models.IntegerField(default=0)
     comment_text = models.ManyToManyField("Comment")
+    Reaction = models.ManyToManyField("Reaction")
     comment = models.IntegerField(default=0)
     likes = models.IntegerField(default=0)
     love = models.IntegerField(default=0)
@@ -55,6 +56,16 @@ class PostMedia(models.Model):
         super().__init__(*args, **kwargs)
         self.prev_comment_count = self.comment
     
+    REACTION_CHOICES = [
+        ('like', 'Like'),
+        ('dislike', 'Dislike'),
+        ('love', 'Love'),
+        ('sad', 'Sad'),
+        ('angry', 'Angry'),
+        ('haha', 'Haha'),
+        ('wow', 'Wow'),
+        ('others', 'Others'),
+    ]
     
     def save(self, *args, **kwargs) -> None:
 

@@ -842,12 +842,23 @@ class RetrievePostView(generics.RetrieveAPIView):
 class CreatePostView(generics.ListCreateAPIView):
     serializer_class = CreatePostSerializer
     permission_classes = [IsAuthenticated]
-    queryset = PostMedia.objects.select_related('user_profile', 'post', 'user'
-        ).prefetch_related('hashtags','each_media','comment_text'
-            ).all().order_by('-time_stamp')[:20]
-    
+
     def get_queryset(self):
-        return super().get_queryset()
+        queryset = PostMedia.objects.select_related(
+            'user_profile', 'post', 'user'
+        ).prefetch_related(
+            'hashtags', 'each_media', 'comment_text'
+        ).annotate(
+            post_reaction_count=Count("Reaction"),
+            post_comment_count=Count("comment_text")
+        ).order_by('-time_stamp')
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            return page
+
+        return queryset
+
 
     def perform_create(self, serializer):
 
@@ -913,7 +924,7 @@ class CreateCommentView(generics.ListCreateAPIView):
 
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
-    queryset = Comment.objects.all().prefetch_related('responses','reaction').select_related('user','post').annotate(responses_count=Count("responses"), reaction_count=Count("reaction"))
+    queryset = Comment.objects.all().prefetch_related('responses','reaction').select_related('user','post').annotate(comment_responses_count=Count("responses"), comment_reaction_count=Count("reaction"))
 
     def perform_create(self, serializer):
         serializer_instance = serializer.save()
@@ -968,10 +979,24 @@ class  CommentReactionView(APIView):
         reaction_intance = Reaction.objects.create(user=request.user, reaction_type=reaction)
         comment = Comment.objects.get(pk=post_id)
         comment.reaction.add(reaction_intance)
-
         comment = Comment.objects.get(pk=post_id)
         serializer = CommentSerializer(comment)
         post = Comment.objects.filter(pk=post_id).values()
+        return Response(serializer.data, status=200)
+    
+    
+class  PostReactionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        post_id = request.data["post_id"]
+        reaction = request.data["reaction_type"]
+        reaction_intance = Reaction.objects.create(user=request.user, reaction_type=reaction)
+        post = PostMedia.objects.get(pk=post_id)
+        post.Reaction.add(reaction_intance)
+
+        post = PostMedia.objects.get(pk=post_id)
+        serializer = CreatePostSerializer(post)
         return Response(serializer.data, status=200)
 
 

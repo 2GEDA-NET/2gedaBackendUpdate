@@ -9,36 +9,20 @@ from location_field.models.plain import PlainLocationField
 from storages.backends.s3boto3 import S3Boto3Storage
 from ticket.models import UserWallet
 
+import secrets
+import string
 
+def generate_random_string(length=7):
+    characters = string.ascii_letters + string.digits + string.punctuation
+    random_string = ''.join(secrets.choice(characters) for _ in range(length))
+    return random_string
 
+class BusinessCategory(models.Model):
+    name = models.CharField(max_length=250)
+    desc = models.TextField()
 
-# Create your models here.
-
-class ProfileMedia(models.Model):
-    media = models.FileField(upload_to='profile_files/', blank=True, null=True)
-
-
-class User(AbstractUser):
-    email = models.EmailField(unique=True, null=True, blank=True)
-    is_business = models.BooleanField(
-        default=False, verbose_name='Business Account')
-    is_personal = models.BooleanField(
-        default=False, verbose_name='Personal Account')
-    is_admin = models.BooleanField(default=False, verbose_name='Admin Account')
-    phone_number = models.BigIntegerField(unique=True, null=True, blank=True)
-    is_verified = models.BooleanField(default=False, verbose_name='Verified')
-    last_seen = models.DateTimeField(null=True, blank=True)
-    objects = UserManager()
-    otp = models.CharField(max_length=5, blank=True)
-    otp_verified = models.BooleanField(default=False)
-    secret_key = models.CharField(max_length=64)
-    account_balance = models.IntegerField(default=0)
-
-    class Meta:
-        swappable = 'AUTH_USER_MODEL'
-
-    # def __str__(self):
-    #     return str(self.username) or ''
+    def __str__(self):
+        return self.name
 
 
 GENDER_CHOICES = (
@@ -65,6 +49,80 @@ class BusinessCategory(models.Model):
 
     def __str__(self):
         return self.name
+
+RELIGION_CHOICES = [
+    ('Christianity', 'Christianity'),
+    ('Muslim', 'Muslim'),
+    ('Indigenous', 'Indigenous'),
+    ('Others', 'Others'),
+]
+
+
+# Create your models here.
+
+
+
+class ProfileMedia(models.Model):
+    media = models.FileField(upload_to='profile_files/', blank=True, null=True)
+
+
+class User(AbstractUser):
+    email = models.EmailField(unique=True, null=True, blank=True)
+    is_business = models.BooleanField(
+        default=False, verbose_name='Business Account')
+    is_personal = models.BooleanField(
+        default=False, verbose_name='Personal Account')
+    is_admin = models.BooleanField(default=False, verbose_name='Admin Account')
+    phone_number = models.BigIntegerField(unique=True, null=True, blank=True)
+    is_verified = models.BooleanField(default=False, verbose_name='Verified')
+    last_seen = models.DateTimeField(null=True, blank=True)
+    otp = models.CharField(max_length=5, blank=True)
+    otp_verified = models.BooleanField(default=False)
+    secret_key = models.CharField(default=generate_random_string)
+    account_balance = models.IntegerField(default=0)
+    work = models.CharField(max_length=255, blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True,)
+    gender = models.CharField(
+        max_length=15, choices=GENDER_CHOICES, blank=True, null=True)
+    custom_gender = models.CharField(max_length=250, blank=True, null=True)
+    religion = models.CharField(
+        max_length=20, null=True, choices=RELIGION_CHOICES, verbose_name='Religion')
+    media = models.ForeignKey("UserProfileImage", on_delete=models.CASCADE, blank=True, null=True, related_name='users_media')
+    cover_image = models.ForeignKey("UserCoverImage", on_delete=models.CASCADE, blank=True, null=True, related_name='users_image')
+    address = models.ForeignKey('Address', on_delete=models.CASCADE, null=True, related_name='home_address')
+    stickers = models.ManyToManyField('self', related_name='sticking',null=True,  symmetrical=False)
+    is_flagged = models.BooleanField(default=False, verbose_name='Flagged_User')
+    favorite_categories = models.ManyToManyField(BusinessCategory, related_name='users_favorite', blank=True, null=True)
+    searched_polls = models.ManyToManyField('poll.Poll', related_name='user_searched', blank=True)
+    has_updated_profile = models.BooleanField(default=False)
+    bio = models.TextField(null=True)
+
+    class Meta:
+        swappable = 'AUTH_USER_MODEL'
+
+    # def __str__(self):
+    #     return str(self.username) or ''
+
+
+GENDER_CHOICES = (
+    ('Male', 'Male'),
+    ('Female', 'Female'),
+    ('Rather not say', 'Rather not say'),
+)
+
+
+DAYS_OF_THE_WEEK_CHOICES = (
+    ('Sunday', 'Sunday'),
+    ('Monday', 'Monday'),
+    ('Tuesday', 'Tuesday'),
+    ('Wednesday', 'Wednesday'),
+    ('Thursday', 'Thursday'),
+    ('Friday', 'Friday'),
+    ('Saturday', 'Saturday'),
+)
+
+
+
 
 RELIGION_CHOICES = [
     ('Christianity', 'Christianity'),
@@ -182,7 +240,7 @@ class BusinessAccount(models.Model):
 
 
 class Address(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='address_user')
     country = models.CharField(max_length=255, null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
     current_city = models.CharField(max_length=100, null=True, blank=True)

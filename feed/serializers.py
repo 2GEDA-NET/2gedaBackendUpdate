@@ -89,6 +89,24 @@ class CommentSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
 
         return representation
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+        time_instance = representation.get('time_stamp')
+        
+        time_object = datetime.strptime(time_instance, time_format)
+        
+        time_difference = datetime.now() - time_object
+        
+        time_since = timesince(time_object)
+        
+        data = {
+            "time_since": time_since
+        }
+        representation.update(data)
+        return representation
+    
 
 
 class HashTagSerializer(serializers.ModelSerializer):

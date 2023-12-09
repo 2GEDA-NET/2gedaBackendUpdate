@@ -31,6 +31,7 @@ urlpatterns = [
     path('profile/update-status/', UserProfileHasUpdatedProfileView.as_view(), name='user-profile-update-status'),
     path('update-profile/', update_user_profile, name='update_user_profile'),
     path('user-profile/update/', UserProfileViewSet.as_view({'put': 'update'}), name='user-profile-update'),
+    path('profile/update/', ProfileUserView.as_view()),
     path('search-user/', UserSearchAPIView.as_view(), name='search_user'),
     path('update-profile-images/', UserProfileMobile.as_view(), name='profile-images-update'),
     path('delete-account/', delete_account, name='delete_account'),
@@ -51,8 +52,8 @@ urlpatterns = [
          list_stickers, name='list_stickers'),
     path('list-sticking/<int:user_id>/',
          list_sticking, name='list_sticking'),
-    path('my-sticking/', my_sticking, name='my_sticking'),
-    path('my-stickers/', my_stickers, name='my_stickers'),
+    path('following/', my_sticking, name='my_sticking'),
+    path('followers/', my_stickers, name='my_stickers'),
 
 
     # CRSF token

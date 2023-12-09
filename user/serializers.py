@@ -11,6 +11,8 @@ from typing import Any
 
 
 
+
+
 class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
@@ -326,6 +328,7 @@ class ProfileMediaSerializer(serializers.ModelSerializer):
         model = ProfileMedia
         fields = '__all__'
 
+
 class UserProfileSerializer2(serializers.ModelSerializer):
     user = serializers.HiddenField(
         default=serializers.CurrentUserDefault()
@@ -338,6 +341,14 @@ class UserProfileSerializer2(serializers.ModelSerializer):
         model = UserProfile
         fields = ['user', 'work', 'date_of_birth', 'gender', 'custom_gender', 'religion']
     
+    # def validate(self, attrs):
+    #     error = {}
+    #     if attrs.get("city") == None:
+    #         error["error"] = "city is required"
+    #         raise serializers.ValidationError(error)
+
+    #     return super().validate(attrs)
+
 
 class Acct_Sync_Serializer(serializers.ModelSerializer):
 
@@ -346,7 +357,54 @@ class Acct_Sync_Serializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         return super().validate(attrs)
-    
+
+
+
+class UserCoverImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserCoverImage
+        fields = "__all__"
+
+
+class UserConnectSerializer(serializers.ModelSerializer):
+    cover_image = UserCoverImageSerializer(required=False)
+    class Meta:
+        model = User
+        fields = ["cover_image","username","Address","bio"]
+
+
+class User_Profile_Serializer(serializers.ModelSerializer):
+
+    date_of_birth = serializers.DateField(format='%Y-%m-%d', required=False)
+    religion = serializers.CharField(required=False)
+    cover_image = UserCoverImageSerializer(required=False)
+    address = AddressSerializer(required=False)
+    favorite_categories = BusinessCategorySerializer(required=False, many=True)
+    work = serializers.CharField(required=False)
+    date_of_birth = serializers.DateField(required=False)
+    gender = serializers.CharField(required=False)
+    custom_gender = serializers.CharField(required=False)
+    religion = serializers.CharField(required=False)
+    is_flagged = serializers.BooleanField(required=False)
+    has_updated_profile = serializers.BooleanField(required=False)
     
 
+
     
+    class Meta:
+        model = User
+        fields = [
+                  "work", 
+                  "date_of_birth", 
+                  "gender", 
+                  "custom_gender", 
+                  "religion", 
+                  "media",
+                  "cover_image",
+                  "address",
+                  "is_flagged",
+                  "favorite_categories",
+                  "searched_polls",
+                  "has_updated_profile"
+                ]

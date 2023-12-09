@@ -184,6 +184,17 @@ def create_user(request):
         email = data.get('email')
         phone_number = data.get('phone_number')
 
+        try:
+            issue_email = User.objects.get(email='')
+            issue_email.delete()
+        except:
+            pass
+        try:
+            issue_phone = User.objects.get(phone_number='')
+            issue_phone.delete()
+        except:
+            pass
+
         print(f'{email} {phone_number}')
 
         # Debugging statement: Print the email and phone number
@@ -206,7 +217,7 @@ def create_user(request):
                 return Response({'error': 'User with this phone number already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if serializer.is_valid():
-            try:
+            # try:
                 user = serializer.save()
 
                 # secret_key = secrets.token_urlsafe(16)
@@ -247,9 +258,9 @@ def create_user(request):
                 ip = get_country(request)
 
                 return Response(response_data, status=status.HTTP_201_CREATED)
-            except IntegrityError as e:
-                print(e)  # Add this line to print the IntegrityError message
-                return Response({'error': 'Account details already exist.'}, status=status.HTTP_400_BAD_REQUEST)
+            # except IntegrityError as e:
+            #     print(e)  # Add this line to print the IntegrityError message
+            #     return Response({'error': 'Something Went Wrong'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             
 
@@ -814,8 +825,23 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         print(user_profile)
 
         # Update the first name and last name fields
-        user = self.request.data.get("user")
-    
+        user = self.request.user
+        
+        try:
+            city = self.request.data.get("city")
+            if not Address.objects.filter(user=user).exists():
+                if UserGeoInformation.objects.filter(city_ascii__iexact=city).exists():
+                    geo_info = UserGeoInformation.objects.filter(city_ascii__iexact=city).first()
+                    Address.objects.create(user=user, current_city=city, country=geo_info.country )
+                    print("done")
+
+                else:
+                    Address.objects.create(user=user, current_city=city)
+                    print(" no city done")
+        except:
+            pass            
+
+
         if "first_name" in self.request.data:
             first_name = self.request.data.get('first_name')
             user_profile.user.first_name = first_name
@@ -1290,3 +1316,115 @@ class AllUsersView(APIView):
         ) 
 
         return Response(list(user_profile), status=200)
+
+
+
+class ProfileUserView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    queryset = User.objects.all()
+    serializer_class = User_Profile_Serializer
+
+    def get_object(self):
+        return User.objects.get(username=self.request.user.username)
+
+    def perform_update(self, serializer):
+        user_profile = self.get_object()
+        print(user_profile)
+
+        # Update the first name and last name fields
+        user = self.request.user
+        
+        try:
+            city = self.request.data.get("city")
+            if not Address.objects.filter(user=user).exists():
+                if UserGeoInformation.objects.filter(city_ascii__iexact=city).exists():
+                    geo_info = UserGeoInformation.objects.filter(city_ascii__iexact=city).first()
+                    Address.objects.create(user=user, current_city=city, country=geo_info.country )
+                    print("done")
+
+                else:
+                    Address.objects.create(user=user, current_city=city)
+                    print(" no city done")
+        except:
+            pass            
+
+
+        if "first_name" in self.request.data:
+            first_name = self.request.data.get('first_name')
+            serializer.validated_data["first_name"]  = first_name
+
+        if "last_name" in self.request.data:
+            last_name = self.request.data.get('last_name')
+            serializer.validated_data["last_name"] = last_name
+            
+     
+        if "work" in self.request.data:
+            work = self.request.data.get('work')
+            serializer.validated_data["work"] = work
+
+        if "gender" in self.request.data:
+            if self.request.data["gender"] == 1 or self.request.data["gender"] == "Male":
+                serializer.validated_data["gender"] = 'Male'
+      
+            elif self.request.data["gender"] == 2 or self.request.data["gender"] == "Female":
+                serializer.validated_data["gender"] = 'Male'
+            else:
+                serializer.validated_data["gender"] = 'Rather not say'
+
+
+        if "custom_gender" in self.request.data:
+            custom_gender = self.request.data.get('custom_gender')
+            serializer.validated_data["custom_gender"] = 'Rather not say'
+             
+                 
+        if "religion" in self.request.data:
+            religion = self.request.data.get('religion')
+            if self.request.data.get('religion') == 1 or self.request.data.get('religion') == 'Christainity':
+                serializer.validated_data["religion"] = 'Christainity'
+
+            elif self.request.data.get('religion') == 2  or self.request.data.get('religion')== 'Muslim':
+                serializer.validated_data["religion"] = 'Muslim'
+
+            else:
+                serializer.validated_data["religion"] = 'Indigenous'        
+
+
+        # if 'cover_image' in self.request.data:
+        #     cover_image_data = self.request.FILES.get('cover_image')
+        #     cover_image = UserCoverImage.objects.create(user=self.request.user, cover_image=cover_image_data)
+        #     serializer.validated_data["cover_image"] = cover_image
+
+        if 'profile_image' in self.request.data:
+            profile_image_data = self.request.FILES.get('profile_image')
+            profile_image = UserProfileImage.objects.create(user=self.request.user, profile_image=profile_image_data)
+            serializer.validated_data["media"] = profile_image
+
+
+        date_of_birth = self.request.data.get('date_of_birth')
+
+
+        if date_of_birth:
+            try:
+                formatted_date = datetime.datetime.strptime(
+                    date_of_birth, '%Y-%m-%d').date()
+                user_profile.date_of_birth = formatted_date
+                print(f"Parsed Date: {formatted_date}")
+            except ValueError:
+                return Response({'error': 'Invalid date format. Please use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.validated_data["has_updated_profile"] = True      
+       
+        return super().perform_update(serializer)
+
+
+
+
+class UserConnectView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    queryset = User.objects.all()
+    serializer_class = UserConnectSerializer
+
+    def get_object(self):
+        return User.objects.get(username=self.request.user.username)
+

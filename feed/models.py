@@ -144,6 +144,7 @@ class Comment(models.Model):
         'Reaction', related_name="comment_rection")
     timestamp = models.TimeField(auto_now_add=True)
     parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
+    time_stamp = models.DateTimeField(default=timezone.now)
 
 
 

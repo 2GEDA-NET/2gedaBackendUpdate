@@ -87,7 +87,7 @@ class User(AbstractUser):
     custom_gender = models.CharField(max_length=250, blank=True, null=True)
     religion = models.CharField(
         max_length=20, null=True, choices=RELIGION_CHOICES, verbose_name='Religion')
-    media = models.ForeignKey("UserProfileImage", on_delete=models.CASCADE, blank=True, null=True, related_name='users_media')
+    media = models.ManyToManyField("UserProfileImage", related_name='user_profile_media')
     cover_image = models.ForeignKey("UserCoverImage", on_delete=models.CASCADE, blank=True, null=True, related_name='users_image')
     address = models.ForeignKey('Address', on_delete=models.CASCADE, null=True, related_name='home_address')
     stickers = models.ManyToManyField('self', related_name='sticking',null=True,  symmetrical=False)

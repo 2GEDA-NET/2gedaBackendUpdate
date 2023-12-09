@@ -9,15 +9,33 @@ from typing import Any
 
 
 
+class UserCoverImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserCoverImage
+        fields = "__all__"
 
 
+class UserProfileImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserProfileImage
+        fields = "__all__"
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = '__all__'
 
 
 class UserSerializer(serializers.ModelSerializer):
-    
+    cover_image = UserCoverImageSerializer()
+    media = UserProfileImageSerializer(many=True)
+    address = AddressSerializer()
     class Meta:
         model = User
-        fields = ["id","email","is_business","is_personal","is_admin","username","phone_number","is_verified","last_seen"]
+        fields = ["id","email","is_business","is_personal","is_admin","username","phone_number","is_verified","address","media","cover_image","last_seen","bio"]
 
 
 
@@ -82,10 +100,7 @@ class BusinessCategorySerializer(serializers.ModelSerializer):
         model = BusinessCategory
         fields = ['name',]
 
-class AddressSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Address
-        fields = '__all__'
+
 
 class CurrentCityAddressSerializer(serializers.ModelSerializer):
     class Meta:
@@ -360,11 +375,6 @@ class Acct_Sync_Serializer(serializers.ModelSerializer):
 
 
 
-class UserCoverImageSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = UserCoverImage
-        fields = "__all__"
 
 
 class UserConnectSerializer(serializers.ModelSerializer):
@@ -375,7 +385,7 @@ class UserConnectSerializer(serializers.ModelSerializer):
 
 
 class User_Profile_Serializer(serializers.ModelSerializer):
-
+    media = UserProfileImageSerializer(required=False, many=True)
     date_of_birth = serializers.DateField(format='%Y-%m-%d', required=False)
     religion = serializers.CharField(required=False)
     cover_image = UserCoverImageSerializer(required=False)

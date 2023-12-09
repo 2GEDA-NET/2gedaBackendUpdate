@@ -120,6 +120,14 @@ urlpatterns = [
     path('users-list/<int:pk>/', UserInfoById.as_view()),
     path('users/all/', AllUsersView.as_view()),
 
+    path('users/connect/', UserConnectAPIView.as_view()),
+
+    path('users/connect/sort/', ConnectSortAPIView.as_view()),
+
+    path('location/sort/', LocationFilterAPIView.as_view()),
+
+    path('location/all/', AllLocationAPIView.as_view()),
+
 ]
 
 urlpatterns += router.urls

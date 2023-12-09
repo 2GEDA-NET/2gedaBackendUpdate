@@ -49,6 +49,7 @@ from django.conf import settings
 import os
 import json
 import csv
+from datetime import datetime
 # from geopy.geocoders import Nominatim
 
 
@@ -1337,19 +1338,39 @@ class ProfileUserView(generics.UpdateAPIView):
         
         try:
             city = self.request.data.get("city")
+            
+            
             if not Address.objects.filter(user=user).exists():
                 if UserGeoInformation.objects.filter(city_ascii__iexact=city).exists():
                     geo_info = UserGeoInformation.objects.filter(city_ascii__iexact=city).first()
-                    Address.objects.create(user=user, current_city=city, country=geo_info.country )
+                    address = Address.objects.create(user=user, current_city=city, country=geo_info.country )
+                    serializer.validated_data["address"] = address
+                    user_profile.save()
                     print("done")
 
                 else:
-                    Address.objects.create(user=user, current_city=city)
+                    address = Address.objects.create(user=user, current_city=city)
+                    serializer.validated_data["address"] = address
                     print(" no city done")
+            else:
+                if UserGeoInformation.objects.filter(city_ascii__iexact=city).exists():
+                    geo_info = UserGeoInformation.objects.filter(city_ascii__iexact=city).first()
+                    country = geo_info.country
+                    address = Address.objects.create(user=user, current_city=city, country=country)
+                    serializer.validated_data["address"] = address
+                else:
+                    address = Address.objects.create(user=user, current_city=city)
+                    serializer.validated_data["address"] = address
+
         except:
             pass            
 
-
+        if "media" in self.request.data:
+            media = self.request.FILES["media"]
+            media = UserProfileImage.objects.create(user=user, profile_image=media)
+            user_profile.media.add(media)
+            user_profile.save()
+            
         if "first_name" in self.request.data:
             first_name = self.request.data.get('first_name')
             serializer.validated_data["first_name"]  = first_name
@@ -1390,15 +1411,15 @@ class ProfileUserView(generics.UpdateAPIView):
                 serializer.validated_data["religion"] = 'Indigenous'        
 
 
-        # if 'cover_image' in self.request.data:
-        #     cover_image_data = self.request.FILES.get('cover_image')
-        #     cover_image = UserCoverImage.objects.create(user=self.request.user, cover_image=cover_image_data)
-        #     serializer.validated_data["cover_image"] = cover_image
+        if 'cover_image' in self.request.data:
+            cover_image_data = self.request.FILES.get('cover_image')
+            cover_image = UserCoverImage.objects.create(user=self.request.user, cover_image=cover_image_data)
+            serializer.validated_data["cover_image"] = cover_image
 
-        if 'profile_image' in self.request.data:
-            profile_image_data = self.request.FILES.get('profile_image')
-            profile_image = UserProfileImage.objects.create(user=self.request.user, profile_image=profile_image_data)
-            serializer.validated_data["media"] = profile_image
+        # if 'profile_image' in self.request.data:
+        #     profile_image_data = self.request.FILES.get('profile_image')
+        #     profile_image = UserProfileImage.objects.create(user=self.request.user, profile_image=profile_image_data)
+        #     serializer.validated_data["media"] = profile_image
 
 
         date_of_birth = self.request.data.get('date_of_birth')
@@ -1419,12 +1440,82 @@ class ProfileUserView(generics.UpdateAPIView):
 
 
 
-class UserConnectView(generics.ListAPIView):
+class UserConnectAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
-    queryset = User.objects.all()
-    serializer_class = UserConnectSerializer
 
-    def get_object(self):
-        return User.objects.get(username=self.request.user.username)
+    def get(self, request):
+        username = request.user.username
+        print(username)
+        user = User.objects.get(username=username)
+        city = user.address.city
+        current_city =  user.address.current_city
+        print(current_city)
+        
+            # Perform a case-insensitive search across relevant fields in the database
+        results = User.objects.filter(
+            Q(address__current_city__icontains=current_city) 
+        )
+        serializer = UserSerializer(results, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+       
 
+User
+class ConnectSortAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def post(self, request, format=None):
+        start_age = request.data["start_age"] 
+        end_age = request.data["end_age"] 
+        location = request.data["location"]
+        gender = request.data["gender"]
+        verified_account = request.data["verified_account"]
+        current_year = datetime.now().year
+        start_year = str(current_year-start_age)
+        end_year = str(current_year-end_age)
+        print(f'{start_year} - {end_year}')
+
+       
+            # Perform a case-insensitive search across relevant fields in the database
+        results = User.objects.filter(
+            Q(date_of_birth__year__range=(start_year, end_year)) |
+            Q(gender__icontains=gender) |
+            Q(address__city__icontains=location) |
+            Q(address__current_city__icontains=location) |
+            Q(address__current_city__icontains=location) |
+            Q(address__country__icontains=location) |
+            Q(is_verified__icontains=verified_account)
+        )
+        serializer = UserSerializer(results, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class LocationFilterAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def post(self, request, format=None):
+        place = request.data["place"]
+
+        results = UserGeoInformation.objects.filter(
+            Q(city_ascii__icontains=place) |
+            Q(city__icontains=place) |
+            Q(country__icontains=place) |
+            Q(capital__icontains=place) 
+           
+        )
+        results = results.values()
+        return Response(results, status=status.HTTP_200_OK)
+    
+
+class AllLocationAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get(self, request, format=None):
+
+        results = UserGeoInformation.objects.all()
+        results = results.values()
+        return Response(results, status=status.HTTP_200_OK)
+        

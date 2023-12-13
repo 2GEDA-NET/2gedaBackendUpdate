@@ -940,8 +940,8 @@ class CreateCommentView(generics.ListCreateAPIView):
                 media = CommentMedia.objects.create(user=self.request.user, media=each_media)
                 media_list.append(media)
             
-            post.comment_text.add(serializer_instance)
-            post.save()
+        post.comment_text.add(serializer_instance)
+        post.save()
         
         serializer_instance.post = post  
         return super().perform_create(serializer_instance)

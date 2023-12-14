@@ -70,6 +70,7 @@ class CommentSerializer(serializers.ModelSerializer):
     media = CommentMediaSerializer(many=True, required=False)
     reaction_count = serializers.SerializerMethodField()
     responses_count = serializers.SerializerMethodField()
+    content = serializers.CharField(required=False)
 
     class Meta:
         model = Comment

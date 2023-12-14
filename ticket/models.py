@@ -73,7 +73,9 @@ class Event(models.Model):
     ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE , related_name="old_ticket")
     each_ticket = models.ManyToManyField(Ticket)
     event_key = models.CharField(max_length=256, null=True)
-
+    is_free = models.BooleanField(default=False)
+    is_public = models.BooleanField(default=False)
+    add_to_sales = models.BooleanField(default=True)
 
 
     def save(self, *args, **kwargs):

@@ -8,9 +8,10 @@ from .managers import UserManager
 from location_field.models.plain import PlainLocationField
 from storages.backends.s3boto3 import S3Boto3Storage
 from ticket.models import UserWallet
-
+from django.db import transaction
 import secrets
 import string
+from django.utils import timezone
 
 def generate_random_string(length=7):
     characters = string.ascii_letters + string.digits + string.punctuation
@@ -57,8 +58,25 @@ RELIGION_CHOICES = [
     ('Others', 'Others'),
 ]
 
+Currency = (
+    ("NGN","NGN"),
+    ("USD", "USD")
+)
+
+Fund_Type = (
+    ("debit", "debit"),
+    ("credit", "credit")
+)
 
 # Create your models here.
+class UserWallet(models.Model):
+    user = models.ForeignKey("User", null=True, on_delete=models.CASCADE, related_name="user_wallet")
+    currency = models.CharField(max_length=50, choices=Currency, default='NGN')
+    balance =  models.FloatField(default=0)
+    prev_balance = models.FloatField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+    last_fund = models.DateTimeField(null=True, blank=True)
+    type = models.CharField(max_length=50, choices=Fund_Type, default='NGN')
 
 
 
@@ -80,6 +98,7 @@ class User(AbstractUser):
     otp_verified = models.BooleanField(default=False)
     secret_key = models.CharField(default=generate_random_string)
     account_balance = models.IntegerField(default=0)
+    previous_balance = models.IntegerField(default=0)
     work = models.CharField(max_length=255, blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True,)
     gender = models.CharField(
@@ -99,9 +118,34 @@ class User(AbstractUser):
 
     class Meta:
         swappable = 'AUTH_USER_MODEL'
+    
 
-    # def __str__(self):
-    #     return str(self.username) or ''
+    @classmethod
+    def withdraw(cls, id, amount):
+        with transaction.atomic():
+            account = (cls.objects.select_for_update().get(id=id))
+            print(account)
+            account.previous_balance = account.account_balance
+            if account.account_balance < amount or amount < 0:
+                return False
+            account.account_balance -= amount
+            account.save()
+            UserWallet.objects.create(user=account,type="credit", prev_balance=account.previous_balance, balance=account.account_balance)
+
+
+    @classmethod
+    def fund(cls, id, amount):
+        with transaction.atomic():
+            account = (cls.objects.select_for_update().get(id=id))
+            print(account)
+            account.previous_balance = account.account_balance
+            if amount < 0:
+                return False
+            
+            account.account_balance += amount
+            account.save()
+            UserWallet.objects.create(user=account,type="credit", prev_balance=account.previous_balance, balance=account.account_balance)
+
 
 
 GENDER_CHOICES = (

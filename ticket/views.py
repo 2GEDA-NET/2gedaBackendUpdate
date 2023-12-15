@@ -84,7 +84,13 @@ class PaymentOnlineApi(generics.CreateAPIView):
     def perform_create(self, serializer):
         ticket_id = self.request.data["ticket_id"]
         ticket = Ticket.objects.get(pk=ticket_id)
+
+        event = Event.objects.get(each_ticket=ticket)
+        print(event.pk)
+        
         serializer.validated_data["ticket"] = ticket
+        serializer = serializer.save()
+        event.sales.add(serializer)
         return super().perform_create(serializer)
 
 
@@ -446,23 +452,58 @@ class EventsView(generics.ListCreateAPIView):
             events_category = EventCategory.objects.create(name=events_category_name)
         
         serializer.validated_data["category"] = events_category
+        ticket_instance  = None
+        instance = serializer.save()
         #Handling tickets
-        category = self.request.data.getlist("ticket_category")
-        price = self.request.data["ticket_price"]
-        quantity = self.request.data["ticket_quantity"]
-        ticket_instance = Ticket.objects.create(
+        ticket = self.request.data.getlist("ticket")
+        for each_ticket in ticket:
+            ticket_json = json.loads(each_ticket)
+            category = ticket_json.get("ticket_category", None)
+            price = ticket_json.get("ticket_price", None)
+            quantity = ticket_json.get("ticket_quantity", None)
+
+            is_free = ticket_json.get("is_free", None)
+            ticket_instance = Ticket.objects.create(
             category=category,
             price=price,
-            quantity=quantity
-        )
+            quantity=quantity,
+            is_free = is_free
+            )
+
+            print(category)
+            print(ticket_instance)
+            instance = serializer.save()
+
+            instance.each_ticket.add(ticket_instance)
+
         serializer.validated_data["ticket"] = ticket_instance
 
-        instance = serializer
-
+        instance = serializer.save()
 
         return super().perform_create(instance)
         # except:
         #     pass
+
+
+class GetPastEvent(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        today = datetime.now()
+        events = Event.objects.filter(date__lt=today).values()
+        serializer = UpcomingEventSerializer(events,  many=True, context={'request': request})
+        return Response(serializer.data, status=200)
+
+
+
+class GetUpcomingEvent(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        today = datetime.now()
+        events = Event.objects.filter(date__gt=today).values()
+        serializer = UpcomingEventSerializer(events,  many=True, context={'request': request})
+        return Response(serializer.data, status=200)
 
 
 class Ticket_List(generics.ListAPIView):

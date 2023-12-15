@@ -13,7 +13,7 @@ User = settings.AUTH_USER_MODEL
 
 TICKET_CATEGORIES = (
     ('VIP', 'VIP'),
-    ('Stock', 'Stock'),
+    ('STOCK', 'STOCK'),
     ('Regular', 'Regular'),
    
 )
@@ -22,6 +22,12 @@ TICKET_TYPE = (
     ('FREE TICKET', 'FREE TICKET'),
     ('PAID TICKET', 'PAID TICKET'),
 )
+
+TICKET_STATUS = (
+    ('SUCCESSFUL', 'SUCCESSFUL'),
+    ('FAILED', 'FAILED'),
+)
+
 
 # Create your models here.
 class EventCategory(models.Model):
@@ -42,12 +48,23 @@ class Get_Ticket(models.Model):
 
 
 class Ticket(models.Model):
-    category = models.CharField(max_length=250, choices=TICKET_CATEGORIES, null=True, blank=True)
+    category = models.CharField(max_length=250, null=True, blank=True)
     price = models.IntegerField(default=0)
     quantity = models.IntegerField(default=0)
     is_sold = models.BooleanField(default=False, verbose_name='Ticket Sold')
     ticket_sales = models.ManyToManyField(Get_Ticket)
     ticket_key = models.UUIDField(default=uuid.uuid4())
+    is_free = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs) -> None:
+
+        if self.is_free == True:
+            self.price = 0
+        return super().save(*args, **kwargs)
+    
+
+def formatted_datetime():
+    return self.your_datetime_field.strftime('%d %b, %Y')
 
 
 class Ticket_Issues(models.Model):
@@ -70,12 +87,14 @@ class Event(models.Model):
     url = models.URLField(max_length=250, blank=True, null=True)
     is_popular = models.BooleanField(default=False, verbose_name='Popular')
     is_promoted = models.BooleanField(default=False, verbose_name='Promoted')
-    ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE , related_name="old_ticket")
+    ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE , related_name="old_ticket", null=True)
     each_ticket = models.ManyToManyField(Ticket)
     event_key = models.CharField(max_length=256, null=True)
-    is_free = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
     add_to_sales = models.BooleanField(default=True)
+    sales = models.ManyToManyField("Ticket_Payment")
+    formated_date  =  models.CharField(default=str(timezone.now().strftime('%d %b, %Y')))
+    
 
 
     def save(self, *args, **kwargs):
@@ -144,12 +163,16 @@ class UserWallet(models.Model):
 
 
 class Event_Transaction_History(models.Model):
-    user = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     currency = models.CharField(max_length=50, default='NGN')
     balance =  models.FloatField(default=0)
     prev_balance = models.FloatField(default=0)
     ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True)
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, null=True)
+    transaction_status = models.CharField(choices=TICKET_STATUS, default="FAILED")
+    transaction_id = models.CharField(max_length=256, null=True)
 
 
 

@@ -14,7 +14,9 @@ from .views import (
     Paystack_Verification,
     PayOnlineDone,
     WithdrawDetailView,
-    GetPaymentView
+    GetPaymentView,
+    GetPastEvent,
+    GetUpcomingEvent
 )
 
 # Create a router for viewsets
@@ -40,6 +42,9 @@ urlpatterns = [
     #Views for EventsCategory
     path('event-category/',EventsCategoryView.as_view()),
     path('event-category/<int:pk>/', EventsCategoryDetailView.as_view()),
+    path('event-past/', GetPastEvent.as_view()),
+    path('event-upcoming/', GetUpcomingEvent.as_view()),
+
 
     #Tickets
     path('buy-ticket', PaymentOnlineApi.as_view(), name='buy-ticket'),

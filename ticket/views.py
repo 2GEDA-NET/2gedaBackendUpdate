@@ -432,6 +432,12 @@ class ApproveWithdrawalRequestAPIView(UpdateAPIView):
             return Response({'detail': 'Withdrawal request rejected'}, status=status.HTTP_200_OK)
 
 
+class GetPopularEvent(APIView): 
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        Event.objects.get()
+
 
 class EventsView(generics.ListCreateAPIView):
     serializer_class = EventSerializer
@@ -485,6 +491,63 @@ class EventsView(generics.ListCreateAPIView):
         #     pass
 
 
+class UpdateEventsView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UpdateEventSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Event.objects.all()
+
+
+    def perform_update(self, serializer):
+        
+        events_category_name = None
+        if "events_category_name" in self.request.data:
+            events_category_name = self.request.data["events_category_name"]
+
+        events_category = None
+        if "events_category_image" in self.request.data:
+            events_category = EventCategory.objects.create(
+                name =events_category_name,
+                image = self.request.FILES["events_category_image"]
+            )
+        else:
+            events_category = EventCategory.objects.create(name=events_category_name)
+        
+        serializer.validated_data["category"] = events_category
+        ticket_instance  = None
+        instance = serializer.save()
+        
+        if "ticket" in self.request.data:
+            ticket = self.request.data.getlist("ticket")
+
+            for each_ticket in ticket:
+                ticket_json = json.loads(each_ticket)
+                category = ticket_json.get("ticket_category", None)
+                price = ticket_json.get("ticket_price", None)
+                quantity = ticket_json.get("ticket_quantity", None)
+
+                is_free = ticket_json.get("is_free", None)
+                ticket_instance = Ticket.objects.create(
+                category=category,
+                price=price,
+                quantity=quantity,
+                is_free = is_free
+                )
+
+                print(category)
+                print(ticket_instance)
+                instance = serializer.save()
+
+                instance.each_ticket.add(ticket_instance)
+
+            serializer.validated_data["ticket"] = ticket_instance
+
+        instance = serializer.save()
+
+        return super().perform_update(instance)
+        # except:
+        #     pass
+
+
 class GetPastEvent(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -502,6 +565,27 @@ class GetUpcomingEvent(APIView):
     def get(self, request, format=None):
         today = datetime.now()
         events = Event.objects.filter(date__gt=today).values()
+        serializer = UpcomingEventSerializer(events,  many=True, context={'request': request})
+        return Response(serializer.data, status=200)
+    
+
+class ActiveEvent(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        today = datetime.now().date()
+        print(today)
+        events = Event.objects.filter(date__date=today).values()
+        serializer = UpcomingEventSerializer(events,  many=True, context={'request': request})
+        return Response(serializer.data, status=200)
+    
+
+class PopularEvent(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        today = datetime.now()
+        events = Event.objects.filter(is_popular=True).values()
         serializer = UpcomingEventSerializer(events,  many=True, context={'request': request})
         return Response(serializer.data, status=200)
 

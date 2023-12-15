@@ -91,7 +91,25 @@ class UpcomingEventSerializer(serializers.ModelSerializer):
     
 
 
+class UpdateEventSerializer(serializers.ModelSerializer):
+    user = UserSerializer(
+        default=serializers.CurrentUserDefault()
+    )
+    attendees = AttendeeSerializer(many=True, required=False)
+    category = EventCategorySerializer(required=False)
+    ticket = TicketSerializer(required=False)
+    url = serializers.CharField(required=False)
+    platform = serializers.CharField(required=False)
+    desc = serializers.CharField(required=False)
+    location = serializers.CharField(required=False)
+    each_ticket = TicketSerializer(required=False, many=True)
+    sales = PaystackPaymentSerializer(required=False, many=True)
+    is_popular = serializers.BooleanField(default=False)
 
+
+    class Meta:
+        model = Event
+        fields = "__all__"
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -136,8 +154,8 @@ class EventSerializer(serializers.ModelSerializer):
         if obj.sales:
             total_count =  obj.sales.count()
             if total_count > 0:
-                is_popular = True
-                setattr(obj, 'is_popular', is_popular)
+      
+                obj.is_popular = True
                 obj.save()
             return total_count
         return 0
@@ -160,7 +178,10 @@ class EventSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         
         event_key = instance.event_key
+
+       
         if instance.ticket:
+            
             price = instance.ticket.price
             share = {
                 "url" : f'https://www.2geda.net/ticket/get-ticket?event={event_key}&amount={price}'

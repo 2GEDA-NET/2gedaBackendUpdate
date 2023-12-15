@@ -16,7 +16,10 @@ from .views import (
     WithdrawDetailView,
     GetPaymentView,
     GetPastEvent,
-    GetUpcomingEvent
+    GetUpcomingEvent,
+    PopularEvent,
+    ActiveEvent,
+    UpdateEventsView
 )
 
 # Create a router for viewsets
@@ -44,6 +47,9 @@ urlpatterns = [
     path('event-category/<int:pk>/', EventsCategoryDetailView.as_view()),
     path('event-past/', GetPastEvent.as_view()),
     path('event-upcoming/', GetUpcomingEvent.as_view()),
+    path('event-popular/', PopularEvent.as_view()),
+    path('event-active/', ActiveEvent.as_view()),
+    path('event-update/<int:pk>/', UpdateEventsView.as_view()),
 
 
     #Tickets

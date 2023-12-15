@@ -118,6 +118,7 @@ ACCOUNT_TYPE = (
     ('Current', 'Current'),
 )
 
+
 class PayOutInfo(models.Model):
     user =  models.ForeignKey(User, on_delete=models.CASCADE)
     bank_name = models.CharField(max_length=256, null=True, blank=True)

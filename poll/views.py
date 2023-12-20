@@ -99,21 +99,28 @@ class VoteDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class PollListCreateView(generics.ListCreateAPIView):
-    permission_classes = (IsAuthenticated,)
-    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAuthenticated]
     queryset = Poll.objects.all().order_by('created_at')[:30]
     serializer_class = PollSerializer
 
     def perform_create(self, serializer):
+        
+        instance =  None
         instance = serializer.save()
+        
         option_list = []
         content_list = self.request.data.getlist("content")
+        print("Hello")
         duration = self.request.data["duration"]
-  
+        print("Hello2")
         user_profile = UserProfile.objects.get(user=self.request.user)
+        print("Hello3")
         instance.user_profile = user_profile
+        print("Hello4")
         instance.username = self.request.user.username
-        if "media" in self.request.FILES:
+        print("Hello6")
+        if "media" in self.request.data:
+            print("Hello5")
             image_list = self.request.FILES.getlist("media")
             print(image_list)
             print(option_list)
@@ -124,8 +131,8 @@ class PollListCreateView(generics.ListCreateAPIView):
                 option_list.append(option)
 
             instance.options_list.add(*option_list)
-
-            serializer = instance
+            instance.save()
+            print("final")
         
         else:
             for content in content_list:
@@ -133,15 +140,17 @@ class PollListCreateView(generics.ListCreateAPIView):
                 option_list.append(option)
 
             instance.options_list.add(*option_list)
-            serializer = instance
+            instance.save()
+            print("final")
 
 
-        return super().perform_create(serializer)
+
+        return super().perform_create(instance)
 
 
 class PollDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsAuthenticated,)
-    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAuthenticated]
+    
     queryset = Poll.objects.all()
     serializer_class = PollSerializer
 

@@ -202,9 +202,10 @@ class UserEventSerializer(serializers.ModelSerializer):
 
 
 class EventListSerializer(serializers.ModelSerializer):
+    each_ticket = TicketSerializer(required=False, many=True)
     class Meta:
         model = Event
-        fields = [ 'title', 'desc', 'location', 'date', 'url']
+        fields = [ 'title', 'desc', 'location','each_ticket', 'date', 'url']
 
 
 

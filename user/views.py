@@ -1427,7 +1427,7 @@ class ProfileUserView(generics.UpdateAPIView):
 
         if date_of_birth:
             try:
-                formatted_date = datetime.datetime.strptime(
+                formatted_date = datetime.strptime(
                     date_of_birth, '%Y-%m-%d').date()
                 user_profile.date_of_birth = formatted_date
                 print(f"Parsed Date: {formatted_date}")

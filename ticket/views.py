@@ -548,46 +548,67 @@ class UpdateEventsView(generics.RetrieveUpdateDestroyAPIView):
         #     pass
 
 
-class GetPastEvent(APIView):
+# class GetPastEvent(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request, format=None):
+#         today = datetime.now()
+#         events = Event.objects.filter(date__lt=today).values()
+#         serializer = UpcomingEventSerializer(events,  many=True, context={'request': request})
+#         return Response(serializer.data, status=200)
+
+class GetPastEvent(ListAPIView):
     permission_classes = [IsAuthenticated]
-
-    def get(self, request, format=None):
-        today = datetime.now()
-        events = Event.objects.filter(date__lt=today).values()
-        serializer = UpcomingEventSerializer(events,  many=True, context={'request': request})
-        return Response(serializer.data, status=200)
-
-
-
-class GetUpcomingEvent(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, format=None):
-        today = datetime.now()
-        events = Event.objects.filter(date__gt=today).values()
-        serializer = UpcomingEventSerializer(events,  many=True, context={'request': request})
-        return Response(serializer.data, status=200)
+    serializer_class = UpcomingEventSerializer
     
+    def get_queryset(self):
+        today = datetime.now()
+        events = Event.objects.filter(date__lt=today)
+        return events
 
-class ActiveEvent(APIView):
+
+
+# class GetUpcomingEvent(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request, format=None):
+#         today = datetime.now()
+#         events = Event.objects.filter(date__gt=today).values()
+#         serializer = UpcomingEventSerializer(events,  many=True, context={'request': request})
+#         return Response(serializer.data, status=200)
+
+
+
+class GetUpcomingEvent(ListAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = UpcomingEventSerializer
+    
+    def get_queryset(self):
+        today = datetime.now()
+        today_date = datetime.now().date()
+        events = Event.objects.filter(date__gt=today ) or Event.objects.filter( date__date=today_date)
+        return events
 
-    def get(self, request, format=None):
+   
+class ActiveEvent(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UpcomingEventSerializer
+    
+    def get_queryset(self):
         today = datetime.now().date()
-        print(today)
-        events = Event.objects.filter(date__date=today).values()
-        serializer = UpcomingEventSerializer(events,  many=True, context={'request': request})
-        return Response(serializer.data, status=200)
+        events = Event.objects.filter(date__date=today)
+        return events
     
 
-class PopularEvent(APIView):
+class PopularEvent(ListAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = UpcomingEventSerializer
+    
+    def get_queryset(self):
+        today = datetime.now().date()
+        events = Event.objects.filter(is_popular=True)
+        return events
 
-    def get(self, request, format=None):
-        today = datetime.now()
-        events = Event.objects.filter(is_popular=True).values()
-        serializer = UpcomingEventSerializer(events,  many=True, context={'request': request})
-        return Response(serializer.data, status=200)
 
 
 class Ticket_List(generics.ListAPIView):

@@ -4,7 +4,7 @@ import requests
 import json
 from user.serializers import UserSerializer
 from django.utils.timesince import timesince
-from datetime import datetime as date_timer
+from datetime import datetime 
 
 class OptionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -37,7 +37,7 @@ class PollMediaSerializer(serializers.ModelSerializer):
 
 def validate_duration(duration:str, created_at):
     provided_datetime_str = str(created_at)
-    provided_datetime = date_timer.strptime(provided_datetime_str.replace("Z", "+0000"), "%Y-%m-%dT%H:%M:%S.%f%z")
+    provided_datetime = datetime.strptime(provided_datetime_str.replace("Z", "+0000"), "%Y-%m-%dT%H:%M:%S.%f%z")
 
     if duration.endswith("hours") and len(duration)==8:
         
@@ -143,9 +143,7 @@ def validate_duration(duration:str, created_at):
 
 class PollSerializer(serializers.ModelSerializer):
     # count_views = serializers.SerializerMethodField()
-    user = serializers.HiddenField(
-        default=serializers.CurrentUserDefault()
-    )
+    
     media = PollMediaSerializer(required=False)
     options_list =  OptionListSerializer(required=False, many=True) 
     options =  OptionSerializer(required=False, many=True, read_only=True) 
@@ -169,18 +167,24 @@ class PollSerializer(serializers.ModelSerializer):
         time_duration = representation.get("duration")
         time_created = representation.get("created_at")
 
+        print("one")
         duration = validate_duration(time_duration, time_created)
 
+        print("two")
         user_profile = UserProfile.objects.filter(user__username=username).first()
         #time
         time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+        print("three")
         time_instance = representation.get('time_stamp')
-        
-        time_object = date_timer.strptime(time_instance, time_format)
-        
+        print("Four")
+        print(time_instance)
+        time_object = datetime.strptime(time_instance, time_format)
+        print(f'time_object is {time_object}')
         time_since = timesince(time_object)
+        print(time_since)
         try:
-
+            print(user_profile.media.profile_image)
+            print(duration)
             data = {
                 "profile_image": user_profile.media.profile_image,
                 "time_since": time_since,
@@ -190,8 +194,8 @@ class PollSerializer(serializers.ModelSerializer):
             representation.update(data)
 
         except:
+            print(user_profile.media.profile_image,)
             data = {
-                "profile_image": "",
                 "time_since": time_since,
                 "remaining_time": duration
             }

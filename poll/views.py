@@ -110,17 +110,16 @@ class PollListCreateView(generics.ListCreateAPIView):
         
         option_list = []
         content_list = self.request.data.getlist("content")
-        print("Hello")
+        
         duration = self.request.data["duration"]
-        print("Hello2")
+        
         user_profile = UserProfile.objects.get(user=self.request.user)
-        print("Hello3")
+       
         instance.user_profile = user_profile
-        print("Hello4")
+      
         instance.username = self.request.user.username
-        print("Hello6")
+  
         if "media" in self.request.data:
-            print("Hello5")
             image_list = self.request.FILES.getlist("media")
             print(image_list)
             print(option_list)
@@ -132,7 +131,7 @@ class PollListCreateView(generics.ListCreateAPIView):
 
             instance.options_list.add(*option_list)
             instance.save()
-            print("final")
+      
         
         else:
             for content in content_list:
@@ -141,10 +140,7 @@ class PollListCreateView(generics.ListCreateAPIView):
 
             instance.options_list.add(*option_list)
             instance.save()
-            print("final")
-
-
-
+           
         return super().perform_create(instance)
 
 

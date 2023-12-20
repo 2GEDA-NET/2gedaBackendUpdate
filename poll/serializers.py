@@ -33,6 +33,7 @@ class PollMediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = PollMedia
         fields = "__all__"
+        
 
 
 def validate_duration(duration:str, created_at):
@@ -136,6 +137,8 @@ def validate_duration(duration:str, created_at):
             total_minute = time_difference.min
             
             return f'{total_minute} minutes'
+        
+    
     
 
 
@@ -143,7 +146,7 @@ def validate_duration(duration:str, created_at):
 
 class PollSerializer(serializers.ModelSerializer):
     # count_views = serializers.SerializerMethodField()
-    
+    user = UserSerializer(required=False)
     media = PollMediaSerializer(required=False)
     options_list =  OptionListSerializer(required=False, many=True) 
     options =  OptionSerializer(required=False, many=True, read_only=True) 
@@ -167,42 +170,39 @@ class PollSerializer(serializers.ModelSerializer):
         time_duration = representation.get("duration")
         time_created = representation.get("created_at")
 
-        print("one")
+        
         duration = validate_duration(time_duration, time_created)
 
-        print("two")
+
         user_profile = UserProfile.objects.filter(user__username=username).first()
         #time
         time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
-        print("three")
+
         time_instance = representation.get('time_stamp')
-        print("Four")
-        print(time_instance)
+
         time_object = datetime.strptime(time_instance, time_format)
-        print(f'time_object is {time_object}')
+
         time_since = timesince(time_object)
-        print(time_since)
-        try:
-            print(user_profile.media.profile_image)
-            print(duration)
-            data = {
-                "profile_image": user_profile.media.profile_image,
-                "time_since": time_since,
-                "remaining_time": duration
-            }
-       
-            representation.update(data)
+   
 
-        except:
-            print(user_profile.media.profile_image,)
-            data = {
-                "time_since": time_since,
-                "remaining_time": duration
-            }
-       
-            representation.update(data)
+        data = {
+            "time_since": time_since,
+            "remaining_time": duration
+        }
+        
+        representation.update(data)
 
-        return representation
+        # except:
+        #     print(user_profile.media.profile_image,)
+        #     data = {
+        #         "time_since": time_since,
+        #         "remaining_time": duration
+        #     }
+       
+        #     representation.update(data)
+        #     print("done")
+
+        return super().to_representation(instance)
 
 
     

@@ -22,6 +22,7 @@ import hashlib
 import hmac
 from django.conf import settings
 from user.models import User  as CustomUser
+from datetime import timedelta
 
 
 class EventCategoryViewSet(viewsets.ModelViewSet):
@@ -82,15 +83,21 @@ class PaymentOnlineApi(generics.CreateAPIView):
     queryset = Ticket_Payment.objects.all()
 
     def perform_create(self, serializer):
+
         ticket_id = self.request.data["ticket_id"]
+        print(ticket_id)
+        # ticket_id = self.request.data["ticket_id"]
+
         ticket = Ticket.objects.get(pk=ticket_id)
 
         event = Event.objects.get(each_ticket=ticket)
         print(event.pk)
         
+        print(serializer)
         serializer.validated_data["ticket"] = ticket
         serializer = serializer.save()
         event.sales.add(serializer)
+        
         return super().perform_create(serializer)
 
 
@@ -889,4 +896,63 @@ class WithdrawDetailView(generics.CreateAPIView):
         withdraw = Withdraw.objects.filter(pk=withdraw.pk).values()
         return Response(list(withdraw), status=200)
 
+
+class GetSalesDashboard(APIView):
+    permission_classes=[IsAuthenticated]
+
+    def get(self, request, format=None):
+        today = datetime.now()
         
+
+        total_ticket_sales = None
+        month_ticket = None
+        ticket_count = None
+        month_event = None 
+        total_event = None
+        current_balance = None
+
+        if request.GET.get("filter") == "Weekly":
+            now = timezone.now()
+
+            seven_days_ago = now - timedelta(days=7)
+
+            all_ticket = Ticket_Payment.objects.filter(user=request.user)
+            ticket = Ticket_Payment.objects.filter(user=request.user, time_stamp__range=(seven_days_ago, now))
+            month_ticket = ticket.aggregate(Sum("total_amount"))["total_amount__sum"]
+            ticket_count = ticket.aggregate(Sum("ticket_quantity"))["ticket_quantity__sum"]
+            total_ticket_sales = all_ticket.aggregate(Sum("total_amount"))["total_amount__sum"]
+            month_event = Event.objects.filter(user=request.user, date__range=(seven_days_ago, now)).count()
+            total_event = Event.objects.filter(user=request.user).count()
+            current_balance = request.user.account_balance
+
+        elif request.GET.get("filter") == "Yearly":
+            year = today.year
+            all_ticket = Ticket_Payment.objects.filter(user=request.user)
+            ticket = Ticket_Payment.objects.filter(user=request.user, time_stamp__year=year)
+            month_ticket = ticket.aggregate(Sum("total_amount"))["total_amount__sum"]
+            ticket_count = ticket.aggregate(Sum("ticket_quantity"))["ticket_quantity__sum"]
+            total_ticket_sales = all_ticket.aggregate(Sum("total_amount"))["total_amount__sum"]
+            month_event = Event.objects.filter(user=request.user, date__year=year).count()
+            total_event = Event.objects.filter(user=request.user).count()
+            current_balance = request.user.account_balance
+
+        else :
+            month = today.month
+            all_ticket = Ticket_Payment.objects.filter(user=request.user)
+            ticket = Ticket_Payment.objects.filter(user=request.user, time_stamp__month=month)
+            month_ticket = ticket.aggregate(Sum("total_amount"))["total_amount__sum"]
+            ticket_count = ticket.aggregate(Sum("ticket_quantity"))["ticket_quantity__sum"]
+            total_ticket_sales = all_ticket.aggregate(Sum("total_amount"))["total_amount__sum"]
+            month_event = Event.objects.filter(user=request.user, date__month=month).count()
+            total_event = Event.objects.filter(user=request.user).count()
+            current_balance = request.user.account_balance
+
+
+
+        return Response({
+                        "all_ticket_sales": total_ticket_sales,
+                        "month_ticket": month_ticket,
+                          "ticket_count": ticket_count,
+                            "month_event": month_event, 
+                            "total_event": total_event,
+                            "current_balance": current_balance}, 200)

@@ -11,6 +11,21 @@ POST_CHOICES = (
     ("private", "private")
 )
 
+FILE_CHOICES = (
+    ("Images", "Images"),
+    ("Videos", "Videos"),
+    ("Music", "Music"),
+    ("Location", "Location"),
+    ("Recording", "Recording"),
+    ("PDF", "PDF"),
+    ("Word", "Word"),
+    ("Excel", "Excel"),
+    ("PPT", "PPT"),
+    ("Files", "Files"),
+    ("Apk", "Apk"),
+    ("EXE", "EXE")
+)
+
 
 class MediaPost(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -44,6 +59,7 @@ class PostMedia(models.Model):
     post_type =  models.CharField(choices=POST_CHOICES, default="public")
     each_media = models.ManyToManyField(MediaPost)
     hashtags =  models.ManyToManyField(HashTagsPost)
+    file_type = models.CharField(null=True, choices=FILE_CHOICES)
     is_business_post = models.BooleanField(
         default=False, verbose_name='Business Post')
     is_personal_post = models.BooleanField(

@@ -181,14 +181,22 @@ class Ticket_Payment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
     amount = models.FloatField()
+    total_amount = models.FloatField(default=0)
     time_stamp = models.DateTimeField(default=timezone.now)
     url = models.CharField(max_length=1000, null=True, blank=True)
     is_initiated = models.BooleanField(default=False)
     is_completed = models.BooleanField(default=False)
     payment_id = models.UUIDField(default=uuid.uuid4())
+    ticket_quantity = models.IntegerField(default=0)
 
     class Meta:
         get_latest_by = 'time_stamp'
+
+    def save(self, *args, **kwargs) -> None:
+        if self.ticket_quantity and self.amount:
+            self.amount = self.ticket_quantity * self.amount
+            
+        return super().save(*args, **kwargs)
 
 
 class Withdraw(models.Model):

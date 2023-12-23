@@ -138,11 +138,6 @@ def validate_duration(duration:str, created_at):
             
             return f'{total_minute} minutes'
         
-    
-    
-
-
-
 
 class PollSerializer(serializers.ModelSerializer):
     # count_views = serializers.SerializerMethodField()

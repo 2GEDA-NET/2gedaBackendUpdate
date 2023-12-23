@@ -19,7 +19,8 @@ from .views import (
     GetUpcomingEvent,
     PopularEvent,
     ActiveEvent,
-    UpdateEventsView
+    UpdateEventsView,
+    GetSalesDashboard
 )
 
 # Create a router for viewsets
@@ -51,7 +52,7 @@ urlpatterns = [
     path('event-active/', ActiveEvent.as_view()),
     path('event-update/<int:pk>/', UpdateEventsView.as_view()),
 
-
+    path('event-transactions', GetSalesDashboard.as_view()),
     #Tickets
     path('buy-ticket', PaymentOnlineApi.as_view(), name='buy-ticket'),
 

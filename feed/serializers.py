@@ -292,6 +292,7 @@ class CreatePostSerializer(serializers.ModelSerializer):
     each_media = PostMediaSerializer(many=True, required=False)
     hashtags = HashTagSerializer(many=True, required=False)
     content =  serializers.CharField(required=False)
+    file_type = serializers.CharField(required=False)
     Reaction = ReactionSerializer(many=True, required=False)
     post_reaction_count = serializers.SerializerMethodField()
     post_comment_count = serializers.SerializerMethodField()
